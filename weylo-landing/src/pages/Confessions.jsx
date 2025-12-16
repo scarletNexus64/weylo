@@ -1,91 +1,175 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useAuth } from '../contexts/AuthContext'
+import confessionsService from '../services/confessionsService'
+import ConfessionCard from '../components/confessions/ConfessionCard'
 import '../styles/Confessions.css'
 
 export default function Confessions() {
+  const { user } = useAuth()
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [newConfession, setNewConfession] = useState('')
-  const [confessions, setConfessions] = useState([
-    {
-      id: 1,
-      content: "J'ai un crush secret sur quelqu'un de ma classe depuis 2 ans mais je n'ai jamais osé lui dire...",
-      likes_count: 245,
-      is_liked: false,
-      created_at: 'Il y a 2 heures',
-      author_initial: 'A'
-    },
-    {
-      id: 2,
-      content: "Parfois je fais semblant d'être occupé juste pour ne pas sortir avec mes amis. J'adore rester seul chez moi.",
-      likes_count: 189,
-      is_liked: true,
-      created_at: 'Il y a 5 heures',
-      author_initial: 'M'
-    },
-    {
-      id: 3,
-      content: "Je regrette d'avoir quitté mon ex. C'était la meilleure personne que j'ai jamais rencontrée.",
-      likes_count: 421,
-      is_liked: false,
-      created_at: 'Il y a 1 jour',
-      author_initial: 'K'
-    },
-    {
-      id: 4,
-      content: "J'ai menti sur mon âge sur mes réseaux sociaux pour avoir l'air plus cool. Personne ne le sait.",
-      likes_count: 156,
-      is_liked: false,
-      created_at: 'Il y a 1 jour',
-      author_initial: 'S'
-    },
-    {
-      id: 5,
-      content: "Des fois j'aimerais juste tout plaquer et recommencer ma vie ailleurs, loin de tout le monde.",
-      likes_count: 567,
-      is_liked: true,
-      created_at: 'Il y a 2 jours',
-      author_initial: 'B'
-    },
-    {
-      id: 6,
-      content: "Je suis jaloux du succès de mes amis sur les réseaux sociaux même si je ne le montre jamais.",
-      likes_count: 302,
-      is_liked: false,
-      created_at: 'Il y a 2 jours',
-      author_initial: 'L'
-    }
-  ])
+  const [confessions, setConfessions] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+  const [page, setPage] = useState(1)
+  const [hasMore, setHasMore] = useState(true)
+  const [loadingMore, setLoadingMore] = useState(false)
 
-  const toggleLike = (confessionId) => {
-    setConfessions(confessions.map(conf => {
+  useEffect(() => {
+    loadConfessions()
+  }, [])
+
+  const loadConfessions = async () => {
+    try {
+      setLoading(true)
+      const data = await confessionsService.getPublicConfessions(1, 20)
+      const confessionsData = data.confessions.data || data.confessions
+      setConfessions(confessionsData)
+      setHasMore(data.meta?.current_page < data.meta?.last_page)
+      setPage(1)
+      setError(null)
+      console.log('✅ Confessions chargées:', confessionsData)
+    } catch (err) {
+      console.error('❌ Erreur lors du chargement des confessions:', err)
+      setError('Impossible de charger les confessions')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const loadMore = async () => {
+    if (loadingMore || !hasMore) return
+
+    try {
+      setLoadingMore(true)
+      const nextPage = page + 1
+      const data = await confessionsService.getPublicConfessions(nextPage, 20)
+      const newConfessions = data.confessions.data || data.confessions
+      setConfessions(prev => [...prev, ...newConfessions])
+      setHasMore(data.meta?.current_page < data.meta?.last_page)
+      setPage(nextPage)
+    } catch (err) {
+      console.error('❌ Erreur lors du chargement de plus de confessions:', err)
+    } finally {
+      setLoadingMore(false)
+    }
+  }
+
+  const handleCreateConfession = async () => {
+    if (newConfession.trim().length < 10) {
+      alert('Ta confession doit contenir au moins 10 caractères')
+      return
+    }
+
+    if (!user) {
+      alert('Tu dois être connecté pour créer une confession')
+      return
+    }
+
+    try {
+      await confessionsService.createConfession({
+        content: newConfession,
+        type: 'public'
+      })
+
+      setNewConfession('')
+      setShowCreateModal(false)
+      alert('Confession créée ! Elle sera publiée après modération.')
+      loadConfessions()
+    } catch (err) {
+      console.error('❌ Erreur lors de la création:', err)
+      alert('Impossible de créer la confession')
+    }
+  }
+
+  const toggleLike = async (confessionId) => {
+    if (!user) {
+      alert('Tu dois être connecté pour liker une confession')
+      return
+    }
+
+    try {
+      // Trouver l'état actuel AVANT l'update optimiste
+      const confession = confessions.find(c => c.id === confessionId)
+      const wasLiked = confession.is_liked
+
+      // Optimistic update
+      setConfessions(prev => prev.map(conf => {
+        if (conf.id === confessionId) {
+          return {
+            ...conf,
+            is_liked: !wasLiked,
+            likes_count: wasLiked ? conf.likes_count - 1 : conf.likes_count + 1
+          }
+        }
+        return conf
+      }))
+
+      // API call avec la bonne logique
+      if (wasLiked) {
+        await confessionsService.unlikeConfession(confessionId)
+      } else {
+        await confessionsService.likeConfession(confessionId)
+      }
+    } catch (err) {
+      console.error('❌ Erreur lors du like:', err)
+      // Rollback on error
+      loadConfessions()
+    }
+  }
+
+  const handleCommentAdded = (confessionId) => {
+    console.log('Commentaire ajouté à la confession:', confessionId)
+    // Mettre à jour le count des commentaires
+    setConfessions(prev => prev.map(conf => {
       if (conf.id === confessionId) {
         return {
           ...conf,
-          is_liked: !conf.is_liked,
-          likes_count: conf.is_liked ? conf.likes_count - 1 : conf.likes_count + 1
+          comments_count: (conf.comments_count || 0) + 1
         }
       }
       return conf
     }))
   }
 
-  const handleCreateConfession = () => {
-    if (newConfession.trim().length < 10) {
-      alert('Ta confession doit contenir au moins 10 caractères')
-      return
-    }
+  const handleCommentDeleted = (confessionId) => {
+    console.log('Commentaire supprimé de la confession:', confessionId)
+    // Décrémenter le count des commentaires
+    setConfessions(prev => prev.map(conf => {
+      if (conf.id === confessionId) {
+        return {
+          ...conf,
+          comments_count: Math.max((conf.comments_count || 0) - 1, 0)
+        }
+      }
+      return conf
+    }))
+  }
 
-    const confession = {
-      id: Date.now(),
-      content: newConfession,
-      likes_count: 0,
-      is_liked: false,
-      created_at: 'À l\'instant',
-      author_initial: 'Moi'
-    }
+  if (loading) {
+    return (
+      <div className="confessions-page">
+        <div className="page-header">
+          <h1>Confessions 📢</h1>
+          <p>Chargement des confessions...</p>
+        </div>
+        <div className="loading-spinner"></div>
+      </div>
+    )
+  }
 
-    setConfessions([confession, ...confessions])
-    setNewConfession('')
-    setShowCreateModal(false)
+  if (error) {
+    return (
+      <div className="confessions-page">
+        <div className="page-header">
+          <h1>Confessions 📢</h1>
+          <p>{error}</p>
+        </div>
+        <button onClick={loadConfessions} className="btn-retry">
+          Réessayer
+        </button>
+      </div>
+    )
   }
 
   return (
@@ -96,42 +180,46 @@ export default function Confessions() {
       </div>
 
       {/* Create Button */}
-      <button className="btn-create-confession" onClick={() => setShowCreateModal(true)}>
-        ✍️ Créer une confession
-      </button>
+      {user && (
+        <button className="btn-create-confession" onClick={() => setShowCreateModal(true)}>
+          ✍️ Créer une confession
+        </button>
+      )}
 
       {/* Confessions Feed */}
-      <div className="confessions-feed">
-        {confessions.map(confession => (
-          <div key={confession.id} className="confession-card">
-            <div className="confession-header">
-              <div className="confession-author">
-                <div className="author-avatar">{confession.author_initial}</div>
-                <div className="author-info">
-                  <span className="author-name">Anonyme</span>
-                  <span className="confession-time">{confession.created_at}</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="confession-content">
-              {confession.content}
-            </div>
-
-            <div className="confession-actions">
-              <button
-                className={`btn-like ${confession.is_liked ? 'liked' : ''}`}
-                onClick={() => toggleLike(confession.id)}
-              >
-                {confession.is_liked ? '❤️' : '🤍'} {confession.likes_count}
-              </button>
-              <button className="btn-share">
-                🔗 Partager
-              </button>
-            </div>
+      {confessions.length === 0 ? (
+        <div className="empty-state">
+          <p>Aucune confession pour le moment</p>
+          <p className="subtitle">Sois le premier à partager</p>
+        </div>
+      ) : (
+        <>
+          <div className="confessions-feed">
+            {confessions.map(confession => (
+              <ConfessionCard
+                key={confession.id}
+                confession={confession}
+                onLike={toggleLike}
+                onCommentAdded={handleCommentAdded}
+                onCommentDeleted={handleCommentDeleted}
+                currentUser={user}
+              />
+            ))}
           </div>
-        ))}
-      </div>
+
+          {hasMore && (
+            <div className="load-more-container">
+              <button
+                onClick={loadMore}
+                disabled={loadingMore}
+                className="btn-load-more"
+              >
+                {loadingMore ? 'Chargement...' : 'Charger plus'}
+              </button>
+            </div>
+          )}
+        </>
+      )}
 
       {/* Create Confession Modal */}
       {showCreateModal && (

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import AuthModal from './components/auth/AuthModal'
+import { Link } from 'react-router-dom'
 
 function App() {
   const [scrolled, setScrolled] = useState(false)
@@ -7,8 +7,6 @@ function App() {
   const [showCookieBanner, setShowCookieBanner] = useState(true)
   const [activeTab, setActiveTab] = useState('home')
   const [darkMode, setDarkMode] = useState(false)
-  const [showAuthModal, setShowAuthModal] = useState(false)
-  const [authMode, setAuthMode] = useState('login')
 
   useEffect(() => {
     const handleScroll = () => {
@@ -101,12 +99,12 @@ function App() {
             <button className="theme-toggle" onClick={toggleDarkMode} aria-label="Toggle dark mode">
               {darkMode ? '☀️' : '🌙'}
             </button>
-            <button className="btn-login" onClick={() => { setAuthMode('login'); setShowAuthModal(true); }}>
+            <Link to="/login" className="btn-login">
               Connexion
-            </button>
-            <button className="btn-register" onClick={() => { setAuthMode('register'); setShowAuthModal(true); }}>
+            </Link>
+            <Link to="/register" className="btn-register">
               Inscription
-            </button>
+            </Link>
           </div>
 
           {/* Mobile Menu Button */}
@@ -127,12 +125,12 @@ function App() {
               <button className="theme-toggle mobile" onClick={toggleDarkMode}>
                 {darkMode ? '☀️ Mode clair' : '🌙 Mode sombre'}
               </button>
-              <button className="btn-login" onClick={() => { setAuthMode('login'); setShowAuthModal(true); setMobileMenuOpen(false); }}>
+              <Link to="/login" className="btn-login" onClick={() => setMobileMenuOpen(false)}>
                 Connexion
-              </button>
-              <button className="btn-register" onClick={() => { setAuthMode('register'); setShowAuthModal(true); setMobileMenuOpen(false); }}>
+              </Link>
+              <Link to="/register" className="btn-register" onClick={() => setMobileMenuOpen(false)}>
                 Inscription
-              </button>
+              </Link>
             </div>
           </div>
         )}
@@ -526,12 +524,6 @@ function App() {
         </div>
       </footer>
 
-      {/* Auth Modal */}
-      <AuthModal
-        isOpen={showAuthModal}
-        onClose={() => setShowAuthModal(false)}
-        initialMode={authMode}
-      />
     </div>
   )
 }

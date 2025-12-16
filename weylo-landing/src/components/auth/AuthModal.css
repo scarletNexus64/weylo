@@ -129,10 +129,19 @@
   font-size: 14px;
   font-weight: 600;
   color: #374151;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .dark-mode .form-group label {
   color: #d1d5db;
+}
+
+.label-icon {
+  width: 16px;
+  height: 16px;
+  color: #9333ea;
 }
 
 .form-group input {
@@ -163,6 +172,45 @@
 
 .dark-mode .form-group small {
   color: #9ca3af;
+}
+
+/* PIN Inputs */
+.pin-inputs {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin: 12px 0;
+}
+
+.pin-input {
+  width: 56px !important;
+  height: 56px;
+  text-align: center;
+  font-size: 24px;
+  font-weight: 800;
+  border: 2px solid #e5e7eb !important;
+  border-radius: 12px !important;
+  padding: 0 !important;
+  transition: all 0.3s;
+  background: white;
+}
+
+.dark-mode .pin-input {
+  background: #2d2d2d !important;
+  border-color: #3d3d3d !important;
+  color: white;
+}
+
+.pin-input:focus {
+  outline: none;
+  border-color: #9333ea !important;
+  box-shadow: 0 0 0 4px rgba(147, 51, 234, 0.1);
+  transform: scale(1.05);
+}
+
+.dark-mode .pin-input:focus {
+  border-color: #c084fc !important;
+  box-shadow: 0 0 0 4px rgba(192, 132, 252, 0.1);
 }
 
 .auth-submit-btn {

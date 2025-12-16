@@ -1,11 +1,9 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import axios from 'axios'
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1'
+import apiClient from '../services/apiClient'
 
 export default function SendMessagePage() {
-  const { userId } = useParams()
+  const { userId, username } = useParams()
   const navigate = useNavigate()
 
   const [recipientUsername, setRecipientUsername] = useState(null)
@@ -54,7 +52,22 @@ export default function SendMessagePage() {
   useEffect(() => {
     const checkUser = async () => {
       try {
-        const response = await axios.get(`${API_URL}/users/by-id/${userId}`)
+        let response
+
+        // Si on a un username, utiliser l'endpoint by-username
+        if (username) {
+          response = await apiClient.get(`/users/by-username/${username}`)
+        }
+        // Sinon, utiliser l'ancien endpoint by-id
+        else if (userId) {
+          response = await apiClient.get(`/users/by-id/${userId}`)
+        } else {
+          setError('Lien invalide')
+          setUserExists(false)
+          setLoading(false)
+          return
+        }
+
         setRecipientUsername(response.data.user.username)
         setUserExists(true)
       } catch (err) {
@@ -67,7 +80,7 @@ export default function SendMessagePage() {
     }
 
     checkUser()
-  }, [userId])
+  }, [userId, username])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -148,7 +161,7 @@ export default function SendMessagePage() {
     try {
       if (!recipientUsername) return;
 
-      const response = await axios.post(`${API_URL}/auth/register-and-send`, {
+      const response = await apiClient.post('/auth/register-and-send', {
         recipient_username: recipientUsername,
         message: message,
         first_name: firstName,
@@ -252,12 +265,12 @@ export default function SendMessagePage() {
             </div>
 
             {/* Center - User indicator */}
-            <div className="hidden md:flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/20 animate-fadeInUp">
+            {/* <div className="hidden md:flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/20 animate-fadeInUp">
               <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
               <span className={`text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                 Envoyer à <span className="font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">@{recipientUsername}</span>
               </span>
-            </div>
+            </div> */}
 
             {/* Right - Actions */}
             <div className="flex items-center gap-2 md:gap-4 animate-slideInRight">
@@ -322,12 +335,12 @@ export default function SendMessagePage() {
           </p>
 
           {/* Mobile user indicator */}
-          <div className="md:hidden mt-6 flex items-center justify-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/20 animate-fadeInUp animation-delay-300">
+          {/* <div className="md:hidden mt-6 flex items-center justify-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/20 animate-fadeInUp animation-delay-300">
             <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
             <span className={`text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
               Pour <span className="font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">@{recipientUsername}</span>
             </span>
-          </div>
+          </div> */}
         </div>
 
         {/* Message Form Card */}

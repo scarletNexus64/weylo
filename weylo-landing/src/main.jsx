@@ -4,6 +4,8 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import './index.css'
 import App from './App.jsx'
+import LoginPage from './pages/LoginPage'
+import RegisterPage from './pages/RegisterPage'
 import SendMessagePage from './pages/SendMessagePage.jsx'
 import MainLayout from './components/layout/MainLayout'
 import Dashboard from './pages/Dashboard'
@@ -13,6 +15,7 @@ import Chat from './pages/Chat'
 import Gifts from './pages/Gifts'
 import Wallet from './pages/Wallet'
 import Profile from './pages/Profile'
+import AdminDashboard from './pages/AdminDashboard'
 
 // Protected Route Component
 function ProtectedRoute({ children }) {
@@ -44,6 +47,27 @@ function PublicRoute({ children }) {
   return isAuthenticated === false ? children : <Navigate to="/dashboard" replace />
 }
 
+// Admin Route (only for admins)
+function AdminRoute({ children }) {
+  const { user, isAuthenticated, loading } = useAuth()
+
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <div>Chargement...</div>
+      </div>
+    )
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/" replace />
+  }
+
+  const isAdmin = user?.role === 'admin' || user?.role === 'superadmin' || user?.role === 'moderator'
+
+  return isAdmin ? children : <Navigate to="/dashboard" replace />
+}
+
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <AuthProvider>
@@ -58,7 +82,24 @@ createRoot(document.getElementById('root')).render(
               </PublicRoute>
             }
           />
+          <Route
+            path="/login"
+            element={
+              <PublicRoute>
+                <LoginPage />
+              </PublicRoute>
+            }
+          />
+          <Route
+            path="/register"
+            element={
+              <PublicRoute>
+                <RegisterPage />
+              </PublicRoute>
+            }
+          />
           <Route path="/m/:userId" element={<SendMessagePage />} />
+          <Route path="/u/:username" element={<SendMessagePage />} />
 
           {/* Protected Routes */}
           <Route
@@ -79,6 +120,16 @@ createRoot(document.getElementById('root')).render(
             <Route path="settings" element={<div style={{ padding: '40px', textAlign: 'center', fontSize: '24px' }}>🚧 Paramètres - En cours de construction</div>} />
             <Route path="notifications" element={<div style={{ padding: '40px', textAlign: 'center', fontSize: '24px' }}>🚧 Notifications - En cours de construction</div>} />
           </Route>
+
+          {/* Admin Routes */}
+          <Route
+            path="/admin"
+            element={
+              <AdminRoute>
+                <AdminDashboard />
+              </AdminRoute>
+            }
+          />
 
           {/* 404 */}
           <Route path="*" element={<Navigate to="/" replace />} />

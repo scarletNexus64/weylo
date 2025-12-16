@@ -15,36 +15,88 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
 
   const [registerData, setRegisterData] = useState({
     first_name: '',
-    phone: '',
-    pin: ''
+    phone: ''
   })
+
+  const [pin, setPin] = useState(['', '', '', ''])
 
   if (!isOpen) return null
 
   const handleLogin = async (e) => {
     e.preventDefault()
+    console.log('🔐 [AUTH_MODAL] Soumission formulaire de connexion')
+    console.log('📋 [AUTH_MODAL] Données de connexion:', {
+      username: loginData.username,
+      hasPassword: !!loginData.password
+    })
+
     setError('')
     setLoading(true)
 
     try {
+      console.log('⏳ [AUTH_MODAL] Appel de la fonction login...')
       await login(loginData)
+      console.log('✅ [AUTH_MODAL] Connexion réussie! Fermeture du modal...')
       onClose()
     } catch (err) {
+      console.error('❌ [AUTH_MODAL] Erreur de connexion:', err)
       setError(err.message || 'Erreur de connexion')
     } finally {
       setLoading(false)
     }
   }
 
+  const handlePinChange = (index, value) => {
+    // Only allow numbers
+    if (value && !/^\d$/.test(value)) return
+
+    const newPin = [...pin]
+    newPin[index] = value
+    setPin(newPin)
+
+    // Auto-focus next input
+    if (value && index < 3) {
+      const nextInput = document.getElementById(`auth-pin-${index + 1}`)
+      if (nextInput) nextInput.focus()
+    }
+  }
+
+  const handlePinKeyDown = (index, e) => {
+    // Handle backspace
+    if (e.key === 'Backspace' && !e.target.value && index > 0) {
+      const prevInput = document.getElementById(`auth-pin-${index - 1}`)
+      if (prevInput) prevInput.focus()
+    }
+  }
+
   const handleRegister = async (e) => {
     e.preventDefault()
+
+    const pinString = pin.join('')
+
+    console.log('📝 [AUTH_MODAL] Soumission formulaire d\'inscription')
+    console.log('📋 [AUTH_MODAL] Données d\'inscription:', {
+      first_name: registerData.first_name,
+      phone: registerData.phone,
+      hasPin: !!pinString,
+      pinLength: pinString.length
+    })
+
+    if (pinString.length !== 4) {
+      setError('Veuillez entrer un code PIN à 4 chiffres')
+      return
+    }
+
     setError('')
     setLoading(true)
 
     try {
-      await register(registerData)
+      console.log('⏳ [AUTH_MODAL] Appel de la fonction register...')
+      await register({ ...registerData, pin: pinString })
+      console.log('✅ [AUTH_MODAL] Inscription réussie! Fermeture du modal...')
       onClose()
     } catch (err) {
+      console.error('❌ [AUTH_MODAL] Erreur d\'inscription:', err)
       setError(err.message || 'Erreur d\'inscription')
     } finally {
       setLoading(false)
@@ -112,19 +164,29 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
         ) : (
           <form onSubmit={handleRegister} className="auth-modal-form">
             <div className="form-group">
-              <label htmlFor="first_name">Prénom</label>
+              <label htmlFor="first_name">
+                <svg className="label-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+                Prénom
+              </label>
               <input
                 type="text"
                 id="first_name"
                 value={registerData.first_name}
                 onChange={(e) => setRegisterData({ ...registerData, first_name: e.target.value })}
-                placeholder="John"
+                placeholder="Ton prénom"
                 required
               />
             </div>
 
             <div className="form-group">
-              <label htmlFor="phone">Téléphone</label>
+              <label htmlFor="phone">
+                <svg className="label-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                </svg>
+                Téléphone
+              </label>
               <input
                 type="tel"
                 id="phone"
@@ -136,17 +198,28 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
             </div>
 
             <div className="form-group">
-              <label htmlFor="pin">Code PIN (4 chiffres)</label>
-              <input
-                type="password"
-                id="pin"
-                value={registerData.pin}
-                onChange={(e) => setRegisterData({ ...registerData, pin: e.target.value })}
-                placeholder="••••"
-                maxLength={4}
-                pattern="[0-9]{4}"
-                required
-              />
+              <label>
+                <svg className="label-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+                Code PIN (4 chiffres)
+              </label>
+              <div className="pin-inputs">
+                {[0, 1, 2, 3].map((index) => (
+                  <input
+                    key={`auth-pin-${index}`}
+                    id={`auth-pin-${index}`}
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={1}
+                    value={pin[index]}
+                    onChange={(e) => handlePinChange(index, e.target.value)}
+                    onKeyDown={(e) => handlePinKeyDown(index, e)}
+                    className="pin-input"
+                    required
+                  />
+                ))}
+              </div>
               <small>Ce code sera ton mot de passe</small>
             </div>
 

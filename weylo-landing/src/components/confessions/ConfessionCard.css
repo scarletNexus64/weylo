@@ -1,0 +1,120 @@
+.confession-card {
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+}
+
+.confession-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+.confession-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.confession-author {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.author-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.author-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.author-name {
+  font-weight: 600;
+  color: #1a1a1a;
+  font-size: 14px;
+}
+
+.confession-time {
+  font-size: 12px;
+  color: #666;
+}
+
+.confession-content {
+  color: #333;
+  font-size: 15px;
+  line-height: 1.6;
+  margin-bottom: 16px;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.confession-actions {
+  display: flex;
+  gap: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.btn-like,
+.btn-comment {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+  background: #f5f5f5;
+  color: #666;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 500;
+}
+
+.btn-like:hover,
+.btn-comment:hover {
+  background: #e8e8e8;
+}
+
+.btn-like.liked {
+  background: #ffe8e8;
+  color: #e63946;
+}
+
+.btn-comment.active {
+  background: #e8f0fe;
+  color: #1976d2;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .confession-card {
+    padding: 16px;
+    border-radius: 12px;
+  }
+
+  .confession-content {
+    font-size: 14px;
+  }
+
+  .btn-like,
+  .btn-comment {
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+}

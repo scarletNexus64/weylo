@@ -1264,6 +1264,8 @@ html.dark-mode .theme-toggle:hover {
   font-size: 0.95rem;
   cursor: pointer;
   transition: all 0.3s ease;
+  text-decoration: none;
+  display: inline-block;
 }
 
 .btn-login:hover {
@@ -1284,6 +1286,8 @@ html.dark-mode .theme-toggle:hover {
   cursor: pointer;
   transition: all 0.3s ease;
   box-shadow: 0 4px 15px rgba(217, 70, 239, 0.3);
+  text-decoration: none;
+  display: inline-block;
 }
 
 .btn-register:hover {

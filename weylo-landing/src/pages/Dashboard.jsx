@@ -9,7 +9,25 @@ export default function Dashboard() {
   const { user } = useAuth()
   const [copied, setCopied] = useState(false)
 
-  const shareLink = `https://weylo.app/u/${user?.username}`
+  // Vérifier si l'utilisateur est admin
+  const isAdmin = user?.role === 'admin' || user?.role === 'superadmin' || user?.role === 'moderator'
+
+  // Générer le lien dynamiquement selon l'environnement
+  const getBaseUrl = () => {
+    // En développement, utiliser l'origine actuelle (ex: http://localhost:3000)
+    // En production, utiliser weylo.app
+    const currentOrigin = window.location.origin
+
+    // Si on est sur localhost, utiliser localhost
+    if (currentOrigin.includes('localhost') || currentOrigin.includes('127.0.0.1')) {
+      return currentOrigin
+    }
+
+    // Sinon utiliser le domaine de production
+    return 'https://weylo.app'
+  }
+
+  const shareLink = `${getBaseUrl()}/u/${user?.username}`
 
   const copyLink = () => {
     navigator.clipboard.writeText(shareLink)
@@ -33,6 +51,11 @@ export default function Dashboard() {
       <div className="dashboard-header">
         <h1>Bienvenue, {user?.first_name} 👋</h1>
         <p>Découvre ce que tes amis pensent vraiment de toi</p>
+        {isAdmin && (
+          <Link to="/admin" className="admin-dashboard-link">
+            📊 Dashboard Admin
+          </Link>
+        )}
       </div>
 
       {/* Stories Section */}
