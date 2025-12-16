@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import AuthModal from './components/auth/AuthModal'
 
 function App() {
   const [scrolled, setScrolled] = useState(false)
@@ -6,6 +7,8 @@ function App() {
   const [showCookieBanner, setShowCookieBanner] = useState(true)
   const [activeTab, setActiveTab] = useState('home')
   const [darkMode, setDarkMode] = useState(false)
+  const [showAuthModal, setShowAuthModal] = useState(false)
+  const [authMode, setAuthMode] = useState('login')
 
   useEffect(() => {
     const handleScroll = () => {
@@ -98,8 +101,12 @@ function App() {
             <button className="theme-toggle" onClick={toggleDarkMode} aria-label="Toggle dark mode">
               {darkMode ? '☀️' : '🌙'}
             </button>
-            <button className="btn-login">Connexion</button>
-            <button className="btn-register">Inscription</button>
+            <button className="btn-login" onClick={() => { setAuthMode('login'); setShowAuthModal(true); }}>
+              Connexion
+            </button>
+            <button className="btn-register" onClick={() => { setAuthMode('register'); setShowAuthModal(true); }}>
+              Inscription
+            </button>
           </div>
 
           {/* Mobile Menu Button */}
@@ -120,8 +127,12 @@ function App() {
               <button className="theme-toggle mobile" onClick={toggleDarkMode}>
                 {darkMode ? '☀️ Mode clair' : '🌙 Mode sombre'}
               </button>
-              <button className="btn-login">Connexion</button>
-              <button className="btn-register">Inscription</button>
+              <button className="btn-login" onClick={() => { setAuthMode('login'); setShowAuthModal(true); setMobileMenuOpen(false); }}>
+                Connexion
+              </button>
+              <button className="btn-register" onClick={() => { setAuthMode('register'); setShowAuthModal(true); setMobileMenuOpen(false); }}>
+                Inscription
+              </button>
             </div>
           </div>
         )}
@@ -514,6 +525,13 @@ function App() {
           </div>
         </div>
       </footer>
+
+      {/* Auth Modal */}
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        initialMode={authMode}
+      />
     </div>
   )
 }
