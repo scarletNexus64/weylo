@@ -931,6 +931,170 @@
   color: #9ca3af;
 }
 
+/* Streak Styles */
+/* Streak in conversation list */
+.conversation-streak {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 700;
+  background: rgba(251, 146, 60, 0.1);
+  transition: all 0.3s;
+}
+
+@media (min-width: 768px) {
+  .conversation-streak {
+    font-size: 12px;
+  }
+}
+
+.conversation-streak .streak-flame {
+  font-size: 12px;
+  line-height: 1;
+}
+
+.conversation-streak .streak-count {
+  color: #f97316;
+}
+
+/* Streak in chat header */
+.chat-header-streak {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border-radius: 16px;
+  background: rgba(251, 146, 60, 0.1);
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+@media (min-width: 768px) {
+  .chat-header-streak {
+    padding: 8px 14px;
+    gap: 6px;
+  }
+}
+
+.chat-header-streak .streak-flame {
+  font-size: 16px;
+  line-height: 1;
+}
+
+@media (min-width: 768px) {
+  .chat-header-streak .streak-flame {
+    font-size: 18px;
+  }
+}
+
+.chat-header-streak .streak-count {
+  font-size: 14px;
+  font-weight: 700;
+  color: #f97316;
+}
+
+@media (min-width: 768px) {
+  .chat-header-streak .streak-count {
+    font-size: 16px;
+  }
+}
+
+.chat-header-streak .streak-label {
+  font-size: 11px;
+  color: #9ca3af;
+  font-weight: 500;
+}
+
+@media (min-width: 768px) {
+  .chat-header-streak .streak-label {
+    font-size: 12px;
+  }
+}
+
+.dark .chat-header-streak .streak-label {
+  color: #6b7280;
+}
+
+/* Flame levels - Different colors and effects */
+/* Backend mapping: yellow=low, orange=medium, purple=high */
+
+/* Low level (yellow): 2-6 days */
+.flame-low {
+  background: rgba(251, 191, 36, 0.1);
+}
+
+.flame-low .streak-count {
+  color: #fbbf24;
+}
+
+/* Medium level (orange): 7-29 days */
+.flame-medium {
+  background: rgba(249, 115, 22, 0.15);
+}
+
+.flame-medium .streak-count {
+  color: #f97316;
+}
+
+.flame-medium .streak-flame {
+  filter: drop-shadow(0 0 2px rgba(249, 115, 22, 0.3));
+}
+
+/* High level (purple): 30+ days */
+.flame-high {
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.15), rgba(239, 68, 68, 0.15));
+  animation: flame-pulse 2s ease-in-out infinite;
+}
+
+.flame-high .streak-count {
+  color: #a855f7;
+  font-weight: 800;
+}
+
+.flame-high .streak-flame {
+  animation: flame-flicker 1.5s ease-in-out infinite;
+  filter: drop-shadow(0 0 6px rgba(168, 85, 247, 0.6));
+}
+
+@keyframes flame-pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.9;
+  }
+}
+
+@keyframes flame-flicker {
+  0%, 100% {
+    transform: scale(1);
+  }
+  25% {
+    transform: scale(1.1);
+  }
+  50% {
+    transform: scale(0.95);
+  }
+  75% {
+    transform: scale(1.05);
+  }
+}
+
+/* Hover effects */
+.conversation-streak:hover {
+  transform: scale(1.05);
+}
+
+.chat-header-streak:hover .streak-flame {
+  transform: scale(1.1);
+}
+
 /* Responsive Adjustments */
 @media (max-width: 1023px) {
   .chat-page {

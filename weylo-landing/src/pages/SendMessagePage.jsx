@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import apiClient from '../services/apiClient'
-import chatService from '../services/chatService'
+import messagesService from '../services/messagesService'
 import { useAuth } from '../contexts/AuthContext'
 
 export default function SendMessagePage() {
@@ -13,6 +13,7 @@ export default function SendMessagePage() {
   const [userExists, setUserExists] = useState(false)
   const [loading, setLoading] = useState(true)
   const [message, setMessage] = useState('')
+  const [showLoginOptions, setShowLoginOptions] = useState(false)
   const [showRegistration, setShowRegistration] = useState(false)
   const [showLogin, setShowLogin] = useState(false)
   const [loginCredentials, setLoginCredentials] = useState({ username: '', pin: ['', '', '', ''] })
@@ -102,8 +103,8 @@ export default function SendMessagePage() {
       // Utilisateur connecté → envoyer le message directement
       await handleSendMessageAsLoggedUser()
     } else {
-      // Utilisateur non connecté → ne rien faire, afficher les boutons de choix
-      // (les boutons sont affichés via le rendu conditionnel en bas)
+      // Utilisateur non connecté → afficher les boutons Login/Register
+      setShowLoginOptions(true)
     }
   }
 
@@ -115,27 +116,17 @@ export default function SendMessagePage() {
     try {
       console.log('👤 Utilisateur connecté, envoi du message anonyme vers:', recipientUsername)
 
-      // 1. Démarrer ou récupérer la conversation avec le destinataire (utiliser le username)
-      const conversationResponse = await chatService.startConversationByUsername(recipientUsername)
-      const conversationId = conversationResponse.conversation?.id
-
-      if (!conversationId) {
-        throw new Error('Impossible de créer la conversation')
-      }
-
-      console.log('💬 Conversation trouvée/créée:', conversationId)
-
-      // 2. Envoyer le message dans la conversation
-      await chatService.sendMessage(conversationId, message, 'text')
+      // Envoyer le message anonyme via messagesService
+      await messagesService.sendMessage(recipientUsername, message)
 
       console.log('✅ Message envoyé avec succès')
 
-      // 3. Afficher le succès et rediriger vers le chat
+      // Afficher le succès et rediriger vers le dashboard
       setSuccess(true)
       setMessage('')
 
       setTimeout(() => {
-        navigate(`/chat/${conversationId}`, { replace: true })
+        navigate('/dashboard', { replace: true })
       }, 1500)
 
     } catch (err) {
@@ -149,11 +140,13 @@ export default function SendMessagePage() {
   const handleChooseLogin = () => {
     setShowLogin(true)
     setShowRegistration(false)
+    setShowLoginOptions(false)
   }
 
   const handleChooseRegister = () => {
     setShowRegistration(true)
     setShowLogin(false)
+    setShowLoginOptions(false)
   }
 
   const handleLogin = async (e) => {
@@ -297,48 +290,19 @@ export default function SendMessagePage() {
       setShowConfirmModal(false)
 
       // Si on a reçu un token dans la réponse, l'utilisateur est maintenant connecté
-      // On peut créer/obtenir la conversation et rediriger
-      if (response.data.token) {
-        console.log('🔐 Token reçu, création de la conversation...')
-
-        // Le token devrait être automatiquement géré par l'apiClient
-        // Maintenant on peut créer/obtenir la conversation
-        try {
-          const conversationResponse = await chatService.startConversationByUsername(recipientUsername)
-          const conversationId = conversationResponse.conversation?.id
-
-          if (conversationId) {
-            console.log('💬 Conversation créée:', conversationId)
-
-            // Afficher les credentials si disponibles
-            if (response.data.data?.credentials) {
-              setTimeout(() => {
-                alert(`🎉 Compte créé !\n\nVos identifiants:\n\nUsername: ${response.data.data.credentials.username}\nMot de passe: ${response.data.data.credentials.password}\n\nCes identifiants ont été envoyés par SMS. Redirection vers le chat...`)
-
-                // Rediriger vers la conversation
-                navigate(`/chat/${conversationId}`, { replace: true })
-              }, 1000)
-            } else {
-              // Rediriger directement
-              setTimeout(() => {
-                navigate(`/chat/${conversationId}`, { replace: true })
-              }, 1500)
-            }
-          }
-        } catch (convErr) {
-          console.error('❌ Erreur lors de la création de la conversation:', convErr)
-          // On affiche quand même les credentials
-          if (response.data.data?.credentials) {
-            setTimeout(() => {
-              alert(`🎉 Compte créé !\n\nVos identifiants:\n\nUsername: ${response.data.data.credentials.username}\nMot de passe: ${response.data.data.credentials.password}\n\nCes identifiants ont été envoyés par SMS. Téléchargez l'application Weylo pour discuter !`)
-            }, 1000)
-          }
-        }
-      } else if (response.data.data?.credentials) {
-        // Pas de token dans la réponse, juste afficher les credentials
+      if (response.data.data?.credentials) {
+        // Afficher les credentials
         setTimeout(() => {
-          alert(`🎉 Compte créé !\n\nVos identifiants:\n\nUsername: ${response.data.data.credentials.username}\nMot de passe: ${response.data.data.credentials.password}\n\nCes identifiants ont été envoyés par SMS. Téléchargez l'application Weylo pour discuter !`)
+          alert(`🎉 Compte créé et message envoyé !\n\nVos identifiants:\n\nUsername: ${response.data.data.credentials.username}\nMot de passe: ${response.data.data.credentials.password}\n\nCes identifiants ont été envoyés par SMS. Redirection vers le dashboard...`)
+
+          // Rediriger vers le dashboard
+          navigate('/dashboard', { replace: true })
         }, 1000)
+      } else {
+        // Rediriger directement vers le dashboard
+        setTimeout(() => {
+          navigate('/dashboard', { replace: true })
+        }, 1500)
       }
 
     } catch (err) {
@@ -552,8 +516,8 @@ export default function SendMessagePage() {
               </div>
             </div>
 
-            {/* Choice Buttons - Login or Register - Only show if user is NOT authenticated */}
-            {!showRegistration && !showLogin && !isAuthenticated && (
+            {/* Choice Buttons - Login or Register - Only show if showLoginOptions is true */}
+            {showLoginOptions && !showRegistration && !showLogin && (
               <div className="mb-6">
                 <h4 className={`text-center font-bold text-lg mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
                   Pour continuer, choisis une option :
@@ -683,6 +647,7 @@ export default function SendMessagePage() {
                     onClick={() => {
                       setShowLogin(false)
                       setShowRegistration(false)
+                      setShowLoginOptions(true)
                     }}
                     className={`text-sm ${darkMode ? 'text-gray-400 hover:text-gray-300' : 'text-gray-600 hover:text-gray-900'} transition-colors`}
                   >
@@ -804,6 +769,7 @@ export default function SendMessagePage() {
                     onClick={() => {
                       setShowLogin(false)
                       setShowRegistration(false)
+                      setShowLoginOptions(true)
                     }}
                     className={`text-sm ${darkMode ? 'text-gray-400 hover:text-gray-300' : 'text-gray-600 hover:text-gray-900'} transition-colors`}
                   >
@@ -839,8 +805,8 @@ export default function SendMessagePage() {
               </div>
             )}
 
-            {/* Submit Button - Show when authenticated OR when login/registration form is shown */}
-            {(showLogin || showRegistration || isAuthenticated) && (
+            {/* Submit Button - Always show, but behavior depends on state */}
+            {!showLoginOptions && (
               <button
                 type={showLogin ? "button" : "submit"}
                 onClick={showLogin ? handleLogin : undefined}
@@ -898,7 +864,14 @@ export default function SendMessagePage() {
                           </svg>
                           <span className="group-hover:tracking-wider transition-all duration-300">Envoyer le message</span>
                         </>
-                      ) : null}
+                      ) : (
+                        <>
+                          <svg className="w-6 h-6 group-hover:rotate-12 group-hover:scale-110 transition-all duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                          </svg>
+                          <span className="group-hover:tracking-wider transition-all duration-300">Envoyer le message</span>
+                        </>
+                      )}
                     </>
                   )}
                 </span>

@@ -84,7 +84,7 @@ Cette documentation décrit l'intégration complète du frontend React avec l'AP
 Fichier créé pour documenter les variables d'environnement:
 
 ```env
-VITE_API_URL=http://localhost:8000/api/v1
+VITE_API_URL=http://localhost:8001/api/v1
 ```
 
 ## Structure des tokens
@@ -242,7 +242,7 @@ Pour que l'intégration fonctionne, assurez-vous que le backend Laravel a:
 ### 3. Variables d'environnement (`.env`)
 
 ```env
-APP_URL=http://localhost:8000
+APP_URL=http://localhost:8001
 FRONTEND_URL=http://localhost:5173
 
 SESSION_DRIVER=cookie
@@ -264,7 +264,7 @@ Modifier `VITE_API_URL` selon votre environnement:
 
 ```env
 # Développement local
-VITE_API_URL=http://localhost:8000/api/v1
+VITE_API_URL=http://localhost:8001/api/v1
 
 # Production
 VITE_API_URL=https://api.weylo.com/api/v1
@@ -377,7 +377,7 @@ const token = localStorage.getItem('weylo_token')
 console.log('Token:', token)
 
 // Tester une requête authentifiée
-fetch('http://localhost:8000/api/v1/auth/me', {
+fetch('http://localhost:8001/api/v1/auth/me', {
   headers: {
     'Authorization': `Bearer ${token}`,
     'Accept': 'application/json'

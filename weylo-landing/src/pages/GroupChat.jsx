@@ -37,6 +37,13 @@ export default function GroupChat() {
       return
     }
 
+    // Initialiser WebSocket si pas déjà fait
+    const token = localStorage.getItem('weylo_token')
+    if (token && user.id && !websocketService.echo) {
+      console.log('🔌 [GROUP_CHAT] Initialisation du WebSocket...')
+      websocketService.connect(token, user.id)
+    }
+
     loadGroupData()
     loadMessages()
     loadMembers()
@@ -109,36 +116,33 @@ export default function GroupChat() {
       // Marquer comme lu
       await groupsService.markAsRead(groupId)
 
-      // S'abonner aux nouveaux messages via WebSocket (avec délai pour laisser le temps au WS de se connecter)
-      const subscribeToWebSocket = () => {
-        console.log('🔔 [GROUP_CHAT] Tentative d\'abonnement au channel du groupe:', groupId)
-
-        // Vérifier si le WebSocket est connecté
-        if (!websocketService.isWebSocketConnected()) {
-          console.log('⏳ [GROUP_CHAT] WebSocket pas encore connecté, nouvelle tentative dans 1s...')
-          setTimeout(subscribeToWebSocket, 1000)
+      // S'abonner aux nouveaux messages via WebSocket
+      const subscribeToWebSocket = (isConnected) => {
+        if (!isConnected) {
+          console.log('⏳ [GROUP_CHAT] WebSocket pas encore connecté, attente...')
           return
         }
+
+        console.log('🔔 [GROUP_CHAT] WebSocket connecté, abonnement au channel du groupe:', groupId)
 
         const channel = websocketService.subscribeToGroupChannel(groupId, {
           onGroupMessageSent: (event) => {
             console.log('📨 [GROUP_CHAT] Événement reçu:', event)
-            console.log('📨 [GROUP_CHAT] Message:', event.message)
 
             // Ignorer nos propres messages (déjà ajoutés via optimistic update)
-            if (event.message.sender_id === user.id) {
+            if (event.sender_id === user.id) {
               console.log('⏩ [GROUP_CHAT] Message de nous-même ignoré (optimistic update déjà fait)')
               return
             }
 
             const newMsg = {
-              id: event.message.id,
-              content: event.message.content,
+              id: event.id,
+              content: event.content,
               is_own: false, // Toujours false car on ignore nos propres messages
-              sender_anonymous_name: event.message.sender_anonymous_name,
-              type: event.message.type,
-              time: formatTime(event.message.created_at),
-              created_at: event.message.created_at
+              sender_anonymous_name: event.sender_anonymous_name,
+              type: event.type,
+              time: formatTime(event.created_at),
+              created_at: event.created_at
             }
 
             console.log('✅ [GROUP_CHAT] Ajout du message à la liste:', newMsg)
@@ -166,12 +170,16 @@ export default function GroupChat() {
         }
       }
 
-      // Démarrer l'abonnement
-      subscribeToWebSocket()
+      // Écouter les changements de connexion et s'abonner quand c'est connecté
+      websocketService.onConnectionChange(subscribeToWebSocket)
     } catch (error) {
       console.error('❌ Erreur chargement messages:', error)
     } finally {
       setLoading(false)
+      // Scroll vers le bas après que le loading soit terminé et que le DOM soit mis à jour
+      setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'instant' })
+      }, 150)
     }
   }
 

@@ -23,7 +23,7 @@ Des logs détaillés ont été ajoutés partout dans le frontend et le backend p
 
 **Au démarrage de l'app:**
 ```
-🔧 [API_CLIENT] Configuration: { baseURL: "http://localhost:8000/api/v1", ... }
+🔧 [API_CLIENT] Configuration: { baseURL: "http://localhost:8001/api/v1", ... }
 ```
 
 **Avant chaque requête:**
@@ -31,7 +31,7 @@ Des logs détaillés ont été ajoutés partout dans le frontend et le backend p
 📤 [API_CLIENT] REQUEST:
   - method: POST
   - url: /auth/login
-  - fullURL: http://localhost:8000/api/v1/auth/login
+  - fullURL: http://localhost:8001/api/v1/auth/login
   - hasToken: false
   - headers: { ... }
   - data: { login: "test@test.com", password: "****" }
@@ -144,7 +144,7 @@ php artisan log:clear  # Nettoyer les anciens logs
 ```
 [2025-12-16 10:30:15] local.INFO: 📨 [API_REQUEST] ==================== NOUVELLE REQUÊTE ====================
 [2025-12-16 10:30:15] local.INFO: 📨 [API_REQUEST] Méthode: POST
-[2025-12-16 10:30:15] local.INFO: 📨 [API_REQUEST] URL: http://localhost:8000/api/v1/auth/login
+[2025-12-16 10:30:15] local.INFO: 📨 [API_REQUEST] URL: http://localhost:8001/api/v1/auth/login
 [2025-12-16 10:30:15] local.INFO: 📨 [API_REQUEST] Path: api/v1/auth/login
 [2025-12-16 10:30:15] local.INFO: 📨 [API_REQUEST] IP: 127.0.0.1
 [2025-12-16 10:30:15] local.INFO: 📨 [API_REQUEST] User Agent: Mozilla/5.0 ...

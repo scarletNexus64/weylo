@@ -47,6 +47,7 @@ export default function BottomNav() {
   const navItems = [
     { path: '/dashboard', icon: Home, label: 'Accueil' },
     { path: '/messages', icon: Mail, label: 'Messages', badge: messagesUnreadCount },
+    { path: '/confessions', icon: Megaphone, label: 'Confession' },
     { path: '/groups', icon: Users, label: 'Groupes', badge: groupsCount > 0 ? groupsCount : 0 },
     { path: '/chat', icon: MessageCircle, label: 'Chat', badge: chatUnreadCount },
     { path: '/profile', icon: User, label: 'Profil' }

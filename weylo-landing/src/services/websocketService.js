@@ -21,6 +21,7 @@ class WebSocketService {
   constructor() {
     this.echo = null
     this.isConnected = false
+    this.connectionListeners = []
   }
 
   /**
@@ -45,7 +46,7 @@ class WebSocketService {
         wssPort: REVERB_PORT,
         forceTLS: REVERB_SCHEME === 'https',
         enabledTransports: ['ws', 'wss'],
-        authEndpoint: `${import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1'}/broadcasting/auth`,
+        authEndpoint: `${import.meta.env.VITE_API_URL || 'http://localhost:8001/api/v1'}/broadcasting/auth`,
         auth: {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -58,7 +59,7 @@ class WebSocketService {
             authorize: (socketId, callback) => {
               // Si c'est un channel privé, on fait l'auth
               if (channel.name.startsWith('private-') || channel.name.startsWith('presence-')) {
-                fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1'}/broadcasting/auth`, {
+                fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8001/api/v1'}/broadcasting/auth`, {
                   method: 'POST',
                   headers: {
                     Authorization: `Bearer ${token}`,
@@ -97,28 +98,33 @@ class WebSocketService {
       this.echo.connector.pusher.connection.bind('connected', () => {
         console.log('✅ [WEBSOCKET] Connecté à Laravel Reverb!')
         this.isConnected = true
+        this.notifyConnectionListeners(true)
       })
 
       this.echo.connector.pusher.connection.bind('disconnected', () => {
         console.log('❌ [WEBSOCKET] Déconnecté de Laravel Reverb')
         this.isConnected = false
+        this.notifyConnectionListeners(false)
       })
 
       this.echo.connector.pusher.connection.bind('error', (error) => {
         console.error('❌ [WEBSOCKET] Erreur de connexion:', error)
         this.isConnected = false
+        this.notifyConnectionListeners(false)
       })
 
       this.echo.connector.pusher.connection.bind('unavailable', () => {
         console.warn('⚠️ [WEBSOCKET] WebSocket non disponible - fonctionnalité temps réel désactivée')
         console.warn('⚠️ [WEBSOCKET] Vérifiez que Laravel Reverb est démarré avec: php artisan reverb:start')
         this.isConnected = false
+        this.notifyConnectionListeners(false)
       })
 
       this.echo.connector.pusher.connection.bind('failed', () => {
         console.error('❌ [WEBSOCKET] Connexion échouée - impossible de se connecter à Reverb')
         console.error('❌ [WEBSOCKET] Le chat temps réel ne sera pas disponible')
         this.isConnected = false
+        this.notifyConnectionListeners(false)
       })
 
       return this.echo
@@ -131,6 +137,35 @@ class WebSocketService {
   }
 
   /**
+   * Ajouter un listener pour les changements de connexion
+   * @param {function} callback - Fonction appelée quand la connexion change (true/false)
+   */
+  onConnectionChange(callback) {
+    this.connectionListeners.push(callback)
+    // Appeler immédiatement le callback avec l'état actuel
+    callback(this.isConnected)
+
+    // Retourner une fonction pour se désabonner
+    return () => {
+      this.connectionListeners = this.connectionListeners.filter(cb => cb !== callback)
+    }
+  }
+
+  /**
+   * Notifier tous les listeners du changement de connexion
+   * @param {boolean} isConnected - État de la connexion
+   */
+  notifyConnectionListeners(isConnected) {
+    this.connectionListeners.forEach(callback => {
+      try {
+        callback(isConnected)
+      } catch (error) {
+        console.error('❌ [WEBSOCKET] Erreur lors de la notification du listener:', error)
+      }
+    })
+  }
+
+  /**
    * Déconnecter le WebSocket
    */
   disconnect() {
@@ -139,6 +174,7 @@ class WebSocketService {
       this.echo.disconnect()
       this.echo = null
       this.isConnected = false
+      this.notifyConnectionListeners(false)
     }
   }
 
@@ -231,7 +267,7 @@ class WebSocketService {
         console.log('💬 [WEBSOCKET] Message de groupe reçu (RAW):', event)
         console.log('💬 [WEBSOCKET] Type:', typeof event)
         console.log('💬 [WEBSOCKET] Keys:', Object.keys(event))
-        callbacks.onGroupMessageSent({ message: event })
+        callbacks.onGroupMessageSent(event)
       })
     }
 

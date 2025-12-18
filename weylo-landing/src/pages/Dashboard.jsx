@@ -1,16 +1,56 @@
 import { Link } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import { Copy, Check, Mail, Megaphone, MessageCircle, Wallet, Gift } from 'lucide-react'
-import { useState } from 'react'
+import { Copy, Check, Mail, Megaphone, Wallet, Gift } from 'lucide-react'
+import { useState, useEffect } from 'react'
 import Stories from '../components/Stories'
+import userService from '../services/userService'
 import '../styles/Dashboard.css'
 
 export default function Dashboard() {
   const { user } = useAuth()
   const [copied, setCopied] = useState(false)
+  const [stats, setStats] = useState({
+    messages: 0,
+    confessions: 0,
+    gifts: 0,
+    conversations: 0
+  })
 
   // Vérifier si l'utilisateur est admin
   const isAdmin = user?.role === 'admin' || user?.role === 'superadmin' || user?.role === 'moderator'
+
+  // Charger les statistiques au montage
+  useEffect(() => {
+    const loadStats = async () => {
+      try {
+        // Essayer d'abord la nouvelle API stats
+        let data
+        try {
+          data = await userService.getStats()
+        } catch (error) {
+          // Fallback sur dashboard si stats n'existe pas encore
+          console.log('Fallback to dashboard API')
+          const dashboardData = await userService.getDashboard()
+          data = { stats: dashboardData.stats }
+        }
+
+        if (data.stats) {
+          setStats({
+            messages: data.stats.messages?.received || 0,
+            confessions: data.stats.confessions?.received || 0,
+            gifts: data.stats.gifts?.received || 0,
+            conversations: data.stats.conversations?.total || 0
+          })
+        }
+      } catch (error) {
+        console.error('Erreur lors du chargement des stats:', error)
+      }
+    }
+
+    if (user) {
+      loadStats()
+    }
+  }, [user])
 
   // Générer le lien dynamiquement selon l'environnement
   const getBaseUrl = () => {
@@ -104,53 +144,47 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Quick Actions */}
-      <div className="quick-actions">
-        <h2>Actions rapides</h2>
-        <div className="actions-grid">
-          <Link to="/messages" className="action-card">
-            <Mail className="action-icon" size={32} strokeWidth={2} />
-            <div className="action-content">
-              <h3>Mes messages</h3>
-              <p>Voir tous les messages reçus</p>
+      {/* Stats détaillées */}
+      <div className="stats-detail-section">
+        <h2>Tes statistiques</h2>
+        <div className="stats-detail-grid">
+          <Link to="/messages" className="stat-detail-card">
+            <div className="stat-detail-icon">
+              <Mail size={24} />
             </div>
-            {user?.stats?.messages_received > 0 && (
-              <span className="action-badge">{user.stats.messages_received}</span>
-            )}
-          </Link>
-
-          <Link to="/confessions" className="action-card">
-            <Megaphone className="action-icon" size={32} strokeWidth={2} />
-            <div className="action-content">
-              <h3>Confessions</h3>
-              <p>Découvre le feed public</p>
+            <div className="stat-detail-info">
+              <span className="stat-detail-value">{stats.messages}</span>
+              <span className="stat-detail-label">Messages</span>
             </div>
           </Link>
 
-          <Link to="/gifts" className="action-card">
-            <Gift className="action-icon" size={32} strokeWidth={2} />
-            <div className="action-content">
-              <h3>Cadeaux</h3>
-              <p>Envoie et reçois des cadeaux</p>
+          <Link to="/gifts" className="stat-detail-card">
+            <div className="stat-detail-icon">
+              <Gift size={24} />
             </div>
-            {user?.stats?.gifts_received > 0 && (
-              <span className="action-badge">{user.stats.gifts_received}</span>
-            )}
-          </Link>
-
-          <Link to="/chat" className="action-card">
-            <MessageCircle className="action-icon" size={32} strokeWidth={2} />
-            <div className="action-content">
-              <h3>Chat</h3>
-              <p>Discute avec tes amis</p>
+            <div className="stat-detail-info">
+              <span className="stat-detail-value">{stats.gifts}</span>
+              <span className="stat-detail-label">Cadeaux</span>
             </div>
           </Link>
 
-          <Link to="/wallet" className="action-card">
-            <Wallet className="action-icon" size={32} strokeWidth={2} />
-            <div className="action-content">
-              <h3>Portefeuille</h3>
-              <p>Solde: {user?.wallet_balance || 0} FCFA</p>
+          <Link to="/confessions" className="stat-detail-card">
+            <div className="stat-detail-icon">
+              <Megaphone size={24} />
+            </div>
+            <div className="stat-detail-info">
+              <span className="stat-detail-value">{stats.confessions}</span>
+              <span className="stat-detail-label">Confessions</span>
+            </div>
+          </Link>
+
+          <Link to="/wallet" className="stat-detail-card">
+            <div className="stat-detail-icon">
+              <Wallet size={24} />
+            </div>
+            <div className="stat-detail-info">
+              <span className="stat-detail-value">{user?.wallet_balance || 0}</span>
+              <span className="stat-detail-label">FCFA</span>
             </div>
           </Link>
         </div>

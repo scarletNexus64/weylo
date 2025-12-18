@@ -13,10 +13,18 @@ const storiesService = {
   },
 
   /**
-   * Récupérer les stories d'un utilisateur
+   * Récupérer les stories d'un utilisateur par username
    */
   getUserStories: async (username) => {
     const response = await apiClient.get(`/stories/user/${username}`)
+    return response.data
+  },
+
+  /**
+   * Récupérer les stories d'un utilisateur par ID
+   */
+  getUserStoriesById: async (userId) => {
+    const response = await apiClient.get(`/stories/user-by-id/${userId}`)
     return response.data
   },
 

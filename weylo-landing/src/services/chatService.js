@@ -56,12 +56,20 @@ const chatService = {
    * @param {number} conversationId - ID de la conversation
    * @param {string} content - Contenu du message
    * @param {string} type - Type de message (text, gift, system)
+   * @param {number} replyToId - ID du message auquel on répond (optionnel)
    */
-  sendMessage: async (conversationId, content, type = 'text') => {
-    const response = await apiClient.post(`/chat/conversations/${conversationId}/messages`, {
+  sendMessage: async (conversationId, content, type = 'text', replyToId = null) => {
+    const payload = {
       content,
       type
-    })
+    }
+
+    // Ajouter replyToId seulement s'il est fourni
+    if (replyToId) {
+      payload.reply_to_id = replyToId
+    }
+
+    const response = await apiClient.post(`/chat/conversations/${conversationId}/messages`, payload)
     return response.data
   },
 

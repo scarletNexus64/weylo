@@ -23,6 +23,13 @@ export default function ChatConversation() {
       return
     }
 
+    // Initialiser WebSocket si pas déjà fait
+    const token = localStorage.getItem('weylo_token')
+    if (token && user.id && !websocketService.echo) {
+      console.log('🔌 [CHAT] Initialisation du WebSocket...')
+      websocketService.connect(token, user.id)
+    }
+
     loadConversationData()
     loadMessages()
 
@@ -56,6 +63,17 @@ export default function ChatConversation() {
     return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })
   }
 
+  // Mapper les flame_level du backend vers les classes CSS
+  const mapFlameLevel = (backendLevel) => {
+    const mapping = {
+      'none': 'none',
+      'yellow': 'low',      // 2-6 jours
+      'orange': 'medium',   // 7-29 jours
+      'purple': 'high'      // 30+ jours
+    }
+    return mapping[backendLevel] || 'none'
+  }
+
   const loadConversationData = async () => {
     try {
       const response = await chatService.getConversations()
@@ -79,6 +97,8 @@ export default function ChatConversation() {
         contact_name: displayName,
         contact_avatar: otherParticipant.initial || 'U',
         is_online: otherParticipant.is_online || false,
+        streak_days: conv.streak?.count || 0,
+        flame_level: mapFlameLevel(conv.streak?.flame_level),
       })
     } catch (error) {
       console.error('❌ Erreur chargement conversation:', error)
@@ -103,16 +123,14 @@ export default function ChatConversation() {
       // Marquer comme lu
       await chatService.markAsRead(conversationId)
 
-      // S'abonner aux nouveaux messages via WebSocket (avec délai pour laisser le temps au WS de se connecter)
-      const subscribeToWebSocket = () => {
-        console.log('🔔 [CHAT] Tentative d\'abonnement au channel de la conversation:', conversationId)
-
-        // Vérifier si le WebSocket est connecté
-        if (!websocketService.isWebSocketConnected()) {
-          console.log('⏳ [CHAT] WebSocket pas encore connecté, nouvelle tentative dans 1s...')
-          setTimeout(subscribeToWebSocket, 1000)
+      // S'abonner aux nouveaux messages via WebSocket
+      const subscribeToWebSocket = (isConnected) => {
+        if (!isConnected) {
+          console.log('⏳ [CHAT] WebSocket pas encore connecté, attente...')
           return
         }
+
+        console.log('🔔 [CHAT] WebSocket connecté, abonnement au channel de la conversation:', conversationId)
 
         const channel = websocketService.subscribeToConversationChannel(conversationId, {
           onChatMessageSent: (event) => {
@@ -158,8 +176,8 @@ export default function ChatConversation() {
         }
       }
 
-      // Démarrer l'abonnement
-      subscribeToWebSocket()
+      // Écouter les changements de connexion et s'abonner quand c'est connecté
+      websocketService.onConnectionChange(subscribeToWebSocket)
     } catch (error) {
       console.error('❌ Erreur chargement messages:', error)
     } finally {
@@ -247,6 +265,13 @@ export default function ChatConversation() {
                 {conversation.is_online ? '● En ligne' : '○ Hors ligne'}
               </p>
             </div>
+            {conversation.streak_days > 0 && (
+              <div className={`chat-header-streak flame-${conversation.flame_level}`}>
+                <span className="streak-flame">🔥</span>
+                <span className="streak-count">{conversation.streak_days}</span>
+                <span className="streak-label">jours</span>
+              </div>
+            )}
           </>
         )}
       </div>

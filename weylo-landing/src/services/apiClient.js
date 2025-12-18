@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 // Base URL de l'API
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1'
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8001/api/v1'
 
 console.log('🔧 [API_CLIENT] Configuration:', {
   baseURL: API_URL,
@@ -91,5 +91,30 @@ apiClient.interceptors.response.use(
     return Promise.reject(error)
   }
 )
+
+// ==================== AUTH API ====================
+
+/**
+ * Vérifier l'identité de l'utilisateur (prénom + téléphone)
+ */
+export const verifyIdentity = async (firstName, phone) => {
+  const response = await apiClient.post('/auth/verify-identity', {
+    first_name: firstName,
+    phone: phone
+  })
+  return response.data
+}
+
+/**
+ * Réinitialiser le PIN avec prénom + téléphone + nouveau PIN
+ */
+export const resetPasswordByPhone = async (firstName, phone, newPin) => {
+  const response = await apiClient.post('/auth/reset-password-by-phone', {
+    first_name: firstName,
+    phone: phone,
+    new_pin: newPin
+  })
+  return response.data
+}
 
 export default apiClient

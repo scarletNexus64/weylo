@@ -100,9 +100,9 @@ export default function Stories() {
               <p>Aucune story pour le moment</p>
             </div>
           ) : (
-            stories.map((userStory) => (
+            stories.map((userStory, index) => (
               <div
-                key={userStory.user.id}
+                key={userStory.user?.id || `story-${index}`}
                 className={`story-item ${userStory.all_viewed ? 'viewed' : ''}`}
                 onClick={() => handleStoryClick(userStory)}
               >
@@ -154,9 +154,10 @@ export default function Stories() {
       {/* Story Viewer */}
       {viewerOpen && selectedUser && (
         <StoryViewer
+          userId={selectedUser.real_user_id}
           username={selectedUser.user.username}
           allStories={stories}
-          currentUserIndex={stories.findIndex(s => s.user.id === selectedUser.user.id)}
+          currentUserIndex={stories.findIndex(s => s.real_user_id === selectedUser.real_user_id)}
           onClose={handleCloseViewer}
           onNextUser={(nextIndex) => {
             if (nextIndex < stories.length) {

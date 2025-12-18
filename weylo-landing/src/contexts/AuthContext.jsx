@@ -56,11 +56,16 @@ export const AuthProvider = ({ children }) => {
       if (storedToken && storedUser) {
         try {
           console.log('✅ [AUTH_CONTEXT] Token trouvé, vérification auprès du serveur...')
-          // Vérifier si le token est valide en récupérant l'utilisateur actuel
-          const response = await apiClient.get('/auth/me')
+          // Vérifier si le token est valide en récupérant l'utilisateur actuel avec ses stats
+          const response = await apiClient.get('/users/dashboard')
           console.log('✅ [AUTH_CONTEXT] Token valide! Utilisateur:', response.data.user)
-          setUser(response.data.user)
-          localStorage.setItem('weylo_user', JSON.stringify(response.data.user))
+          // Fusionner les données utilisateur avec les stats
+          const userWithStats = {
+            ...response.data.user,
+            stats: response.data.stats
+          }
+          setUser(userWithStats)
+          localStorage.setItem('weylo_user', JSON.stringify(userWithStats))
         } catch (error) {
           // Si le token est invalide, nettoyer le localStorage
           console.error('❌ [AUTH_CONTEXT] Token invalide:', error)
@@ -100,13 +105,27 @@ export const AuthProvider = ({ children }) => {
         token: token ? `${token.substring(0, 20)}...` : null
       })
 
-      setUser(user)
-      localStorage.setItem('weylo_user', JSON.stringify(user))
+      // Sauvegarder le token d'abord pour les requêtes suivantes
       localStorage.setItem('weylo_token', token)
 
-      console.log('💾 [AUTH_CONTEXT] Token et utilisateur sauvegardés dans localStorage')
-
-      return user
+      // Charger les stats de l'utilisateur
+      try {
+        const dashboardResponse = await apiClient.get('/users/dashboard')
+        const userWithStats = {
+          ...dashboardResponse.data.user,
+          stats: dashboardResponse.data.stats
+        }
+        setUser(userWithStats)
+        localStorage.setItem('weylo_user', JSON.stringify(userWithStats))
+        console.log('💾 [AUTH_CONTEXT] Utilisateur avec stats sauvegardé')
+        return userWithStats
+      } catch (statsError) {
+        // Fallback: utiliser les données de base sans stats
+        console.warn('⚠️ [AUTH_CONTEXT] Impossible de charger les stats, utilisation des données de base')
+        setUser(user)
+        localStorage.setItem('weylo_user', JSON.stringify(user))
+        return user
+      }
     } catch (error) {
       console.error('❌ [AUTH_CONTEXT] Erreur de connexion:', error)
       const errorMessage = error.response?.data?.message ||
@@ -144,13 +163,27 @@ export const AuthProvider = ({ children }) => {
         token: token ? `${token.substring(0, 20)}...` : null
       })
 
-      setUser(user)
-      localStorage.setItem('weylo_user', JSON.stringify(user))
+      // Sauvegarder le token d'abord pour les requêtes suivantes
       localStorage.setItem('weylo_token', token)
 
-      console.log('💾 [AUTH_CONTEXT] Token et utilisateur sauvegardés dans localStorage')
-
-      return user
+      // Charger les stats de l'utilisateur
+      try {
+        const dashboardResponse = await apiClient.get('/users/dashboard')
+        const userWithStats = {
+          ...dashboardResponse.data.user,
+          stats: dashboardResponse.data.stats
+        }
+        setUser(userWithStats)
+        localStorage.setItem('weylo_user', JSON.stringify(userWithStats))
+        console.log('💾 [AUTH_CONTEXT] Utilisateur avec stats sauvegardé')
+        return userWithStats
+      } catch (statsError) {
+        // Fallback: utiliser les données de base sans stats
+        console.warn('⚠️ [AUTH_CONTEXT] Impossible de charger les stats, utilisation des données de base')
+        setUser(user)
+        localStorage.setItem('weylo_user', JSON.stringify(user))
+        return user
+      }
     } catch (error) {
       console.error('❌ [AUTH_CONTEXT] Erreur d\'inscription:', error)
       const errorMessage = error.response?.data?.message ||
@@ -192,10 +225,15 @@ export const AuthProvider = ({ children }) => {
   // Refresh user data
   const refreshUser = async () => {
     try {
-      const response = await apiClient.get('/auth/me')
-      setUser(response.data.user)
-      localStorage.setItem('weylo_user', JSON.stringify(response.data.user))
-      return response.data.user
+      const response = await apiClient.get('/users/dashboard')
+      // Fusionner les données utilisateur avec les stats
+      const userWithStats = {
+        ...response.data.user,
+        stats: response.data.stats
+      }
+      setUser(userWithStats)
+      localStorage.setItem('weylo_user', JSON.stringify(userWithStats))
+      return userWithStats
     } catch (error) {
       console.error('Erreur lors du rafraîchissement:', error)
       throw error

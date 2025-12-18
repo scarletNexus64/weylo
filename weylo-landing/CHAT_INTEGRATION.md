@@ -42,7 +42,7 @@ Ajoutez les variables suivantes dans votre fichier `.env`:
 
 ```env
 # API Backend
-VITE_API_URL=http://localhost:8000/api/v1
+VITE_API_URL=http://localhost:8001/api/v1
 
 # Laravel Reverb WebSocket
 # IMPORTANT: La clé doit correspondre à REVERB_APP_KEY du backend

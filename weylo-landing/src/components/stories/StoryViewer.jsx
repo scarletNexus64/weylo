@@ -4,7 +4,7 @@ import storiesService from '../../services/storiesService'
 import premiumService from '../../services/premiumService'
 import './StoryViewer.css'
 
-const StoryViewer = ({ username, allStories = [], currentUserIndex = 0, onClose, onNextUser }) => {
+const StoryViewer = ({ userId, username, allStories = [], currentUserIndex = 0, onClose, onNextUser }) => {
   const { user } = useAuth()
   const [userStories, setUserStories] = useState([])
   const [currentIndex, setCurrentIndex] = useState(0)
@@ -21,7 +21,7 @@ const StoryViewer = ({ username, allStories = [], currentUserIndex = 0, onClose,
     loadUserStories()
     setCurrentIndex(0) // Réinitialiser à la première story quand on change d'utilisateur
     setProgress(0)
-  }, [username])
+  }, [userId])
 
   useEffect(() => {
     if (userStories.length > 0 && !loading) {
@@ -37,7 +37,10 @@ const StoryViewer = ({ username, allStories = [], currentUserIndex = 0, onClose,
   const loadUserStories = async () => {
     try {
       setLoading(true)
-      const data = await storiesService.getUserStories(username)
+      // Utiliser l'ID si disponible, sinon fallback sur le username
+      const data = userId
+        ? await storiesService.getUserStoriesById(userId)
+        : await storiesService.getUserStories(username)
       setUserStories(data.stories || [])
       setError(null)
     } catch (err) {
@@ -96,14 +99,14 @@ const StoryViewer = ({ username, allStories = [], currentUserIndex = 0, onClose,
     clearStoryTimer()
     if (currentIndex < userStories.length - 1) {
       // Passer à la story suivante du même utilisateur
-      console.log(`📖 Story ${currentIndex + 1}/${userStories.length} de @${username}`)
+      console.log(`📖 Story ${currentIndex + 1}/${userStories.length} de @${username || userId}`)
       setCurrentIndex((prev) => prev + 1)
       setProgress(0)
     } else {
       // Toutes les stories de cet utilisateur sont terminées
       // Passer à l'utilisateur suivant
       const nextUserIndex = currentUserIndex + 1
-      console.log(`✅ Toutes les stories de @${username} vues. User suivant: ${nextUserIndex}/${allStories.length}`)
+      console.log(`✅ Toutes les stories de @${username || userId} vues. User suivant: ${nextUserIndex}/${allStories.length}`)
       if (onNextUser && nextUserIndex < allStories.length) {
         onNextUser(nextUserIndex)
       } else {

@@ -87,15 +87,15 @@ export default function ReplyAnonymous() {
 
         const conversation = conversationResponse.conversation
 
-        // Envoyer le message dans la conversation
-        await chatService.sendMessage(conversation.id, replyContent)
+        // Envoyer le message dans la conversation avec référence au message anonyme
+        await chatService.sendMessage(conversation.id, replyContent, 'text', originalMessage.id)
 
-        console.log('✅ [REPLY] Message envoyé dans la conversation')
+        console.log('✅ [REPLY] Message envoyé dans la conversation avec référence au message anonyme')
 
         // alert('✅ Conversation initiée avec succès!')
 
-        // Rediriger vers la page de chat
-        navigate('/chat')
+        // Rediriger vers la conversation spécifique
+        navigate(`/chat/${conversation.id}`)
       } else if (replyType === 'gift') {
         if (!selectedGift) {
           alert('Veuillez sélectionner un cadeau')

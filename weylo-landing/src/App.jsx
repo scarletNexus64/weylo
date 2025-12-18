@@ -1,5 +1,31 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
+import { useCountAnimation, useInView } from './hooks/useCountAnimation'
+
+// Composant pour les statistiques animées
+function AnimatedStat({ end, suffix = '', prefix = '', decimals = 0, duration = 2000, start }) {
+  const count = useCountAnimation(end, duration, start)
+
+  const formatNumber = (num) => {
+    if (decimals > 0) {
+      return (num / 10).toFixed(decimals)
+    }
+
+    if (num >= 1000000) {
+      return `${(num / 1000000).toFixed(1)}M`
+    }
+    if (num >= 1000) {
+      return `${(num / 1000).toFixed(0)}K`
+    }
+    return num.toString()
+  }
+
+  return (
+    <span>
+      {prefix}{formatNumber(count)}{suffix}
+    </span>
+  )
+}
 
 function App() {
   const [scrolled, setScrolled] = useState(false)
@@ -7,6 +33,9 @@ function App() {
   const [showCookieBanner, setShowCookieBanner] = useState(true)
   const [activeTab, setActiveTab] = useState('home')
   const [darkMode, setDarkMode] = useState(false)
+
+  // Hook pour détecter quand les stats sont visibles
+  const [statsRef, statsVisible] = useInView({ threshold: 0.3 })
 
   useEffect(() => {
     const handleScroll = () => {
@@ -147,22 +176,28 @@ function App() {
               Partage ton lien Weylo sur Instagram, Snapchat ou TikTok et laisse tes amis t'envoyer des messages, questions ou aveux en toute confidentialité.
             </p>
             <div className="hero-buttons">
-              <button className="btn-primary">Commencer gratuitement</button>
-              <button className="btn-secondary">En savoir plus</button>
+              <Link to="/register" className="btn-primary">Commencer gratuitement</Link>
+              <button className="btn-secondary" onClick={() => scrollToSection('features')}>En savoir plus</button>
             </div>
 
             {/* Stats */}
-            <div className="hero-stats">
+            <div className="hero-stats" ref={statsRef}>
               <div className="stat-item">
-                <div className="stat-number">500K+</div>
+                <div className="stat-number">
+                  <AnimatedStat end={500000} suffix="+" duration={2500} start={statsVisible} />
+                </div>
                 <div className="stat-label">Utilisateurs actifs</div>
               </div>
               <div className="stat-item">
-                <div className="stat-number">10M+</div>
+                <div className="stat-number">
+                  <AnimatedStat end={10000000} suffix="+" duration={2500} start={statsVisible} />
+                </div>
                 <div className="stat-label">Messages envoyés</div>
               </div>
               <div className="stat-item">
-                <div className="stat-number">4.8/5</div>
+                <div className="stat-number">
+                  <AnimatedStat end={48} suffix="/5" decimals={1} duration={2000} start={statsVisible} />
+                </div>
                 <div className="stat-label">Note moyenne</div>
               </div>
             </div>

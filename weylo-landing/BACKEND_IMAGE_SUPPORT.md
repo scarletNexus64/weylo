@@ -293,7 +293,7 @@ export default {
 ### Requête avec image
 
 ```
-POST http://localhost:8000/api/v1/chat/conversations/1/messages
+POST http://localhost:8001/api/v1/chat/conversations/1/messages
 Authorization: Bearer {token}
 Content-Type: multipart/form-data
 
@@ -319,7 +319,7 @@ Body (form-data):
       "username": "john_doe"
     }
   },
-  "image_url": "http://localhost:8000/storage/chat/1/uuid.jpg"
+  "image_url": "http://localhost:8001/storage/chat/1/uuid.jpg"
 }
 ```
 

@@ -32,18 +32,24 @@ export default function Chat() {
     // Initialiser WebSocket avec token et userId
     const token = localStorage.getItem('weylo_token')
     if (token && user.id) {
-      const echo = websocketService.connect(token, user.id)
-      if (echo) {
-        setIsWebSocketConnected(true)
+      websocketService.connect(token, user.id)
+
+      // Écouter les changements de connexion WebSocket
+      const unsubscribe = websocketService.onConnectionChange((isConnected) => {
+        console.log('🔔 [CHAT] État de connexion WebSocket changé:', isConnected)
+        setIsWebSocketConnected(isConnected)
+      })
+
+      loadConversations()
+
+      return () => {
+        unsubscribe()
+        websocketService.disconnect()
+        setIsWebSocketConnected(false)
       }
     }
 
     loadConversations()
-
-    return () => {
-      websocketService.disconnect()
-      setIsWebSocketConnected(false)
-    }
   }, [isAuthenticated, user])
 
   const scrollToBottom = () => {
@@ -67,6 +73,17 @@ export default function Chat() {
     if (hours < 24) return `Il y a ${hours}h`
     if (days < 7) return `Il y a ${days}j`
     return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })
+  }
+
+  // Mapper les flame_level du backend vers les classes CSS
+  const mapFlameLevel = (backendLevel) => {
+    const mapping = {
+      'none': 'none',
+      'yellow': 'low',      // 2-6 jours
+      'orange': 'medium',   // 7-29 jours
+      'purple': 'high'      // 30+ jours
+    }
+    return mapping[backendLevel] || 'none'
   }
 
   const loadConversations = async () => {
@@ -99,7 +116,7 @@ export default function Chat() {
           streak_days: conv.streak?.count || 0,
           is_online: otherParticipant.is_online || false,
           other_user_id: otherParticipant.id,
-          flame_level: conv.streak?.flame_level || 'none',
+          flame_level: mapFlameLevel(conv.streak?.flame_level),
           has_premium: conv.has_premium || false
         }
       }).filter(conv => conv !== null)
@@ -294,6 +311,12 @@ export default function Chat() {
                     <div className="conversation-info-header">
                       <h3 className="contact-name">
                         {conv.contact_name}
+                        {conv.streak_days > 0 && (
+                          <span className={`conversation-streak flame-${conv.flame_level}`}>
+                            <span className="streak-flame">🔥</span>
+                            <span className="streak-count">{conv.streak_days}</span>
+                          </span>
+                        )}
                       </h3>
                       <span className="message-time">{conv.last_message_time}</span>
                     </div>
@@ -337,6 +360,13 @@ export default function Chat() {
                     {selectedConversation.is_online ? 'En ligne' : 'Hors ligne'}
                   </p>
                 </div>
+                {selectedConversation.streak_days > 0 && (
+                  <div className={`chat-header-streak flame-${selectedConversation.flame_level}`}>
+                    <span className="streak-flame">🔥</span>
+                    <span className="streak-count">{selectedConversation.streak_days}</span>
+                    <span className="streak-label">jours</span>
+                  </div>
+                )}
               </div>
 
               {/* Messages Area */}

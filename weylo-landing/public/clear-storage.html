@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nettoyer le stockage - Weylo</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #9333ea, #db2777);
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            max-width: 400px;
+        }
+        h1 {
+            color: #111827;
+            margin-bottom: 20px;
+        }
+        p {
+            color: #6b7280;
+            margin-bottom: 30px;
+        }
+        button {
+            background: linear-gradient(135deg, #9333ea, #db2777);
+            color: white;
+            border: none;
+            padding: 16px 32px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+        }
+        .success {
+            color: #10b981;
+            margin-top: 20px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧹 Nettoyage du stockage</h1>
+        <p>Cliquez sur le bouton ci-dessous pour effacer vos données de session et résoudre les problèmes de connexion.</p>
+        <button onclick="clearStorage()">Nettoyer le stockage</button>
+        <p class="success" id="success">✅ Stockage nettoyé ! Vous pouvez maintenant vous reconnecter.</p>
+    </div>
+
+    <script>
+        function clearStorage() {
+            localStorage.removeItem('weylo_token')
+            localStorage.removeItem('weylo_user')
+            localStorage.clear()
+            sessionStorage.clear()
+
+            document.getElementById('success').style.display = 'block'
+
+            setTimeout(() => {
+                window.location.href = '/'
+            }, 2000)
+        }
+    </script>
+</body>
+</html>
