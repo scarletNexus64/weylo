@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react'
 import apiClient from '../services/apiClient'
+import websocketService from '../services/websocketService'
 
 const AuthContext = createContext(null)
 
@@ -14,6 +15,28 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
+
+  // Initialiser le WebSocket lorsque l'utilisateur est connecté
+  useEffect(() => {
+    if (user) {
+      const token = localStorage.getItem('weylo_token')
+      if (token) {
+        console.log('🌐 [AUTH_CONTEXT] Initialisation du WebSocket pour l\'utilisateur', user.id)
+        websocketService.connect(token, user.id)
+      }
+    } else {
+      // Déconnecter le WebSocket si l'utilisateur se déconnecte
+      console.log('🚪 [AUTH_CONTEXT] Déconnexion du WebSocket')
+      websocketService.disconnect()
+    }
+
+    // Cleanup lors du démontage
+    return () => {
+      if (!user) {
+        websocketService.disconnect()
+      }
+    }
+  }, [user])
 
   // Check if user is logged in and verify token
   useEffect(() => {

@@ -215,10 +215,21 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
 }
 
 .dark .story-name {
   color: #9ca3af;
+}
+
+.story-anonymous-indicator {
+  font-size: 10px;
+  display: inline-flex;
+  align-items: center;
+  opacity: 0.8;
 }
 
 .story-item.viewed .story-name {

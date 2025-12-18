@@ -84,7 +84,10 @@ const StoriesFeed = () => {
                 />
                 {!userStory.all_viewed && <div className="story-badge-new"></div>}
               </div>
-              <div className="story-username">{userStory.user.username}</div>
+              <div className="story-username">
+                {userStory.user.username}
+                {userStory.is_anonymous && <span className="story-anonymous-indicator"> 🔒</span>}
+              </div>
               <div className="story-count">{userStory.stories_count}</div>
             </div>
           ))}

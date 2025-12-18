@@ -141,7 +141,10 @@ export default function Stories() {
                     <span className="story-count-badge">{userStory.stories_count}</span>
                   )}
                 </div>
-                <span className="story-name">{userStory.user.username}</span>
+                <span className="story-name">
+                  {userStory.user.username}
+                  {userStory.is_anonymous && <span className="story-anonymous-indicator"> 🔒</span>}
+                </span>
               </div>
             ))
           )}

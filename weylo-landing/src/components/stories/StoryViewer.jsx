@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import storiesService from '../../services/storiesService'
+import premiumService from '../../services/premiumService'
 import './StoryViewer.css'
 
 const StoryViewer = ({ username, allStories = [], currentUserIndex = 0, onClose, onNextUser }) => {
@@ -11,6 +12,8 @@ const StoryViewer = ({ username, allStories = [], currentUserIndex = 0, onClose,
   const [error, setError] = useState(null)
   const [progress, setProgress] = useState(0)
   const [isPaused, setIsPaused] = useState(false)
+  const [showRevealModal, setShowRevealModal] = useState(false)
+  const [revealLoading, setRevealLoading] = useState(false)
   const timerRef = useRef(null)
   const progressIntervalRef = useRef(null)
 
@@ -136,6 +139,30 @@ const StoryViewer = ({ username, allStories = [], currentUserIndex = 0, onClose,
     setIsPaused(false)
   }
 
+  const handleRevealIdentity = async () => {
+    const story = userStories[currentIndex]
+    if (!story) return
+
+    setRevealLoading(true)
+    try {
+      const result = await premiumService.subscribeToStory(story.id)
+
+      // Rediriger vers la page de paiement si nécessaire
+      if (result.payment && result.payment.payment_url) {
+        window.location.href = result.payment.payment_url
+      } else {
+        // Si le paiement est déjà effectué, recharger les stories
+        await loadUserStories()
+        setShowRevealModal(false)
+      }
+    } catch (err) {
+      console.error('Erreur lors de l\'abonnement:', err)
+      alert(err.response?.data?.message || 'Erreur lors du paiement')
+    } finally {
+      setRevealLoading(false)
+    }
+  }
+
   const handleAreaClick = (e) => {
     const rect = e.currentTarget.getBoundingClientRect()
     const x = e.clientX - rect.left
@@ -202,7 +229,25 @@ const StoryViewer = ({ username, allStories = [], currentUserIndex = 0, onClose,
               alt={currentStory.user.username}
               className="story-viewer-avatar"
             />
-            <span className="story-viewer-username">@{currentStory.user.username}</span>
+            <div className="story-viewer-user-info">
+              <span className="story-viewer-username">
+                @{currentStory.user.username}
+                {currentStory.is_anonymous && (
+                  <span className="story-anonymous-badge">🔒</span>
+                )}
+              </span>
+              {currentStory.can_reveal && (
+                <button
+                  className="story-reveal-btn"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setShowRevealModal(true)
+                  }}
+                >
+                  Révéler l'identité (450 FCFA)
+                </button>
+              )}
+            </div>
             <span className="story-viewer-time">
               Il y a {getTimeAgo(currentStory.created_at)}
             </span>
@@ -257,19 +302,60 @@ const StoryViewer = ({ username, allStories = [], currentUserIndex = 0, onClose,
             <div className="story-viewer-views">
               <span className="views-icon">👁️</span>
               <span className="views-count">
-                {currentStory.views_count || 0}
+                {currentStory.viewers_count || 0}
               </span>
               <span className="views-label">
-                {currentStory.views_count === 0
+                {currentStory.viewers_count === 0
                   ? 'Aucune vue'
-                  : currentStory.views_count === 1
+                  : currentStory.viewers_count === 1
                   ? 'vue'
                   : 'vues'}
               </span>
+              {!currentStory.has_viewer_subscription && currentStory.viewers_count > 0 && (
+                <button
+                  className="story-unlock-viewers-btn"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setShowRevealModal(true)
+                  }}
+                >
+                  🔓 Voir qui a vu (450 FCFA)
+                </button>
+              )}
             </div>
           </div>
         )}
       </div>
+
+      {/* Modal de révélation d'identité */}
+      {showRevealModal && (
+        <div className="story-reveal-modal" onClick={() => setShowRevealModal(false)}>
+          <div className="story-reveal-modal-content" onClick={(e) => e.stopPropagation()}>
+            <h3>Révéler l'identité</h3>
+            <p>
+              {currentStory.user.id === user?.id
+                ? "Payez 450 FCFA pour voir qui a vu votre story"
+                : "Payez 450 FCFA pour révéler l'identité de l'auteur de cette story"}
+            </p>
+            <div className="story-reveal-modal-actions">
+              <button
+                className="btn-cancel"
+                onClick={() => setShowRevealModal(false)}
+                disabled={revealLoading}
+              >
+                Annuler
+              </button>
+              <button
+                className="btn-pay"
+                onClick={handleRevealIdentity}
+                disabled={revealLoading}
+              >
+                {revealLoading ? 'Chargement...' : 'Payer 450 FCFA'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

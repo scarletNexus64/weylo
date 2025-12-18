@@ -49,10 +49,12 @@ const messagesService = {
    * Envoyer un message anonyme
    * @param {string} username - Nom d'utilisateur du destinataire
    * @param {string} content - Contenu du message
+   * @param {number} replyToMessageId - ID du message auquel on répond (optionnel)
    */
-  sendMessage: async (username, content) => {
+  sendMessage: async (username, content, replyToMessageId = null) => {
     const response = await apiClient.post(`/messages/send/${username}`, {
-      content
+      content,
+      reply_to_message_id: replyToMessageId
     })
     return response.data
   },
@@ -94,6 +96,15 @@ const messagesService = {
    */
   markAllAsRead: async () => {
     const response = await apiClient.post('/messages/read-all')
+    return response.data
+  },
+
+  /**
+   * Démarrer une conversation à partir d'un message anonyme
+   * @param {number} messageId - ID du message
+   */
+  startConversationFromMessage: async (messageId) => {
+    const response = await apiClient.post(`/messages/${messageId}/start-conversation`)
     return response.data
   }
 }

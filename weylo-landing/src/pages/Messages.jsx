@@ -1,21 +1,18 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Mail, Trash2, Send, Eye, Lock, AlertCircle, Loader2, ChevronLeft, ChevronRight } from 'lucide-react'
 import messagesService from '../services/messagesService'
 import '../styles/Messages.css'
 
 export default function Messages() {
+  const navigate = useNavigate()
   const [messages, setMessages] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [stats, setStats] = useState({ received_count: 0, unread_count: 0, revealed_count: 0 })
   const [currentPage, setCurrentPage] = useState(1)
   const [lastPage, setLastPage] = useState(1)
-  const [showReplyModal, setShowReplyModal] = useState(false)
-  const [selectedMessage, setSelectedMessage] = useState(null)
-  const [replyContent, setReplyContent] = useState('')
-  const [sendingReply, setSendingReply] = useState(false)
   const [deletingId, setDeletingId] = useState(null)
-  const [revealingId, setRevealingId] = useState(null)
 
   useEffect(() => {
     fetchMessages()
@@ -67,57 +64,8 @@ export default function Messages() {
   }
 
   const handleReplyClick = (message) => {
-    setSelectedMessage(message)
-    setShowReplyModal(true)
-  }
-
-  const handleRevealInModal = async () => {
-    if (!selectedMessage) return
-
-    if (window.confirm('Voulez-vous révéler l\'identité de cet expéditeur pour 450 FCFA ?')) {
-      try {
-        setRevealingId(selectedMessage.id)
-        const response = await messagesService.revealIdentity(selectedMessage.id)
-        alert(response.message || 'Identité révélée avec succès !')
-        // Recharger les messages pour obtenir les nouvelles données
-        await fetchMessages()
-        await fetchStats()
-        // Mettre à jour le message sélectionné
-        const updatedMessage = messages.find(m => m.id === selectedMessage.id)
-        if (updatedMessage) {
-          setSelectedMessage(updatedMessage)
-        }
-      } catch (err) {
-        console.error('Error revealing identity:', err)
-        const errorMsg = err.response?.data?.message || 'Erreur lors de la révélation'
-        alert(errorMsg)
-      } finally {
-        setRevealingId(null)
-      }
-    }
-  }
-
-  const handleSendReply = async () => {
-    if (!replyContent.trim() || !selectedMessage) return
-
-    try {
-      setSendingReply(true)
-
-      if (selectedMessage.is_identity_revealed && selectedMessage.sender?.username) {
-        await messagesService.sendMessage(selectedMessage.sender.username, replyContent)
-        alert('Réponse envoyée avec succès !')
-        setShowReplyModal(false)
-        setReplyContent('')
-        setSelectedMessage(null)
-      } else {
-        alert('Vous devez révéler l\'identité pour répondre directement.')
-      }
-    } catch (err) {
-      console.error('Error sending reply:', err)
-      alert(err.response?.data?.message || 'Erreur lors de l\'envoi de la réponse')
-    } finally {
-      setSendingReply(false)
-    }
+    // Rediriger vers la page de réponse anonyme
+    navigate(`/reply-anonymous/${message.id}`)
   }
 
   const formatDate = (dateString) => {
@@ -303,114 +251,6 @@ export default function Messages() {
         </>
       )}
 
-      {/* Reply Modal */}
-      {showReplyModal && selectedMessage && (
-        <div className="modal-overlay" onClick={() => setShowReplyModal(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <div className="modal-title">
-                <Send size={20} />
-                <h3>Répondre au message</h3>
-              </div>
-              <button className="btn-close" onClick={() => setShowReplyModal(false)}>
-                ×
-              </button>
-            </div>
-
-            <div className="modal-body">
-              <div className="original-message">
-                <label>Message original</label>
-                <div className="message-preview">
-                  {selectedMessage.content}
-                </div>
-                <div className="sender-info-modal">
-                  De : {selectedMessage.is_identity_revealed && selectedMessage.sender
-                    ? `${selectedMessage.sender.first_name} ${selectedMessage.sender.last_name} (@${selectedMessage.sender.username})`
-                    : 'Anonyme'}
-                </div>
-              </div>
-
-              {!selectedMessage.is_identity_revealed ? (
-                <div className="reveal-section">
-                  <div className="reveal-info">
-                    <Lock size={20} />
-                    <div>
-                      <h4>Identité masquée</h4>
-                      <p>Pour répondre à ce message, vous devez d'abord révéler l'identité de l'expéditeur.</p>
-                    </div>
-                  </div>
-                  <button
-                    className="btn-reveal-modal"
-                    onClick={handleRevealInModal}
-                    disabled={revealingId === selectedMessage.id}
-                  >
-                    {revealingId === selectedMessage.id ? (
-                      <>
-                        <Loader2 className="spinner" size={18} />
-                        <span>Révélation en cours...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Eye size={18} />
-                        <span>Révéler l'identité (450 FCFA)</span>
-                      </>
-                    )}
-                  </button>
-                </div>
-              ) : (
-                <div className="form-group">
-                  <label>Votre réponse</label>
-                  <textarea
-                    placeholder="Écrivez votre réponse..."
-                    value={replyContent}
-                    onChange={(e) => setReplyContent(e.target.value)}
-                    rows="4"
-                    autoFocus
-                  />
-                </div>
-              )}
-            </div>
-
-            <div className="modal-footer">
-              {selectedMessage.is_identity_revealed ? (
-                <>
-                  <button
-                    className="btn-modal btn-cancel"
-                    onClick={() => setShowReplyModal(false)}
-                  >
-                    Annuler
-                  </button>
-                  <button
-                    className="btn-modal btn-submit"
-                    onClick={handleSendReply}
-                    disabled={!replyContent.trim() || sendingReply}
-                  >
-                    {sendingReply ? (
-                      <>
-                        <Loader2 className="spinner" size={16} />
-                        Envoi...
-                      </>
-                    ) : (
-                      <>
-                        <Send size={16} />
-                        Envoyer
-                      </>
-                    )}
-                  </button>
-                </>
-              ) : (
-                <button
-                  className="btn-modal btn-cancel"
-                  onClick={() => setShowReplyModal(false)}
-                  style={{ width: '100%' }}
-                >
-                  Fermer
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   )
 }

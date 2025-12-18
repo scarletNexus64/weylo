@@ -10,7 +10,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
 
   const [loginData, setLoginData] = useState({
     username: '',
-    password: ''
+    pin: ['', '', '', '']
   })
 
   const [registerData, setRegisterData] = useState({
@@ -18,16 +18,24 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
     phone: ''
   })
 
-  const [pin, setPin] = useState(['', '', '', ''])
+  const [registerPin, setRegisterPin] = useState(['', '', '', ''])
 
   if (!isOpen) return null
 
   const handleLogin = async (e) => {
     e.preventDefault()
+
+    const pinString = loginData.pin.join('')
+
+    if (pinString.length !== 4) {
+      setError('Veuillez entrer votre code PIN à 4 chiffres')
+      return
+    }
+
     console.log('🔐 [AUTH_MODAL] Soumission formulaire de connexion')
     console.log('📋 [AUTH_MODAL] Données de connexion:', {
       username: loginData.username,
-      hasPassword: !!loginData.password
+      hasPin: !!pinString
     })
 
     setError('')
@@ -35,7 +43,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
 
     try {
       console.log('⏳ [AUTH_MODAL] Appel de la fonction login...')
-      await login(loginData)
+      await login({ username: loginData.username, password: pinString })
       console.log('✅ [AUTH_MODAL] Connexion réussie! Fermeture du modal...')
       onClose()
     } catch (err) {
@@ -46,25 +54,44 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
     }
   }
 
-  const handlePinChange = (index, value) => {
-    // Only allow numbers
+  // Gestion du PIN pour le login
+  const handleLoginPinChange = (index, value) => {
     if (value && !/^\d$/.test(value)) return
 
-    const newPin = [...pin]
+    const newPin = [...loginData.pin]
     newPin[index] = value
-    setPin(newPin)
+    setLoginData({ ...loginData, pin: newPin })
 
-    // Auto-focus next input
     if (value && index < 3) {
-      const nextInput = document.getElementById(`auth-pin-${index + 1}`)
+      const nextInput = document.getElementById(`login-pin-${index + 1}`)
       if (nextInput) nextInput.focus()
     }
   }
 
-  const handlePinKeyDown = (index, e) => {
-    // Handle backspace
+  const handleLoginPinKeyDown = (index, e) => {
     if (e.key === 'Backspace' && !e.target.value && index > 0) {
-      const prevInput = document.getElementById(`auth-pin-${index - 1}`)
+      const prevInput = document.getElementById(`login-pin-${index - 1}`)
+      if (prevInput) prevInput.focus()
+    }
+  }
+
+  // Gestion du PIN pour le register
+  const handleRegisterPinChange = (index, value) => {
+    if (value && !/^\d$/.test(value)) return
+
+    const newPin = [...registerPin]
+    newPin[index] = value
+    setRegisterPin(newPin)
+
+    if (value && index < 3) {
+      const nextInput = document.getElementById(`register-pin-${index + 1}`)
+      if (nextInput) nextInput.focus()
+    }
+  }
+
+  const handleRegisterPinKeyDown = (index, e) => {
+    if (e.key === 'Backspace' && !e.target.value && index > 0) {
+      const prevInput = document.getElementById(`register-pin-${index - 1}`)
       if (prevInput) prevInput.focus()
     }
   }
@@ -72,7 +99,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
   const handleRegister = async (e) => {
     e.preventDefault()
 
-    const pinString = pin.join('')
+    const pinString = registerPin.join('')
 
     console.log('📝 [AUTH_MODAL] Soumission formulaire d\'inscription')
     console.log('📋 [AUTH_MODAL] Données d\'inscription:', {
@@ -127,27 +154,45 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
         {mode === 'login' ? (
           <form onSubmit={handleLogin} className="auth-modal-form">
             <div className="form-group">
-              <label htmlFor="username">Username ou Email</label>
+              <label htmlFor="username">
+                <svg className="label-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+                Username, Email ou Téléphone
+              </label>
               <input
                 type="text"
                 id="username"
                 value={loginData.username}
                 onChange={(e) => setLoginData({ ...loginData, username: e.target.value })}
-                placeholder="john_doe"
+                placeholder="@username, email ou +237XXXXXXXXX"
                 required
               />
             </div>
 
             <div className="form-group">
-              <label htmlFor="password">Mot de passe</label>
-              <input
-                type="password"
-                id="password"
-                value={loginData.password}
-                onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
-                placeholder="••••"
-                required
-              />
+              <label>
+                <svg className="label-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+                Code PIN (4 chiffres)
+              </label>
+              <div className="pin-inputs">
+                {[0, 1, 2, 3].map((index) => (
+                  <input
+                    key={`login-pin-${index}`}
+                    id={`login-pin-${index}`}
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={1}
+                    value={loginData.pin[index]}
+                    onChange={(e) => handleLoginPinChange(index, e.target.value)}
+                    onKeyDown={(e) => handleLoginPinKeyDown(index, e)}
+                    className="pin-input"
+                    required
+                  />
+                ))}
+              </div>
             </div>
 
             <button type="submit" className="auth-submit-btn" disabled={loading}>
@@ -207,14 +252,14 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
               <div className="pin-inputs">
                 {[0, 1, 2, 3].map((index) => (
                   <input
-                    key={`auth-pin-${index}`}
-                    id={`auth-pin-${index}`}
+                    key={`register-pin-${index}`}
+                    id={`register-pin-${index}`}
                     type="text"
                     inputMode="numeric"
                     maxLength={1}
-                    value={pin[index]}
-                    onChange={(e) => handlePinChange(index, e.target.value)}
-                    onKeyDown={(e) => handlePinKeyDown(index, e)}
+                    value={registerPin[index]}
+                    onChange={(e) => handleRegisterPinChange(index, e.target.value)}
+                    onKeyDown={(e) => handleRegisterPinKeyDown(index, e)}
                     className="pin-input"
                     required
                   />

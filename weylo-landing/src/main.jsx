@@ -10,8 +10,13 @@ import SendMessagePage from './pages/SendMessagePage.jsx'
 import MainLayout from './components/layout/MainLayout'
 import Dashboard from './pages/Dashboard'
 import Messages from './pages/Messages'
+import ReplyAnonymous from './pages/ReplyAnonymous'
 import Confessions from './pages/Confessions'
-import Chat from './pages/Chat'
+import ConversationsList from './pages/ConversationsList'
+import ChatConversation from './pages/ChatConversation'
+import Groups from './pages/Groups'
+import GroupChat from './pages/GroupChat'
+import JoinGroup from './pages/JoinGroup'
 import Gifts from './pages/Gifts'
 import Wallet from './pages/Wallet'
 import Profile from './pages/Profile'
@@ -101,6 +106,9 @@ createRoot(document.getElementById('root')).render(
           <Route path="/m/:userId" element={<SendMessagePage />} />
           <Route path="/u/:username" element={<SendMessagePage />} />
 
+          {/* Group Join Routes (can be accessed without full authentication) */}
+          <Route path="/groups/join/:inviteCode" element={<JoinGroup />} />
+
           {/* Protected Routes */}
           <Route
             path="/"
@@ -112,8 +120,12 @@ createRoot(document.getElementById('root')).render(
           >
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="messages" element={<Messages />} />
+            <Route path="reply-anonymous/:messageId" element={<ReplyAnonymous />} />
             <Route path="confessions" element={<Confessions />} />
-            <Route path="chat" element={<Chat />} />
+            <Route path="chat" element={<ConversationsList />} />
+            <Route path="chat/:conversationId" element={<ChatConversation />} />
+            <Route path="groups" element={<Groups />} />
+            <Route path="groups/:groupId" element={<GroupChat />} />
             <Route path="gifts" element={<Gifts />} />
             <Route path="wallet" element={<Wallet />} />
             <Route path="profile" element={<Profile />} />
