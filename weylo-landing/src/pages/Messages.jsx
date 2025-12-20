@@ -2,10 +2,14 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Mail, Trash2, Send, Eye, Lock, AlertCircle, Loader2, ChevronLeft, ChevronRight } from 'lucide-react'
 import messagesService from '../services/messagesService'
+import RevealIdentityButton from '../components/RevealIdentityButton'
+import PremiumBadge from '../components/shared/PremiumBadge'
+import { useAuth } from '../contexts/AuthContext'
 import '../styles/Messages.css'
 
 export default function Messages() {
   const navigate = useNavigate()
+  const { user } = useAuth()
   const [messages, setMessages] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -13,6 +17,9 @@ export default function Messages() {
   const [currentPage, setCurrentPage] = useState(1)
   const [lastPage, setLastPage] = useState(1)
   const [deletingId, setDeletingId] = useState(null)
+
+  // Vérifier si l'utilisateur peut voir toutes les identités (premium)
+  const canViewAllIdentities = user?.is_premium || false
 
   useEffect(() => {
     fetchMessages()
@@ -66,6 +73,22 @@ export default function Messages() {
   const handleReplyClick = (message) => {
     // Rediriger vers la page de réponse anonyme
     navigate(`/reply-anonymous/${message.id}`)
+  }
+
+  const handleRevealIdentity = async (messageId) => {
+    try {
+      const result = await messagesService.revealIdentity(messageId)
+      // Mettre à jour le message dans la liste
+      setMessages(messages.map(m =>
+        m.id === messageId
+          ? { ...m, is_identity_revealed: true, sender: result.sender }
+          : m
+      ))
+      fetchStats()
+    } catch (error) {
+      // L'erreur sera gérée par le composant RevealIdentityButton
+      throw error
+    }
   }
 
   const formatDate = (dateString) => {
@@ -162,7 +185,7 @@ export default function Messages() {
                 {/* Message Header */}
                 <div className="message-header">
                   <div className="message-sender">
-                    {message.is_identity_revealed && message.sender ? (
+                    {(canViewAllIdentities || message.is_identity_revealed) && message.sender ? (
                       <>
                         <div className="sender-avatar revealed">
                           {message.sender.first_name ? message.sender.first_name[0] : 'U'}
@@ -170,6 +193,7 @@ export default function Messages() {
                         <div className="sender-info">
                           <span className="sender-name">
                             {message.sender.first_name} {message.sender.last_name}
+                            {message.sender.is_premium && <PremiumBadge size="small" />}
                           </span>
                           <span className="sender-username">@{message.sender.username}</span>
                         </div>
@@ -208,6 +232,14 @@ export default function Messages() {
                     <Send size={16} />
                     <span>Répondre</span>
                   </button>
+
+                  {!canViewAllIdentities && !message.is_identity_revealed && (
+                    <RevealIdentityButton
+                      message={message}
+                      onReveal={() => handleRevealIdentity(message.id)}
+                    />
+                  )}
+
                   <button
                     className="btn-action btn-delete"
                     onClick={() => handleDeleteMessage(message.id)}

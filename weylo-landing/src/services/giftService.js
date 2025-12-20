@@ -5,6 +5,23 @@ import apiClient from './apiClient'
  */
 const giftService = {
   /**
+   * Récupère toutes les catégories de cadeaux
+   */
+  getCategories: async () => {
+    const response = await apiClient.get('/gift-categories')
+    return response.data
+  },
+
+  /**
+   * Récupère les cadeaux d'une catégorie spécifique
+   * @param {number} categoryId - ID de la catégorie
+   */
+  getGiftsByCategory: async (categoryId) => {
+    const response = await apiClient.get(`/gift-categories/${categoryId}/gifts`)
+    return response.data
+  },
+
+  /**
    * Récupérer le catalogue de cadeaux
    */
   getCatalog: async () => {
@@ -41,11 +58,13 @@ const giftService = {
    * @param {number} conversationId - ID de la conversation
    * @param {number} giftId - ID du cadeau
    * @param {string} message - Message optionnel
+   * @param {boolean} isAnonymous - Envoyer anonymement
    */
-  sendInConversation: async (conversationId, giftId, message = null) => {
-    const response = await apiClient.post(`/conversations/${conversationId}/gift`, {
+  sendInConversation: async (conversationId, giftId, message = null, isAnonymous = false) => {
+    const response = await apiClient.post(`/chat/conversations/${conversationId}/gift`, {
       gift_id: giftId,
-      message
+      message,
+      is_anonymous: isAnonymous
     })
     return response.data
   },

@@ -1,0 +1,435 @@
+/* ========== OVERLAY PRINCIPAL ========== */
+.gift-animation-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(12px);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: overlayAppear 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+
+@keyframes overlayAppear {
+  from {
+    opacity: 0;
+    backdrop-filter: blur(0px);
+  }
+  to {
+    opacity: 1;
+    backdrop-filter: blur(12px);
+  }
+}
+
+/* ========== FOND ANIMÉ ========== */
+.animated-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow: hidden;
+}
+
+.gradient-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.4;
+  animation: orbFloat 8s ease-in-out infinite;
+}
+
+.orb-1 {
+  width: 350px;
+  height: 350px;
+  top: -150px;
+  left: -150px;
+  animation-delay: 0s;
+}
+
+.orb-2 {
+  width: 300px;
+  height: 300px;
+  bottom: -125px;
+  right: -125px;
+  animation-delay: 2s;
+}
+
+.orb-3 {
+  width: 250px;
+  height: 250px;
+  top: 50%;
+  right: -100px;
+  animation-delay: 4s;
+}
+
+@keyframes orbFloat {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(40px, -40px) scale(1.15);
+  }
+  66% {
+    transform: translate(-30px, 30px) scale(0.85);
+  }
+}
+
+/* ========== PARTICULES - BURST ========== */
+.particles-wrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+}
+
+.particle {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  pointer-events: none;
+}
+
+.particle-burst {
+  width: 10px;
+  height: 10px;
+  background: var(--color);
+  border-radius: 50%;
+  box-shadow: 0 0 15px var(--color);
+  animation: burstExplode var(--duration) var(--delay) ease-out forwards;
+}
+
+@keyframes burstExplode {
+  0% {
+    transform: translate(-50%, -50%) rotate(var(--angle)) translateX(0) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) rotate(var(--angle)) translateX(var(--distance)) scale(0);
+    opacity: 0;
+  }
+}
+
+/* ========== CADEAU RÉVÉLÉ ========== */
+.gift-reveal-center {
+  position: relative;
+  z-index: 10;
+  animation: giftRevealAppear 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes giftRevealAppear {
+  0% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ========== CERCLES LUMINEUX ========== */
+.light-rings {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.ring {
+  position: absolute;
+  border: 3px solid;
+  border-radius: 50%;
+  opacity: 0.5;
+  transform: translate(-50%, -50%);
+}
+
+.ring-1 {
+  width: 250px;
+  height: 250px;
+  animation: ringPulse 2.5s ease-in-out infinite;
+  animation-delay: 0s;
+}
+
+.ring-2 {
+  width: 350px;
+  height: 350px;
+  animation: ringPulse 2.5s ease-in-out infinite;
+  animation-delay: 0.4s;
+}
+
+.ring-3 {
+  width: 450px;
+  height: 450px;
+  animation: ringPulse 2.5s ease-in-out infinite;
+  animation-delay: 0.8s;
+}
+
+@keyframes ringPulse {
+  0%, 100% {
+    transform: translate(-50%, -50%) scale(0.7);
+    opacity: 0;
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.5;
+  }
+}
+
+/* ========== ICÔNE DU CADEAU - GÉANTE ========== */
+.gift-icon-giant {
+  position: relative;
+  width: 280px;
+  height: 280px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-glow-bg {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
+  height: 100%;
+  animation: iconGlowPulse 2s ease-in-out infinite;
+  pointer-events: none;
+  border-radius: 50%;
+}
+
+@keyframes iconGlowPulse {
+  0%, 100% {
+    transform: translate(-50%, -50%) scale(0.9);
+    opacity: 0.5;
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.3);
+    opacity: 0.8;
+  }
+}
+
+.icon-container {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gift-icon-emoji {
+  font-size: 12rem;
+  line-height: 1;
+  display: block;
+  animation: iconBounceIn 1s cubic-bezier(0.68, -0.55, 0.265, 1.55) 0.2s both,
+             iconFloat 2.5s ease-in-out 1.2s infinite;
+  filter: drop-shadow(0 15px 40px rgba(0, 0, 0, 0.6));
+  text-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+}
+
+@keyframes iconBounceIn {
+  0% {
+    opacity: 0;
+    transform: scale(0);
+  }
+  50% {
+    transform: scale(1.15);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes iconFloat {
+  0%, 100% {
+    transform: translateY(0) scale(1) rotate(-3deg);
+  }
+  50% {
+    transform: translateY(-25px) scale(1.05) rotate(3deg);
+  }
+}
+
+/* ========== TEXTE DU CADEAU ========== */
+.gift-info-text {
+  margin-top: 40px;
+  text-align: center;
+  position: relative;
+  z-index: 3;
+}
+
+.gift-title-anim {
+  font-size: 2.8rem;
+  font-weight: 900;
+  color: white;
+  margin: 0 0 20px 0;
+  text-shadow: 0 5px 25px rgba(0, 0, 0, 0.6),
+               0 0 50px rgba(255, 255, 255, 0.3);
+  animation: titleSlideUp 0.8s ease-out 0.4s both;
+  letter-spacing: 1px;
+}
+
+.gift-name-anim {
+  font-size: 2rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.95);
+  margin: 0 0 12px 0;
+  text-shadow: 0 3px 15px rgba(0, 0, 0, 0.5);
+  animation: titleSlideUp 0.8s ease-out 0.6s both;
+}
+
+.gift-price-anim {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.85);
+  margin: 0;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+  animation: titleSlideUp 0.8s ease-out 0.8s both;
+}
+
+@keyframes titleSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ========== ONDES ========== */
+.wave-ripples {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.wave-ripple {
+  position: absolute;
+  width: 120px;
+  height: 120px;
+  border: 2px solid;
+  border-radius: 50%;
+  opacity: 0.6;
+  animation: rippleExpand 2.5s ease-out infinite;
+}
+
+.r1 { animation-delay: 0s; }
+.r2 { animation-delay: 0.6s; }
+.r3 { animation-delay: 1.2s; }
+
+@keyframes rippleExpand {
+  0% {
+    transform: translate(-50%, -50%) scale(0.5);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(4);
+    opacity: 0;
+  }
+}
+
+/* ========== RAYONS ROTATIFS ========== */
+.rotating-beams {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 500px;
+  height: 500px;
+  animation: beamsRotate 10s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes beamsRotate {
+  from { transform: translate(-50%, -50%) rotate(0deg); }
+  to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+.beam-ray {
+  position: absolute;
+  width: 3px;
+  height: 250px;
+  top: 50%;
+  left: 50%;
+  transform-origin: top center;
+  opacity: 0.4;
+}
+
+.b1 { transform: translate(-50%, 0) rotate(0deg); }
+.b2 { transform: translate(-50%, 0) rotate(90deg); }
+.b3 { transform: translate(-50%, 0) rotate(180deg); }
+.b4 { transform: translate(-50%, 0) rotate(270deg); }
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 768px) {
+  .gift-icon-giant {
+    width: 220px;
+    height: 220px;
+  }
+
+  .gift-icon-emoji {
+    font-size: 9rem;
+  }
+
+  .gift-title-anim {
+    font-size: 2rem;
+  }
+
+  .gift-name-anim {
+    font-size: 1.5rem;
+  }
+
+  .gift-price-anim {
+    font-size: 1.2rem;
+  }
+
+  .ring-1 { width: 180px; height: 180px; }
+  .ring-2 { width: 250px; height: 250px; }
+  .ring-3 { width: 320px; height: 320px; }
+
+  .rotating-beams {
+    width: 350px;
+    height: 350px;
+  }
+
+  .beam-ray {
+    height: 175px;
+  }
+}
+
+@media (max-width: 480px) {
+  .gift-icon-giant {
+    width: 180px;
+    height: 180px;
+  }
+
+  .gift-icon-emoji {
+    font-size: 7rem;
+  }
+
+  .gift-title-anim {
+    font-size: 1.6rem;
+  }
+
+  .gift-name-anim {
+    font-size: 1.2rem;
+  }
+
+  .gift-price-anim {
+    font-size: 1rem;
+  }
+}

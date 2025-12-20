@@ -1,9 +1,16 @@
 import { useState } from 'react'
 import CommentSection from './CommentSection'
+import PremiumBadge from '../shared/PremiumBadge'
 import './ConfessionCard.css'
 
 export default function ConfessionCard({ confession, onLike, onCommentAdded, onCommentDeleted, currentUser }) {
   const [showComments, setShowComments] = useState(false)
+
+  // Si l'utilisateur est premium, il peut voir l'identité de l'auteur
+  const canViewIdentity = currentUser?.is_premium || confession.is_identity_revealed || false
+  const authorName = canViewIdentity && confession.author
+    ? `${confession.author.first_name || ''} ${confession.author.last_name || ''}`.trim() || confession.author.username || 'Anonyme'
+    : 'Anonyme'
 
   const formatDate = (dateString) => {
     const date = new Date(dateString)
@@ -26,7 +33,10 @@ export default function ConfessionCard({ confession, onLike, onCommentAdded, onC
             {confession.author?.initial || '?'}
           </div>
           <div className="author-info">
-            <span className="author-name">Anonyme</span>
+            <span className="author-name">
+              {authorName}
+              {canViewIdentity && confession.author?.is_premium && <PremiumBadge size="small" />}
+            </span>
             <span className="confession-time">{formatDate(confession.created_at)}</span>
           </div>
         </div>

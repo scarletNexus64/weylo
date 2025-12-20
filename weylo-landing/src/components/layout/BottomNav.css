@@ -2,8 +2,8 @@
   display: none;
 }
 
-/* Mobile Bottom Navigation */
-@media (max-width: 768px) {
+/* Mobile & Tablet Bottom Navigation */
+@media (max-width: 1024px) {
   .bottom-nav {
     display: block;
     position: fixed;
@@ -126,6 +126,54 @@
     50% {
       transform: scale(1.08);
     }
+  }
+
+  /* Verified User Badge in Bottom Nav */
+  .nav-verified-badge {
+    position: absolute;
+    top: -3px;
+    left: -6px;
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    color: white;
+    font-size: 8px;
+    font-weight: 900;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 6px rgba(59, 130, 246, 0.5);
+    border: 1.5px solid white;
+    z-index: 2;
+    animation: verifiedBadgePulse 2s infinite;
+  }
+
+  .dark .nav-verified-badge {
+    border-color: #1a1a1a;
+  }
+
+  @keyframes verifiedBadgePulse {
+    0%, 100% {
+      box-shadow: 0 2px 6px rgba(59, 130, 246, 0.5);
+      transform: scale(1);
+    }
+    50% {
+      box-shadow: 0 2px 10px rgba(59, 130, 246, 0.7);
+      transform: scale(1.05);
+    }
+  }
+
+  .bottom-nav-item.verified-nav-item .nav-icon-wrapper {
+    position: relative;
+  }
+
+  .bottom-nav-item.verified-nav-item.active .nav-icon {
+    color: #3b82f6;
+  }
+
+  .dark .bottom-nav-item.verified-nav-item.active .nav-icon {
+    color: #60a5fa;
   }
 
   .nav-label {

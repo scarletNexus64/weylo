@@ -58,15 +58,19 @@ export default function BottomNav() {
       <div className="bottom-nav-container">
         {navItems.map((item) => {
           const IconComponent = item.icon
+          const isProfilePage = item.path === '/profile'
           return (
             <NavLink
               key={item.path}
               to={item.path}
-              className={({ isActive }) => `bottom-nav-item ${isActive ? 'active' : ''}`}
+              className={({ isActive }) => `bottom-nav-item ${isActive ? 'active' : ''} ${isProfilePage && user?.is_verified ? 'verified-nav-item' : ''}`}
             >
               <div className="nav-icon-wrapper">
                 {item.badge > 0 && (
                   <span className="nav-badge">{item.badge > 9 ? '9+' : item.badge}</span>
+                )}
+                {isProfilePage && user?.is_verified && (
+                  <span className="nav-verified-badge" title="Compte vérifié">✓</span>
                 )}
                 <IconComponent className="nav-icon" size={24} strokeWidth={2} />
               </div>

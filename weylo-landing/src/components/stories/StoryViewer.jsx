@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import storiesService from '../../services/storiesService'
 import premiumService from '../../services/premiumService'
+import PremiumBadge from '../shared/PremiumBadge'
 import './StoryViewer.css'
 
 const StoryViewer = ({ userId, username, allStories = [], currentUserIndex = 0, onClose, onNextUser }) => {
@@ -14,6 +15,9 @@ const StoryViewer = ({ userId, username, allStories = [], currentUserIndex = 0, 
   const [isPaused, setIsPaused] = useState(false)
   const [showRevealModal, setShowRevealModal] = useState(false)
   const [revealLoading, setRevealLoading] = useState(false)
+  const [showViewers, setShowViewers] = useState(false)
+  const [viewers, setViewers] = useState([])
+  const [viewersLoading, setViewersLoading] = useState(false)
   const timerRef = useRef(null)
   const progressIntervalRef = useRef(null)
 
@@ -142,6 +146,23 @@ const StoryViewer = ({ userId, username, allStories = [], currentUserIndex = 0, 
     setIsPaused(false)
   }
 
+  const loadViewers = async () => {
+    const story = userStories[currentIndex]
+    if (!story) return
+
+    setViewersLoading(true)
+    try {
+      const data = await storiesService.getViewers(story.id)
+      setViewers(data.viewers || [])
+      setShowViewers(true)
+    } catch (err) {
+      console.error('Erreur lors du chargement des viewers:', err)
+      alert(err.response?.data?.message || 'Erreur lors du chargement des viewers')
+    } finally {
+      setViewersLoading(false)
+    }
+  }
+
   const handleRevealIdentity = async () => {
     const story = userStories[currentIndex]
     if (!story) return
@@ -234,22 +255,18 @@ const StoryViewer = ({ userId, username, allStories = [], currentUserIndex = 0, 
             />
             <div className="story-viewer-user-info">
               <span className="story-viewer-username">
-                @{currentStory.user.username}
-                {currentStory.is_anonymous && (
-                  <span className="story-anonymous-badge">🔒</span>
+                {user?.is_premium || !currentStory.is_anonymous ? (
+                  <>
+                    @{currentStory.user.username}
+                    {currentStory.user.is_premium && <PremiumBadge size="small" />}
+                  </>
+                ) : (
+                  <>
+                    Anonyme
+                    <span className="story-anonymous-badge">🔒</span>
+                  </>
                 )}
               </span>
-              {currentStory.can_reveal && (
-                <button
-                  className="story-reveal-btn"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    setShowRevealModal(true)
-                  }}
-                >
-                  Révéler l'identité (450 FCFA)
-                </button>
-              )}
             </div>
             <span className="story-viewer-time">
               Il y a {getTimeAgo(currentStory.created_at)}
@@ -302,7 +319,16 @@ const StoryViewer = ({ userId, username, allStories = [], currentUserIndex = 0, 
         {/* Footer with views */}
         {currentStory.user.id === user?.id && (
           <div className="story-viewer-footer">
-            <div className="story-viewer-views">
+            <div
+              className="story-viewer-views"
+              onClick={(e) => {
+                e.stopPropagation()
+                if (currentStory.viewers_count > 0 && !showViewers) {
+                  loadViewers()
+                }
+              }}
+              style={{ cursor: currentStory.viewers_count > 0 ? 'pointer' : 'default' }}
+            >
               <span className="views-icon">👁️</span>
               <span className="views-count">
                 {currentStory.viewers_count || 0}
@@ -314,17 +340,6 @@ const StoryViewer = ({ userId, username, allStories = [], currentUserIndex = 0, 
                   ? 'vue'
                   : 'vues'}
               </span>
-              {!currentStory.has_viewer_subscription && currentStory.viewers_count > 0 && (
-                <button
-                  className="story-unlock-viewers-btn"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    setShowRevealModal(true)
-                  }}
-                >
-                  🔓 Voir qui a vu (450 FCFA)
-                </button>
-              )}
             </div>
           </div>
         )}
@@ -356,6 +371,64 @@ const StoryViewer = ({ userId, username, allStories = [], currentUserIndex = 0, 
                 {revealLoading ? 'Chargement...' : 'Payer 450 FCFA'}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal des viewers */}
+      {showViewers && (
+        <div className="story-viewers-modal" onClick={() => setShowViewers(false)}>
+          <div className="story-viewers-modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="story-viewers-header">
+              <h3>Vues</h3>
+              <button
+                className="story-viewers-close"
+                onClick={() => setShowViewers(false)}
+              >
+                ✕
+              </button>
+            </div>
+
+            {viewersLoading ? (
+              <div className="story-viewers-loading">Chargement...</div>
+            ) : (
+              <>
+                <div className="story-viewers-count">
+                  {viewers.length} {viewers.length === 1 ? 'vue' : 'vues'}
+                </div>
+
+                <div className="story-viewers-list">
+                  {viewers.length === 0 ? (
+                    <div className="story-viewers-empty">Aucune vue pour le moment</div>
+                  ) : (
+                    viewers.map((viewer, index) => {
+                      const canSeeViewerIdentity = user?.is_premium || viewer.user?.username
+                      const viewerName = canSeeViewerIdentity && viewer.user
+                        ? `${viewer.user.first_name || ''} ${viewer.user.last_name || ''}`.trim() || viewer.user.username || 'Anonyme'
+                        : 'Anonyme'
+                      const viewerAvatar = viewer.user?.initial || 'A'
+
+                      return (
+                        <div key={index} className="story-viewer-item">
+                          <div className="story-viewer-item-left">
+                            <div className="story-viewer-item-avatar">
+                              {viewerAvatar}
+                            </div>
+                            <span className="story-viewer-item-username">
+                              {viewerName}
+                              {canSeeViewerIdentity && viewer.user?.is_premium && <PremiumBadge size="small" />}
+                            </span>
+                          </div>
+                          <span className="story-viewer-item-time">
+                            {getTimeAgo(viewer.viewed_at)}
+                          </span>
+                        </div>
+                      )
+                    })
+                  )}
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}

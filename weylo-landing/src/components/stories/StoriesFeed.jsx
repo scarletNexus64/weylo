@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import storiesService from '../../services/storiesService'
 import StoryViewer from './StoryViewer'
+import PremiumBadge from '../shared/PremiumBadge'
 import './StoriesFeed.css'
 
 const StoriesFeed = () => {
@@ -85,8 +86,17 @@ const StoriesFeed = () => {
                 {!userStory.all_viewed && <div className="story-badge-new"></div>}
               </div>
               <div className="story-username">
-                {userStory.user.username}
-                {userStory.is_anonymous && <span className="story-anonymous-indicator"> 🔒</span>}
+                {user?.is_premium || !userStory.is_anonymous ? (
+                  <>
+                    {userStory.user.username}
+                    {userStory.user.is_premium && <PremiumBadge size="small" />}
+                  </>
+                ) : (
+                  <>
+                    Anonyme
+                    <span className="story-anonymous-indicator"> 🔒</span>
+                  </>
+                )}
               </div>
               <div className="story-count">{userStory.stories_count}</div>
             </div>

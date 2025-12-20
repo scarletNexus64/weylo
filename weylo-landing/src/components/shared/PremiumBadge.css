@@ -1,0 +1,84 @@
+.premium-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #1DA1F2;
+  position: relative;
+  cursor: help;
+}
+
+.premium-badge-icon {
+  filter: drop-shadow(0 0 4px rgba(29, 161, 242, 0.4));
+  transition: all 0.3s ease;
+}
+
+.premium-badge:hover .premium-badge-icon {
+  filter: drop-shadow(0 0 8px rgba(29, 161, 242, 0.6));
+  transform: scale(1.1);
+}
+
+/* Tailles */
+.premium-badge-small {
+  width: 16px;
+  height: 16px;
+}
+
+.premium-badge-small .premium-badge-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.premium-badge-medium {
+  width: 20px;
+  height: 20px;
+}
+
+.premium-badge-medium .premium-badge-icon {
+  width: 20px;
+  height: 20px;
+}
+
+.premium-badge-large {
+  width: 28px;
+  height: 28px;
+}
+
+.premium-badge-large .premium-badge-icon {
+  width: 28px;
+  height: 28px;
+}
+
+/* Animation au chargement */
+@keyframes premiumPulse {
+  0%, 100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 4px rgba(29, 161, 242, 0.4));
+  }
+  50% {
+    transform: scale(1.05);
+    filter: drop-shadow(0 0 8px rgba(29, 161, 242, 0.6));
+  }
+}
+
+.premium-badge-icon {
+  animation: premiumPulse 2s ease-in-out infinite;
+}
+
+/* Version inline avec texte */
+.premium-badge-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: linear-gradient(135deg, rgba(29, 161, 242, 0.1) 0%, rgba(29, 161, 242, 0.05) 100%);
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1DA1F2;
+  border: 1px solid rgba(29, 161, 242, 0.2);
+}
+
+.premium-badge-inline .premium-badge-icon {
+  width: 16px;
+  height: 16px;
+}

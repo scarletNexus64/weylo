@@ -26,6 +26,9 @@ export default function Chat() {
   const [isWebSocketConnected, setIsWebSocketConnected] = useState(false)
   const messagesEndRef = useRef(null)
 
+  // Vérifier si l'utilisateur peut voir toutes les identités (premium)
+  const canViewAllIdentities = user?.is_premium || false
+
   useEffect(() => {
     if (!isAuthenticated || !user) return
 
@@ -99,11 +102,15 @@ export default function Chat() {
           return null
         }
 
+        // Afficher le vrai nom si premium ou si identité révélée
         let displayName = 'Anonyme'
-        if (otherParticipant.username) {
-          displayName = otherParticipant.username
-        } else if (otherParticipant.first_name) {
-          displayName = `${otherParticipant.first_name} ${otherParticipant.last_name || ''}`.trim()
+        const canSeeIdentity = canViewAllIdentities || conv.identity_revealed || false
+        if (canSeeIdentity) {
+          if (otherParticipant.username) {
+            displayName = otherParticipant.username
+          } else if (otherParticipant.first_name) {
+            displayName = `${otherParticipant.first_name} ${otherParticipant.last_name || ''}`.trim()
+          }
         }
 
         return {

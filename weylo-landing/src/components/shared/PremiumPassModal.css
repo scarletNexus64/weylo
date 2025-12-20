@@ -1,0 +1,109 @@
+.premium-modal-header {
+  background: linear-gradient(135deg, #1DA1F2 0%, #0E7AC4 100%);
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-radius: 1rem 1rem 0 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.premium-modal-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+              radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+.premium-modal-header > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Animation pour le badge premium dans le modal */
+.premium-modal-header .premium-badge {
+  color: white;
+}
+
+.premium-modal-header .premium-badge-icon {
+  filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.6));
+}
+
+/* Amélioration du toggle switch */
+.premium-modal-toggle {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+}
+
+.premium-modal-toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.premium-modal-toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: 0.4s;
+  border-radius: 24px;
+}
+
+.premium-modal-toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: 0.4s;
+  border-radius: 50%;
+}
+
+.premium-modal-toggle input:checked + .premium-modal-toggle-slider {
+  background-color: #1DA1F2;
+}
+
+.premium-modal-toggle input:checked + .premium-modal-toggle-slider:before {
+  transform: translateX(20px);
+}
+
+/* Animation du bouton principal */
+@keyframes shimmer {
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+.premium-action-button {
+  background: linear-gradient(90deg, #1DA1F2 0%, #0E7AC4 25%, #1DA1F2 50%, #0E7AC4 75%, #1DA1F2 100%);
+  background-size: 200% auto;
+  animation: shimmer 3s linear infinite;
+}
+
+.premium-action-button:hover {
+  animation: shimmer 1.5s linear infinite;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .premium-modal-header {
+    padding: 1rem;
+  }
+}

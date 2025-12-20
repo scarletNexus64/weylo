@@ -46,7 +46,7 @@ class WebSocketService {
         wssPort: REVERB_PORT,
         forceTLS: REVERB_SCHEME === 'https',
         enabledTransports: ['ws', 'wss'],
-        authEndpoint: `${import.meta.env.VITE_API_URL || 'http://localhost:8001/api/v1'}/broadcasting/auth`,
+        authEndpoint: `${import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1'}/broadcasting/auth`,
         auth: {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -59,7 +59,7 @@ class WebSocketService {
             authorize: (socketId, callback) => {
               // Si c'est un channel privé, on fait l'auth
               if (channel.name.startsWith('private-') || channel.name.startsWith('presence-')) {
-                fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8001/api/v1'}/broadcasting/auth`, {
+                fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1'}/broadcasting/auth`, {
                   method: 'POST',
                   headers: {
                     Authorization: `Bearer ${token}`,

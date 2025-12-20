@@ -77,6 +77,85 @@
   border-color: #3d3d3d;
 }
 
+/* Verified User Avatar Badge */
+.avatar-verified-badge {
+  position: absolute;
+  bottom: 10px;
+  right: 45px;
+  width: 32px;
+  height: 32px;
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 3px solid white;
+  box-shadow: 0 2px 12px rgba(59, 130, 246, 0.5);
+  animation: verifiedBadgePulse 2s ease-in-out infinite;
+}
+
+.dark .avatar-verified-badge {
+  border-color: #1a1a1a;
+}
+
+.avatar-verified-badge svg {
+  width: 18px;
+  height: 18px;
+  color: white;
+}
+
+@keyframes verifiedBadgePulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 2px 12px rgba(59, 130, 246, 0.5);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 4px 20px rgba(59, 130, 246, 0.7);
+  }
+}
+
+/* Verified User Profile Styling */
+.verified-user .profile-avatar {
+  border-color: #3b82f6;
+  box-shadow: 0 4px 16px rgba(59, 130, 246, 0.4), 0 0 0 4px rgba(59, 130, 246, 0.1);
+}
+
+.dark .verified-user .profile-avatar {
+  border-color: #3b82f6;
+}
+
+.verified-profile .profile-cover {
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8, #6366f1);
+  position: relative;
+  overflow: hidden;
+}
+
+.verified-profile .profile-cover::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
+  animation: verifiedShine 3s ease-in-out infinite;
+}
+
+@keyframes verifiedShine {
+  0% {
+    left: -100%;
+  }
+  50%, 100% {
+    left: 100%;
+  }
+}
+
 .profile-name-section {
   display: flex;
   align-items: center;
@@ -92,6 +171,30 @@
 
 .dark .profile-info-section h1 {
   color: white;
+}
+
+.verified-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  color: white;
+  border-radius: 50%;
+  font-size: 16px;
+  font-weight: 900;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4);
+  animation: verifiedPulse 2s ease-in-out infinite;
+}
+
+@keyframes verifiedPulse {
+  0%, 100% {
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4);
+  }
+  50% {
+    box-shadow: 0 2px 16px rgba(59, 130, 246, 0.6);
+  }
 }
 
 .premium-badge {

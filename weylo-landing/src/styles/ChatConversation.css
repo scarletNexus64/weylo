@@ -648,3 +648,60 @@
 .dark .image-tooltip::after {
   border-top-color: white;
 }
+
+/* Gift Button */
+.btn-gift {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #c026d3 0%, #a21caf 100%);
+  color: white;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(192, 38, 211, 0.25);
+}
+
+.btn-gift svg {
+  width: 20px;
+  height: 20px;
+}
+
+.btn-gift:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(192, 38, 211, 0.4);
+  background: linear-gradient(135deg, #d946ef 0%, #c026d3 100%);
+}
+
+.btn-gift:active {
+  transform: scale(0.95);
+}
+
+/* Les animations de cadeaux sont gérées par le composant GiftAnimation */
+
+/* Reveal Identity Button in Header */
+.conversation-info-header .btn-reveal {
+  background: rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  padding: 8px 14px;
+  font-size: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  margin-top: 8px;
+}
+
+.conversation-info-header .btn-reveal:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.35);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.conversation-info-header .btn-reveal svg {
+  width: 14px;
+  height: 14px;
+}

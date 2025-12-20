@@ -1,0 +1,285 @@
+.btn-reveal {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 18px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-reveal::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.btn-reveal:hover::before {
+  left: 100%;
+}
+
+.btn-reveal:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+}
+
+.btn-reveal:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.btn-reveal:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.btn-reveal .spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Modal */
+.reveal-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.reveal-modal {
+  background: white;
+  border-radius: 20px;
+  max-width: 480px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.reveal-modal-header {
+  padding: 24px;
+  text-align: center;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.reveal-modal-header .modal-icon {
+  color: #667eea;
+  margin-bottom: 12px;
+}
+
+.reveal-modal-header h3 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.reveal-modal-content {
+  padding: 24px;
+}
+
+.reveal-modal-content > p {
+  text-align: center;
+  font-size: 15px;
+  color: #6b7280;
+  margin-bottom: 24px;
+}
+
+.reveal-price-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px;
+  background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+  border-radius: 16px;
+  margin-bottom: 24px;
+  border: 2px solid #667eea30;
+}
+
+.reveal-price-info svg {
+  color: #667eea;
+  flex-shrink: 0;
+}
+
+.reveal-price-info strong {
+  display: block;
+  font-size: 24px;
+  font-weight: 700;
+  color: #667eea;
+  margin-bottom: 4px;
+}
+
+.reveal-price-info p {
+  margin: 0;
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.reveal-benefits {
+  background: #f9fafb;
+  padding: 20px;
+  border-radius: 12px;
+}
+
+.reveal-benefits h4 {
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.reveal-benefits ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.reveal-benefits li {
+  padding: 8px 0;
+  font-size: 14px;
+  color: #4b5563;
+}
+
+.reveal-modal-actions {
+  display: flex;
+  gap: 12px;
+  padding: 20px 24px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.reveal-modal-actions button {
+  flex: 1;
+  padding: 14px 20px;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-cancel {
+  background: #f3f4f6;
+  color: #6b7280;
+  border: 1px solid #e5e7eb;
+}
+
+.btn-cancel:hover {
+  background: #e5e7eb;
+}
+
+.btn-cancel:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-confirm {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.btn-confirm:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.btn-confirm:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.btn-confirm:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .reveal-modal {
+    width: 95%;
+    border-radius: 16px;
+  }
+
+  .reveal-modal-header {
+    padding: 20px;
+  }
+
+  .reveal-modal-header h3 {
+    font-size: 20px;
+  }
+
+  .reveal-modal-content {
+    padding: 20px;
+  }
+
+  .reveal-price-info {
+    padding: 16px;
+  }
+
+  .reveal-price-info strong {
+    font-size: 20px;
+  }
+
+  .reveal-modal-actions {
+    flex-direction: column;
+    padding: 16px 20px;
+  }
+
+  .reveal-modal-actions button {
+    width: 100%;
+  }
+}

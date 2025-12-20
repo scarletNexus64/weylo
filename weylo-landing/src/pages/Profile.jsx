@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import userService from '../services/userService'
+import settingsService from '../services/settingsService'
+import PremiumBadge from '../components/shared/PremiumBadge'
+import PremiumPassModal from '../components/shared/PremiumPassModal'
 import '../styles/Profile.css'
 
 export default function Profile() {
@@ -31,6 +34,7 @@ export default function Profile() {
   const [profileUrl, setProfileUrl] = useState('')
   const [showChangePinModal, setShowChangePinModal] = useState(false)
   const [showDeleteAccountModal, setShowDeleteAccountModal] = useState(false)
+  const [showPremiumModal, setShowPremiumModal] = useState(false)
   const [pinData, setPinData] = useState({
     currentPin: '',
     newPin: '',
@@ -40,11 +44,30 @@ export default function Profile() {
     password: '',
     reason: ''
   })
+  const [appSettings, setAppSettings] = useState({
+    reveal_anonymous_price: 500,
+    premium_monthly_price: 450,
+    premium_enabled: true,
+    currency: 'FCFA'
+  })
 
   // Charger les données du profil au montage
   useEffect(() => {
     loadDashboardData()
+    loadAppSettings()
   }, [])
+
+  // Charger les paramètres de l'application
+  const loadAppSettings = async () => {
+    try {
+      const settings = await settingsService.getPublicSettings()
+      console.log('📋 [PROFILE] Paramètres chargés:', settings)
+      setAppSettings(settings)
+    } catch (error) {
+      console.error('❌ [PROFILE] Erreur lors du chargement des paramètres:', error)
+      // Garder les valeurs par défaut en cas d'erreur
+    }
+  }
 
   // Charger les données du dashboard
   const loadDashboardData = async () => {
@@ -367,10 +390,10 @@ export default function Profile() {
   return (
     <div className="profile-page">
       {/* Profile Header */}
-      <div className="profile-header">
+      <div className={`profile-header ${user?.is_verified ? 'verified-profile' : ''}`}>
         <div className="profile-cover"></div>
         <div className="profile-info-section">
-          <div className="profile-avatar-wrapper">
+          <div className={`profile-avatar-wrapper ${user?.is_verified ? 'verified-user' : ''}`}>
             <div className="profile-avatar">
               {user?.avatar ? (
                 <img src={user.avatar_url || user.avatar} alt="Avatar" />
@@ -378,6 +401,13 @@ export default function Profile() {
                 formData.first_name?.[0] || 'U'
               )}
             </div>
+            {user?.is_verified && (
+              <div className="avatar-verified-badge" title="Compte vérifié">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/>
+                </svg>
+              </div>
+            )}
             <input
               type="file"
               id="avatar-upload"
@@ -396,7 +426,7 @@ export default function Profile() {
           <div className="profile-main-info">
             <div className="profile-name-section">
               <h1>{formData.first_name} {formData.last_name}</h1>
-              {user?.is_premium && <span className="premium-badge">👑 Premium</span>}
+              {user?.is_premium && <PremiumBadge size="large" />}
             </div>
             <p className="profile-username">@{formData.username}</p>
             <p className="profile-bio">{formData.bio}</p>
@@ -493,7 +523,101 @@ export default function Profile() {
           </div>
         </div>
 
-        {/* Account Stats */}
+        {/* Premium Section
+        {appSettings.premium_enabled && (
+          <div className="premium-section">
+            <div className="premium-content">
+              <div className="premium-icon">👑</div>
+
+              {user?.is_premium ? (
+                // Affichage pour les utilisateurs Premium
+                <>
+                  <h3>Mon Passe Premium</h3>
+                  <p style={{ color: '#10b981', fontWeight: '600', marginBottom: '15px' }}>
+                    ✓ Compte Premium Actif
+                  </p>
+
+                  <div className="premium-details" style={{ marginBottom: '20px' }}>
+                    {user?.premium_expires_at && (
+                      <div className="premium-info-item" style={{
+                        background: '#f3f4f6',
+                        padding: '12px',
+                        borderRadius: '8px',
+                        marginBottom: '10px'
+                      }}>
+                        <div style={{ fontSize: '0.85rem', color: '#6b7280' }}>Date d'expiration</div>
+                        <div style={{ fontSize: '1rem', fontWeight: '600', color: '#111827' }}>
+                          {new Date(user.premium_expires_at).toLocaleDateString('fr-FR', {
+                            day: 'numeric',
+                            month: 'long',
+                            year: 'numeric'
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    {user?.premium_days_remaining !== undefined && user?.premium_days_remaining !== null && (
+                      <div className="premium-info-item" style={{
+                        background: '#fef3c7',
+                        padding: '12px',
+                        borderRadius: '8px',
+                        marginBottom: '10px'
+                      }}>
+                        <div style={{ fontSize: '0.85rem', color: '#92400e' }}>Jours restants</div>
+                        <div style={{ fontSize: '1.25rem', fontWeight: '700', color: '#92400e' }}>
+                          {user.premium_days_remaining} jour{user.premium_days_remaining > 1 ? 's' : ''}
+                        </div>
+                      </div>
+                    )}
+
+                    {user?.premium_auto_renew && (
+                      <div className="premium-info-item" style={{
+                        background: '#dbeafe',
+                        padding: '12px',
+                        borderRadius: '8px'
+                      }}>
+                        <div style={{ fontSize: '0.85rem', color: '#1e40af' }}>
+                          🔄 Renouvellement automatique activé
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <ul className="premium-features" style={{ marginBottom: '20px' }}>
+                    <li>✓ Révélation d'identité illimitée</li>
+                    <li>✓ Badge Premium exclusif</li>
+                    <li>✓ Statistiques avancées</li>
+                    <li>✓ Support prioritaire</li>
+                  </ul>
+
+                  <button className="btn-premium" onClick={() => setShowPremiumModal(true)}>
+                    👑 Gérer mon Passe Premium
+                  </button>
+                </>
+              ) : (
+                // Affichage pour les utilisateurs non-Premium
+                <>
+                  <h3>Passe au Premium</h3>
+                  <p>Révèle l'identité des expéditeurs et accède à des fonctionnalités exclusives</p>
+                  <ul className="premium-features">
+                    <li>✓ Révélation d'identité illimitée</li>
+                    <li>✓ Badge Premium exclusif</li>
+                    <li>✓ Statistiques avancées</li>
+                    <li>✓ Support prioritaire</li>
+                  </ul>
+                  <button className="btn-premium" onClick={() => setShowPremiumModal(true)}>
+                    Devenir Premium - {appSettings.premium_monthly_price} {appSettings.currency}/mois
+                  </button>
+                  <p className="premium-note" style={{ marginTop: '10px', fontSize: '0.85rem', color: '#888' }}>
+                    Prix de révélation unitaire : {appSettings.reveal_anonymous_price} {appSettings.currency}
+                  </p>
+                </>
+              )}
+            </div>
+          </div>
+        )} */}
+
+          {/* Account Stats */}
         <div className="account-stats-section">
           <h3>Statistiques du compte</h3>
           <div className="stats-grid">
@@ -511,50 +635,6 @@ export default function Profile() {
         <div className="privacy-section">
           <h3>Paramètres de confidentialité</h3>
           <div className="privacy-settings">
-            <div className="privacy-item">
-              <div className="privacy-info">
-                <div className="privacy-title">🌐 Profil public</div>
-                <div className="privacy-description">Permet à tout le monde de voir ton profil</div>
-              </div>
-              <label className="toggle-switch">
-                <input
-                  type="checkbox"
-                  checked={privacySettings.show_profile_to_public}
-                  onChange={() => handlePrivacyChange('show_profile_to_public')}
-                />
-                <span className="toggle-slider"></span>
-              </label>
-            </div>
-
-            <div className="privacy-item">
-              <div className="privacy-info">
-                <div className="privacy-title">💌 Messages anonymes</div>
-                <div className="privacy-description">Autorise les messages anonymes</div>
-              </div>
-              <label className="toggle-switch">
-                <input
-                  type="checkbox"
-                  checked={privacySettings.allow_anonymous_messages}
-                  onChange={() => handlePrivacyChange('allow_anonymous_messages')}
-                />
-                <span className="toggle-slider"></span>
-              </label>
-            </div>
-
-            <div className="privacy-item">
-              <div className="privacy-info">
-                <div className="privacy-title">📢 Confessions publiques</div>
-                <div className="privacy-description">Autorise les confessions sur ton profil</div>
-              </div>
-              <label className="toggle-switch">
-                <input
-                  type="checkbox"
-                  checked={privacySettings.allow_confessions}
-                  onChange={() => handlePrivacyChange('allow_confessions')}
-                />
-                <span className="toggle-slider"></span>
-              </label>
-            </div>
 
             <div className="privacy-item">
               <div className="privacy-info">
@@ -570,28 +650,9 @@ export default function Profile() {
                 <span className="toggle-slider"></span>
               </label>
             </div>
+
           </div>
         </div>
-
-        {/* Premium Section */}
-        {!user?.is_premium && (
-          <div className="premium-section">
-            <div className="premium-content">
-              <div className="premium-icon">👑</div>
-              <h3>Passe au Premium</h3>
-              <p>Révèle l'identité des expéditeurs et accède à des fonctionnalités exclusives</p>
-              <ul className="premium-features">
-                <li>✓ Révélation d'identité illimitée</li>
-                <li>✓ Badge Premium exclusif</li>
-                <li>✓ Statistiques avancées</li>
-                <li>✓ Support prioritaire</li>
-              </ul>
-              <button className="btn-premium">
-                Devenir Premium - 450 FCFA/mois
-              </button>
-            </div>
-          </div>
-        )}
 
         {/* Danger Zone */}
         <div className="danger-zone">
@@ -718,6 +779,18 @@ export default function Profile() {
           </div>
         </div>
       )}
+
+      {/* Premium Pass Modal */}
+      <PremiumPassModal
+        isOpen={showPremiumModal}
+        onClose={() => setShowPremiumModal(false)}
+        onSuccess={async () => {
+          // Recharger les données de l'utilisateur
+          await loadDashboardData()
+          showNotification('Passe Premium activé avec succès !', 'success')
+        }}
+        currentUser={user}
+      />
     </div>
   )
 }

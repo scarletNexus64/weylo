@@ -19,6 +19,7 @@ import GroupChat from './pages/GroupChat'
 import JoinGroup from './pages/JoinGroup'
 import Gifts from './pages/Gifts'
 import Wallet from './pages/Wallet'
+import PaymentReturnPage from './pages/PaymentReturnPage'
 import Profile from './pages/Profile'
 import AdminDashboard from './pages/AdminDashboard'
 
@@ -128,6 +129,7 @@ createRoot(document.getElementById('root')).render(
             <Route path="groups/:groupId" element={<GroupChat />} />
             <Route path="gifts" element={<Gifts />} />
             <Route path="wallet" element={<Wallet />} />
+            <Route path="wallet/deposit/return" element={<PaymentReturnPage />} />
             <Route path="profile" element={<Profile />} />
             <Route path="settings" element={<div style={{ padding: '40px', textAlign: 'center', fontSize: '24px' }}>🚧 Paramètres - En cours de construction</div>} />
             <Route path="notifications" element={<div style={{ padding: '40px', textAlign: 'center', fontSize: '24px' }}>🚧 Notifications - En cours de construction</div>} />

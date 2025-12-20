@@ -106,6 +106,15 @@ const chatService = {
   getStats: async () => {
     const response = await apiClient.get('/chat/stats')
     return response.data
+  },
+
+  /**
+   * Révéler l'identité de l'autre participant dans une conversation
+   * @param {number} conversationId - ID de la conversation
+   */
+  revealIdentity: async (conversationId) => {
+    const response = await apiClient.post(`/chat/conversations/${conversationId}/reveal`)
+    return response.data
   }
 }
 

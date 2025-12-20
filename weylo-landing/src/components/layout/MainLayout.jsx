@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
-import { Home, Mail, Megaphone, MessageCircle, Gift, Wallet, User, Settings, Moon, Sun, Bell, Search, Menu, LogOut } from 'lucide-react'
+import { Home, Mail, Megaphone, MessageCircle, Wallet, User, Settings, Moon, Sun, Bell, Search, Menu, LogOut } from 'lucide-react'
 import BottomNav from './BottomNav'
 import './MainLayout.css'
 
@@ -33,7 +33,6 @@ export default function MainLayout() {
     { path: '/messages', icon: Mail, label: 'Messages', badge: user?.stats?.messages_received || 0 },
     { path: '/confessions', icon: Megaphone, label: 'Confessions', badge: user?.stats?.confessions_received || 0 },
     { path: '/chat', icon: MessageCircle, label: 'Chat', badge: 3 },
-    { path: '/gifts', icon: Gift, label: 'Cadeaux', badge: user?.stats?.gifts_received || 0 },
     { path: '/wallet', icon: Wallet, label: 'Portefeuille' },
     { path: '/profile', icon: User, label: 'Profil' },
     { path: '/settings', icon: Settings, label: 'Paramètres' },
@@ -56,14 +55,20 @@ export default function MainLayout() {
         <nav className="sidebar-nav">
           {navItems.map((item) => {
             const IconComponent = item.icon
+            const isProfilePage = item.path === '/profile'
             return (
               <Link
                 key={item.path}
                 to={item.path}
-                className={`sidebar-item ${location.pathname === item.path ? 'active' : ''}`}
+                className={`sidebar-item ${location.pathname === item.path ? 'active' : ''} ${isProfilePage && user?.is_verified ? 'verified-item' : ''}`}
               >
                 <IconComponent className="sidebar-icon" size={20} strokeWidth={2} />
-                <span className="sidebar-label">{item.label}</span>
+                <span className="sidebar-label">
+                  {item.label}
+                  {isProfilePage && user?.is_verified && (
+                    <span className="sidebar-verified-badge" title="Compte vérifié">✓</span>
+                  )}
+                </span>
                 {item.badge > 0 && <span className="sidebar-badge">{item.badge}</span>}
               </Link>
             )
@@ -113,29 +118,21 @@ export default function MainLayout() {
               {darkMode ? <Sun size={20} strokeWidth={2} /> : <Moon size={20} strokeWidth={2} />}
             </button>
 
-            <Link to="/gifts" className="navbar-btn navbar-gifts-btn" title="Cadeaux">
-              <Gift size={20} strokeWidth={2} />
-            </Link>
-
             <Link to="/notifications" className="navbar-btn notification-btn" title="Notifications">
               <Bell size={20} strokeWidth={2} />
               <span className="notification-badge">5</span>
             </Link>
 
-            <Link to="/settings" className="navbar-btn navbar-settings-btn" title="Paramètres">
-              <Settings size={20} strokeWidth={2} />
+            <Link to="/wallet" className="navbar-btn navbar-wallet-btn" title="Portefeuille">
+              <Wallet size={20} strokeWidth={2} />
+              <span className="wallet-balance">
+                {user?.wallet_balance || 0} FCFA
+                {user?.is_verified && <span className="navbar-verified-indicator" title="Compte vérifié">✓</span>}
+              </span>
             </Link>
 
-            <Link to="/profile" className="navbar-user">
-              <div className="user-avatar-wrapper">
-                {user?.avatar ? (
-                  <img src={user.avatar} alt={user.first_name} className="user-avatar-img" />
-                ) : (
-                  <div className="user-avatar">{user?.first_name?.[0]?.toUpperCase()}</div>
-                )}
-                <span className={`online-status ${isOnline ? 'online' : 'offline'}`}></span>
-              </div>
-              <span className="user-name">{user?.first_name}</span>
+            <Link to="/settings" className="navbar-btn navbar-settings-btn" title="Paramètres">
+              <Settings size={20} strokeWidth={2} />
             </Link>
           </div>
         </header>

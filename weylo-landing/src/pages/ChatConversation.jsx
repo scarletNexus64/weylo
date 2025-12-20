@@ -1,9 +1,14 @@
 import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import { ArrowLeft, Send, Image, Loader2, MessageCircle } from 'lucide-react'
+import { ArrowLeft, Send, Image, Loader2, MessageCircle, Gift } from 'lucide-react'
 import chatService from '../services/chatService'
 import websocketService from '../services/websocketService'
+import GiftBottomSheet from '../components/gifts/GiftBottomSheet'
+import GiftMessage from '../components/gifts/GiftMessage'
+import GiftAnimation from '../components/gifts/GiftAnimation'
+import PremiumBadge from '../components/shared/PremiumBadge'
+import RevealIdentityButton from '../components/RevealIdentityButton'
 import '../styles/ChatConversation.css'
 
 export default function ChatConversation() {
@@ -15,6 +20,8 @@ export default function ChatConversation() {
   const [newMessage, setNewMessage] = useState('')
   const [loading, setLoading] = useState(true)
   const [sending, setSending] = useState(false)
+  const [isGiftBottomSheetOpen, setIsGiftBottomSheetOpen] = useState(false)
+  const [giftAnimation, setGiftAnimation] = useState(null)
   const messagesEndRef = useRef(null)
 
   useEffect(() => {
@@ -40,13 +47,16 @@ export default function ChatConversation() {
     }
   }, [conversationId, isAuthenticated, user])
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  const scrollToBottom = (behavior = 'smooth') => {
+    messagesEndRef.current?.scrollIntoView({ behavior })
   }
 
   useEffect(() => {
-    scrollToBottom()
-  }, [messages])
+    // Scroll smooth pour les nouveaux messages qui arrivent
+    if (messages.length > 0 && !loading) {
+      scrollToBottom('smooth')
+    }
+  }, [messages.length])
 
   const formatTime = (dateString) => {
     const date = new Date(dateString)
@@ -85,11 +95,15 @@ export default function ChatConversation() {
       }
 
       const otherParticipant = conv.other_participant
+      const canViewIdentity = user?.is_premium || conv.identity_revealed || false
+
       let displayName = 'Anonyme'
-      if (otherParticipant.username) {
-        displayName = otherParticipant.username
-      } else if (otherParticipant.first_name) {
-        displayName = `${otherParticipant.first_name} ${otherParticipant.last_name || ''}`.trim()
+      if (canViewIdentity) {
+        if (otherParticipant.first_name) {
+          displayName = `${otherParticipant.first_name} ${otherParticipant.last_name || ''}`.trim()
+        } else if (otherParticipant.username) {
+          displayName = otherParticipant.username
+        }
       }
 
       setConversation({
@@ -97,6 +111,8 @@ export default function ChatConversation() {
         contact_name: displayName,
         contact_avatar: otherParticipant.initial || 'U',
         is_online: otherParticipant.is_online || false,
+        is_premium: otherParticipant.is_premium || false,
+        identity_revealed: conv.identity_revealed || false, // Synchronisé avec Messages
         streak_days: conv.streak?.count || 0,
         flame_level: mapFlameLevel(conv.streak?.flame_level),
       })
@@ -115,10 +131,16 @@ export default function ChatConversation() {
         is_mine: msg.is_mine,
         time: formatTime(msg.created_at),
         sender_id: msg.sender_id,
-        type: msg.type
+        type: msg.type,
+        gift_data: msg.gift_data || null
       }))
 
       setMessages(transformedMessages)
+
+      // Scroll instantané au dernier message après le chargement
+      setTimeout(() => {
+        scrollToBottom('auto')
+      }, 100)
 
       // Marquer comme lu
       await chatService.markAsRead(conversationId)
@@ -148,10 +170,18 @@ export default function ChatConversation() {
               is_mine: false, // Toujours false car on ignore nos propres messages
               time: formatTime(event.created_at),
               sender_id: event.sender_id,
-              type: event.type
+              type: event.type,
+              gift_data: event.gift_data || null
             }
 
             console.log('✅ [CHAT] Ajout du message à la liste:', newMsg)
+
+            // Si c'est un cadeau, afficher l'animation pour le destinataire aussi
+            if (event.type === 'gift' && event.gift_data) {
+              console.log('🎁 [CHAT] Cadeau reçu, affichage de l\'animation')
+              setGiftAnimation(event.gift_data)
+            }
+
             setMessages(prev => {
               // Vérifier si le message existe déjà (éviter les doublons)
               const messageExists = prev.some(msg => msg.id === newMsg.id)
@@ -165,7 +195,8 @@ export default function ChatConversation() {
               console.log('📝 [CHAT] Messages après:', updated.length)
               return updated
             })
-            scrollToBottom()
+
+            setTimeout(() => scrollToBottom(), 100)
           }
         })
 
@@ -200,7 +231,8 @@ export default function ChatConversation() {
           is_mine: true,
           time: formatTime(response.message.created_at),
           sender_id: response.message.sender_id,
-          type: response.message.type
+          type: response.message.type,
+          gift_data: response.message.gift_data || null
         }
 
         setMessages(prev => {
@@ -228,6 +260,48 @@ export default function ChatConversation() {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
       sendMessage()
+    }
+  }
+
+  const handleGiftSent = async (gift, response) => {
+    console.log('🎁 Cadeau envoyé:', gift, response)
+
+    // Récupérer les données du cadeau depuis la réponse du backend
+    const giftData = response?.transaction?.gift || gift
+
+    // Afficher la super animation avec les vraies données
+    setGiftAnimation(giftData)
+
+    // Recharger les messages pour afficher le cadeau
+    try {
+      console.log('🔄 [GIFT] Rechargement des messages après envoi du cadeau...')
+      await loadMessages()
+
+      // Scroller vers le bas après un court délai pour s'assurer que le rendu est terminé
+      setTimeout(() => {
+        scrollToBottom()
+      }, 300)
+    } catch (error) {
+      console.error('❌ [GIFT] Erreur lors du rechargement des messages:', error)
+    }
+  }
+
+  const handleAnimationComplete = () => {
+    setGiftAnimation(null)
+  }
+
+  const handleRevealIdentity = async () => {
+    try {
+      const result = await chatService.revealIdentity(conversationId)
+
+      // Recharger les données de la conversation pour afficher le vrai nom
+      await loadConversationData()
+
+      console.log('✅ Identité révélée dans la conversation:', result)
+    } catch (error) {
+      console.error('❌ Erreur révélation identité:', error)
+      // L'erreur sera gérée par le composant RevealIdentityButton
+      throw error
     }
   }
 
@@ -260,10 +334,22 @@ export default function ChatConversation() {
               {conversation.contact_avatar}
             </div>
             <div className="conversation-info-header">
-              <h2>{conversation.contact_name}</h2>
+              <h2>
+                {conversation.contact_name}
+                {conversation.is_premium && <PremiumBadge size="small" />}
+              </h2>
               <p className={conversation.is_online ? 'status-online' : 'status-offline'}>
                 {conversation.is_online ? '● En ligne' : '○ Hors ligne'}
               </p>
+              {/* Bouton Révéler l'identité si pas premium et pas encore révélé */}
+              {!user?.is_premium && !conversation.identity_revealed && (
+                <div style={{ marginTop: '8px' }}>
+                  <RevealIdentityButton
+                    message={{ is_identity_revealed: conversation.identity_revealed }}
+                    onReveal={handleRevealIdentity}
+                  />
+                </div>
+              )}
             </div>
             {conversation.streak_days > 0 && (
               <div className={`chat-header-streak flame-${conversation.flame_level}`}>
@@ -291,17 +377,39 @@ export default function ChatConversation() {
           </div>
         ) : (
           <>
-            {messages.map(msg => (
-              <div
-                key={msg.id}
-                className={`message-wrapper ${msg.is_mine ? 'mine' : 'theirs'}`}
-              >
-                <div className={`message-bubble ${msg.is_mine ? 'mine' : 'theirs'}`}>
-                  <p className="message-text">{msg.content}</p>
-                  <span className="message-time">{msg.time}</span>
+            {messages.map(msg => {
+              // Si c'est un message cadeau
+              if (msg.type === 'gift' && msg.gift_data) {
+                // Déterminer le nom de l'expéditeur (masquer si anonyme)
+                let senderName = conversation?.contact_name || 'Anonyme'
+                if (!msg.is_mine && msg.gift_data.is_anonymous) {
+                  senderName = 'Anonyme'
+                }
+
+                return (
+                  <GiftMessage
+                    key={msg.id}
+                    gift={msg.gift_data}
+                    isMine={msg.is_mine}
+                    senderName={senderName}
+                    time={msg.time}
+                  />
+                )
+              }
+
+              // Message texte normal
+              return (
+                <div
+                  key={msg.id}
+                  className={`message-wrapper ${msg.is_mine ? 'mine' : 'theirs'}`}
+                >
+                  <div className={`message-bubble ${msg.is_mine ? 'mine' : 'theirs'}`}>
+                    <p className="message-text">{msg.content}</p>
+                    <span className="message-time">{msg.time}</span>
+                  </div>
                 </div>
-              </div>
-            ))}
+              )
+            })}
             <div ref={messagesEndRef} />
           </>
         )}
@@ -309,6 +417,13 @@ export default function ChatConversation() {
 
       {/* Input Area */}
       <div className="input-area">
+        <button
+          className="btn-gift"
+          onClick={() => setIsGiftBottomSheetOpen(true)}
+          title="Envoyer un cadeau"
+        >
+          <Gift strokeWidth={2} />
+        </button>
         <button
           className="btn-image-upload"
           disabled
@@ -340,6 +455,23 @@ export default function ChatConversation() {
           )}
         </button>
       </div>
+
+      {/* Gift Bottom Sheet */}
+      <GiftBottomSheet
+        isOpen={isGiftBottomSheetOpen}
+        onClose={() => setIsGiftBottomSheetOpen(false)}
+        recipientName={conversation?.contact_name || 'Anonyme'}
+        conversationId={conversationId}
+        onGiftSent={handleGiftSent}
+      />
+
+      {/* Gift Animation Full Screen */}
+      {giftAnimation && (
+        <GiftAnimation
+          gift={giftAnimation}
+          onComplete={handleAnimationComplete}
+        />
+      )}
     </div>
   )
 }

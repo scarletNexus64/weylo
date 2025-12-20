@@ -33,6 +33,71 @@
   gap: 24px;
 }
 
+/* Payment Pending Banner */
+.payment-pending-banner {
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+  padding: 20px 24px;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3);
+  animation: slideDown 0.3s ease-out;
+}
+
+.pending-content {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.pending-spinner {
+  flex-shrink: 0;
+}
+
+.pending-spinner .spin {
+  animation: spin 2s linear infinite;
+  color: white;
+  width: 32px;
+  height: 32px;
+}
+
+.pending-info h4 {
+  color: white;
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0 0 8px 0;
+}
+
+.pending-info p {
+  color: rgba(255, 255, 255, 0.95);
+  font-size: 14px;
+  margin: 4px 0;
+}
+
+.pending-status {
+  font-size: 13px !important;
+  color: rgba(255, 255, 255, 0.8) !important;
+  font-style: italic;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 /* Balance Card */
 .balance-card {
   background: linear-gradient(135deg, #9333ea, #db2777);
@@ -56,7 +121,11 @@
 }
 
 .balance-icon {
-  font-size: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  opacity: 0.9;
 }
 
 .balance-amount {
@@ -81,6 +150,10 @@
   font-size: 15px;
   cursor: pointer;
   transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 
 .btn-topup {
@@ -143,15 +216,17 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
+  flex-shrink: 0;
 }
 
 .stat-icon.green {
   background: rgba(16, 185, 129, 0.1);
+  color: #10b981;
 }
 
 .stat-icon.red {
   background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
 }
 
 .stat-details {
@@ -283,15 +358,17 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 20px;
+  flex-shrink: 0;
 }
 
 .transaction-icon.credit {
   background: rgba(16, 185, 129, 0.1);
+  color: #10b981;
 }
 
 .transaction-icon.debit {
   background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
 }
 
 .transaction-details {
@@ -546,8 +623,23 @@
 }
 
 .method-icon {
-  font-size: 32px;
   margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6b7280;
+}
+
+.payment-method.active .method-icon {
+  color: #9333ea;
+}
+
+.dark .method-icon {
+  color: #9ca3af;
+}
+
+.dark .payment-method.active .method-icon {
+  color: #9333ea;
 }
 
 .method-name {
@@ -576,6 +668,12 @@
   font-size: 13px;
   color: #6b7280;
   margin: 8px 0;
+}
+
+.withdrawal-info .info-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .dark .withdrawal-info p {
@@ -669,58 +767,677 @@
   box-shadow: 0 4px 12px rgba(147, 51, 234, 0.3);
 }
 
+/* Loading Spinner */
+.loading-spinner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  gap: 20px;
+}
+
+.spinner {
+  width: 60px;
+  height: 60px;
+  border: 4px solid #e5e7eb;
+  border-top-color: #9333ea;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.dark .spinner {
+  border-color: #2d2d2d;
+  border-top-color: #9333ea;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-spinner p {
+  color: #6b7280;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.dark .loading-spinner p {
+  color: #9ca3af;
+}
+
+/* Error Message */
+.error-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  gap: 20px;
+  text-align: center;
+  padding: 40px;
+}
+
+.error-message p {
+  color: #ef4444;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.btn-retry {
+  padding: 12px 32px;
+  background: linear-gradient(135deg, #9333ea, #db2777);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.btn-retry:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(147, 51, 234, 0.3);
+}
+
+/* No Transactions */
+.no-transactions {
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.no-transactions p {
+  color: #9ca3af;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.dark .no-transactions p {
+  color: #6b7280;
+}
+
+/* Disabled Button */
+.btn-submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+.btn-submit:disabled:hover {
+  transform: none !important;
+  box-shadow: none !important;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
+  .wallet-page {
+    padding: 0;
+  }
+
+  .page-header {
+    padding: 20px 16px;
+    margin-bottom: 16px;
+  }
+
+  .page-header h1 {
+    font-size: 24px;
+    margin-bottom: 4px;
+  }
+
+  .page-header p {
+    font-size: 14px;
+  }
+
+  .wallet-content {
+    gap: 16px;
+    padding: 0 16px 80px;
+  }
+
+  /* Balance Card Mobile */
   .balance-card {
-    padding: 24px;
+    padding: 24px 20px;
+    border-radius: 16px;
+  }
+
+  .balance-header h3 {
+    font-size: 14px;
+  }
+
+  .balance-icon svg {
+    width: 24px;
+    height: 24px;
   }
 
   .balance-amount {
-    font-size: 36px;
+    font-size: 32px;
+    margin-bottom: 20px;
   }
 
+  .balance-actions {
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .btn-topup,
+  .btn-withdraw {
+    padding: 12px 20px;
+    font-size: 14px;
+    border-radius: 10px;
+  }
+
+  .btn-topup svg,
+  .btn-withdraw svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .balance-info {
+    font-size: 12px;
+  }
+
+  /* Quick Stats Mobile - Simplifiées */
   .quick-stats {
     grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .stat-item {
+    padding: 16px;
+    border-radius: 12px;
+  }
+
+  .stat-icon {
+    width: 44px;
+    height: 44px;
+  }
+
+  .stat-icon svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .stat-label {
+    font-size: 13px;
+  }
+
+  .stat-value {
+    font-size: 18px;
+  }
+
+  /* Transactions Section Mobile */
+  .transactions-section {
+    padding: 20px 16px;
+    border-radius: 12px;
   }
 
   .transactions-header {
     flex-direction: column;
     align-items: flex-start;
+    margin-bottom: 16px;
+    gap: 12px;
+  }
+
+  .transactions-header h3 {
+    font-size: 18px;
   }
 
   .transaction-filters {
     width: 100%;
-    flex-direction: column;
+    justify-content: flex-start;
+    overflow-x: auto;
+    padding-bottom: 4px;
   }
 
   .transaction-filters button {
-    width: 100%;
+    padding: 6px 14px;
+    font-size: 12px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  /* Transactions List Mobile - Simplifiée */
+  .transactions-list {
+    gap: 8px;
   }
 
   .transaction-item {
-    flex-wrap: wrap;
+    padding: 12px;
+    border-radius: 10px;
+    gap: 12px;
+  }
+
+  .transaction-item:hover {
+    transform: none;
+  }
+
+  .transaction-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    flex-shrink: 0;
+  }
+
+  .transaction-icon svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .transaction-details {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .transaction-details h4 {
+    font-size: 14px;
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .transaction-meta {
+    gap: 8px;
+    font-size: 11px;
+    flex-wrap: nowrap;
+    overflow: hidden;
   }
 
   .transaction-amount {
-    order: 3;
-    width: 100%;
-    text-align: right;
+    font-size: 15px;
+    font-weight: 700;
+    flex-shrink: 0;
   }
 
+  .transaction-status {
+    display: none;
+  }
+
+  /* Modal Mobile */
+  .modal-overlay {
+    padding: 0;
+    align-items: flex-end;
+  }
+
+  .wallet-modal {
+    max-width: 100%;
+    border-radius: 20px 20px 0 0;
+    max-height: 90vh;
+  }
+
+  .modal-header {
+    padding: 20px 16px;
+  }
+
+  .modal-header h3 {
+    font-size: 20px;
+  }
+
+  .modal-body {
+    padding: 20px 16px;
+  }
+
+  .balance-info-modal {
+    padding: 12px;
+    font-size: 14px;
+    margin-bottom: 20px;
+  }
+
+  .balance-value {
+    font-size: 16px;
+  }
+
+  /* Form Mobile */
+  .form-group {
+    margin-bottom: 20px;
+  }
+
+  .form-group label {
+    font-size: 13px;
+    margin-bottom: 6px;
+  }
+
+  .form-group input {
+    padding: 12px 14px;
+    font-size: 14px;
+  }
+
+  .input-hint {
+    font-size: 11px;
+  }
+
+  /* Payment Methods Mobile */
   .payment-methods {
     grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .payment-method {
+    padding: 14px;
+  }
+
+  .method-icon {
+    margin-bottom: 6px;
+  }
+
+  .method-icon svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  .method-name {
+    font-size: 13px;
+  }
+
+  /* Top Up Amounts Mobile */
+  .topup-amounts {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  .amount-btn {
+    padding: 14px 12px;
+    font-size: 13px;
+  }
+
+  /* Withdrawal Info Mobile */
+  .withdrawal-info {
+    padding: 12px;
+    margin-top: 16px;
+  }
+
+  .withdrawal-info p {
+    font-size: 12px;
+    margin: 6px 0;
+  }
+
+  /* Modal Footer Mobile */
+  .modal-footer {
+    padding: 16px;
+    gap: 10px;
+  }
+
+  .btn-cancel {
+    padding: 12px 20px;
+    font-size: 14px;
+  }
+
+  .btn-submit {
+    padding: 12px 24px;
+    font-size: 14px;
+  }
+
+  /* Loading & Error Mobile */
+  .loading-spinner {
+    min-height: 300px;
+    gap: 16px;
+  }
+
+  .spinner {
+    width: 50px;
+    height: 50px;
+  }
+
+  .loading-spinner p {
+    font-size: 14px;
+  }
+
+  .error-message {
+    min-height: 300px;
+    padding: 30px 20px;
+    gap: 16px;
+  }
+
+  .error-message p {
+    font-size: 14px;
+  }
+
+  .btn-retry {
+    padding: 12px 28px;
+    font-size: 14px;
+  }
+
+  .no-transactions {
+    padding: 40px 20px;
+  }
+
+  .no-transactions p {
+    font-size: 14px;
+  }
+}
+
+/* Très petit écran (< 375px) */
+@media (max-width: 375px) {
+  .page-header h1 {
+    font-size: 22px;
+  }
+
+  .balance-amount {
+    font-size: 28px;
+  }
+
+  .btn-topup,
+  .btn-withdraw {
+    font-size: 13px;
+    padding: 10px 16px;
+  }
+
+  .stat-value {
+    font-size: 16px;
+  }
+
+  .transaction-details h4 {
+    font-size: 13px;
+  }
+
+  .transaction-amount {
+    font-size: 14px;
   }
 
   .topup-amounts {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: 1fr;
   }
+}
 
-  .modal-footer {
+/* ============================================ */
+/* PENDING WITHDRAWALS SECTION */
+/* ============================================ */
+
+.pending-withdrawals-section {
+  background: linear-gradient(135deg, #fff7ed 0%, #fff 100%);
+  border: 2px solid #fb923c;
+  border-radius: 16px;
+  padding: 24px;
+  margin: 24px 0;
+  animation: slideDown 0.3s ease-out;
+}
+
+.dark .pending-withdrawals-section {
+  background: linear-gradient(135deg, #292524 0%, #1c1917 100%);
+  border-color: #ea580c;
+}
+
+.pending-withdrawals-section .section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.pending-withdrawals-section .section-header h3 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+}
+
+.dark .pending-withdrawals-section .section-header h3 {
+  color: white;
+}
+
+.pending-withdrawals-section .badge-count {
+  background: #fb923c;
+  color: white;
+  font-size: 14px;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 12px;
+}
+
+.pending-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.pending-withdrawal-item {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  transition: all 0.2s ease;
+}
+
+.dark .pending-withdrawal-item {
+  background: #292524;
+  border-color: #44403c;
+}
+
+.pending-withdrawal-item:hover {
+  border-color: #fb923c;
+  box-shadow: 0 4px 12px rgba(251, 146, 60, 0.1);
+}
+
+.pending-withdrawal-item .withdrawal-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #fb923c, #ea580c);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  flex-shrink: 0;
+}
+
+.pending-withdrawal-item .withdrawal-details {
+  flex: 1;
+}
+
+.pending-withdrawal-item .withdrawal-amount {
+  font-size: 18px;
+  font-weight: 700;
+  color: #dc2626;
+  margin-bottom: 4px;
+}
+
+.dark .pending-withdrawal-item .withdrawal-amount {
+  color: #ef4444;
+}
+
+.pending-withdrawal-item .withdrawal-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.dark .pending-withdrawal-item .withdrawal-info {
+  color: #9ca3af;
+}
+
+.pending-withdrawal-item .withdrawal-date {
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+.dark .pending-withdrawal-item .withdrawal-date {
+  color: #6b7280;
+}
+
+.withdrawal-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.withdrawal-status.status-orange {
+  background: #fff7ed;
+  color: #ea580c;
+  border: 1px solid #fb923c;
+}
+
+.dark .withdrawal-status.status-orange {
+  background: rgba(234, 88, 12, 0.1);
+  border-color: #ea580c;
+}
+
+.withdrawal-status.status-blue {
+  background: #eff6ff;
+  color: #2563eb;
+  border: 1px solid #60a5fa;
+}
+
+.dark .withdrawal-status.status-blue {
+  background: rgba(37, 99, 235, 0.1);
+  border-color: #2563eb;
+}
+
+.pending-withdrawals-section .pending-info {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  background: rgba(251, 146, 60, 0.1);
+  border-radius: 12px;
+  margin-top: 16px;
+}
+
+.pending-withdrawals-section .pending-info svg {
+  flex-shrink: 0;
+  color: #ea580c;
+  margin-top: 2px;
+}
+
+.pending-withdrawals-section .pending-info p {
+  margin: 0;
+  font-size: 14px;
+  color: #78350f;
+  line-height: 1.5;
+}
+
+.dark .pending-withdrawals-section .pending-info p {
+  color: #fdba74;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .pending-withdrawal-item {
     flex-direction: column;
+    align-items: flex-start;
   }
 
-  .btn-cancel,
-  .btn-submit {
-    width: 100%;
+  .pending-withdrawal-item .withdrawal-icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .pending-withdrawal-item .withdrawal-amount {
+    font-size: 16px;
+  }
+
+  .withdrawal-status {
+    align-self: flex-start;
   }
 }

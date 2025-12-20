@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import { Copy, Check, Mail, Megaphone, Wallet, Gift } from 'lucide-react'
+import { Copy, Check, Mail, MessageCircle } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import Stories from '../components/Stories'
 import userService from '../services/userService'
@@ -52,27 +52,39 @@ export default function Dashboard() {
     }
   }, [user])
 
-  // Générer le lien dynamiquement selon l'environnement
+  // Générer le lien dynamiquement selon l'environnement (IP, DNS, localhost, production)
   const getBaseUrl = () => {
-    // En développement, utiliser l'origine actuelle (ex: http://localhost:3000)
-    // En production, utiliser weylo.app
-    const currentOrigin = window.location.origin
-
-    // Si on est sur localhost, utiliser localhost
-    if (currentOrigin.includes('localhost') || currentOrigin.includes('127.0.0.1')) {
-      return currentOrigin
-    }
-
-    // Sinon utiliser le domaine de production
-    return 'https://weylo.app'
+    // Utiliser toujours l'origine actuelle pour s'adapter automatiquement au contexte
+    return window.location.origin
   }
 
   const shareLink = `${getBaseUrl()}/u/${user?.username}`
 
-  const copyLink = () => {
-    navigator.clipboard.writeText(shareLink)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
+  const copyLink = async () => {
+    try {
+      // Vérifier si l'API Clipboard est disponible
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(shareLink)
+      } else {
+        // Fallback pour les navigateurs qui ne supportent pas l'API Clipboard
+        const textArea = document.createElement('textarea')
+        textArea.value = shareLink
+        textArea.style.position = 'fixed'
+        textArea.style.left = '-999999px'
+        textArea.style.top = '-999999px'
+        document.body.appendChild(textArea)
+        textArea.focus()
+        textArea.select()
+        document.execCommand('copy')
+        document.body.removeChild(textArea)
+      }
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch (error) {
+      console.error('Erreur lors de la copie:', error)
+      // Afficher un message d'erreur à l'utilisateur si nécessaire
+      alert('Impossible de copier le lien. Veuillez le copier manuellement.')
+    }
   }
 
   const shareToSocial = (platform) => {
@@ -146,45 +158,54 @@ export default function Dashboard() {
 
       {/* Stats détaillées */}
       <div className="stats-detail-section">
-        <h2>Tes statistiques</h2>
+        <div className="stats-header">
+          <h2>Tes statistiques</h2>
+          <p className="stats-subtitle">Découvre ton activité sur Weylo</p>
+        </div>
+
         <div className="stats-detail-grid">
-          <Link to="/messages" className="stat-detail-card">
-            <div className="stat-detail-icon">
-              <Mail size={24} />
+          <Link to="/messages" className="stat-detail-card stat-messages">
+            <div className="stat-card-content">
+              <div className="stat-detail-icon">
+                <Mail size={28} />
+              </div>
+              <div className="stat-detail-info">
+                <span className="stat-detail-value">{stats.messages}</span>
+                <span className="stat-detail-label">Messages reçus</span>
+              </div>
             </div>
-            <div className="stat-detail-info">
-              <span className="stat-detail-value">{stats.messages}</span>
-              <span className="stat-detail-label">Messages</span>
-            </div>
-          </Link>
-
-          <Link to="/gifts" className="stat-detail-card">
-            <div className="stat-detail-icon">
-              <Gift size={24} />
-            </div>
-            <div className="stat-detail-info">
-              <span className="stat-detail-value">{stats.gifts}</span>
-              <span className="stat-detail-label">Cadeaux</span>
+            <div className="stat-card-footer">
+              <span className="view-link">Voir tout →</span>
             </div>
           </Link>
 
-          <Link to="/confessions" className="stat-detail-card">
-            <div className="stat-detail-icon">
-              <Megaphone size={24} />
+          {/* <Link to="/confessions" className="stat-detail-card stat-confessions">
+            <div className="stat-card-content">
+              <div className="stat-detail-icon">
+                <Megaphone size={28} />
+              </div>
+              <div className="stat-detail-info">
+                <span className="stat-detail-value">{stats.confessions}</span>
+                <span className="stat-detail-label">Confessions</span>
+              </div>
             </div>
-            <div className="stat-detail-info">
-              <span className="stat-detail-value">{stats.confessions}</span>
-              <span className="stat-detail-label">Confessions</span>
+            <div className="stat-card-footer">
+              <span className="view-link">Voir tout →</span>
             </div>
-          </Link>
+          </Link> */}
 
-          <Link to="/wallet" className="stat-detail-card">
-            <div className="stat-detail-icon">
-              <Wallet size={24} />
+          <Link to="/chat" className="stat-detail-card stat-conversations">
+            <div className="stat-card-content">
+              <div className="stat-detail-icon">
+                <MessageCircle size={28} />
+              </div>
+              <div className="stat-detail-info">
+                <span className="stat-detail-value">{stats.conversations}</span>
+                <span className="stat-detail-label">Conversations</span>
+              </div>
             </div>
-            <div className="stat-detail-info">
-              <span className="stat-detail-value">{user?.wallet_balance || 0}</span>
-              <span className="stat-detail-label">FCFA</span>
+            <div className="stat-card-footer">
+              <span className="view-link">Voir tout →</span>
             </div>
           </Link>
         </div>
