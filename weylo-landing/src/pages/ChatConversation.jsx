@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
+import { useDialog } from '../contexts/DialogContext'
 import { ArrowLeft, Send, Image, Loader2, MessageCircle, Gift } from 'lucide-react'
 import chatService from '../services/chatService'
 import websocketService from '../services/websocketService'
@@ -9,12 +10,14 @@ import GiftMessage from '../components/gifts/GiftMessage'
 import GiftAnimation from '../components/gifts/GiftAnimation'
 import PremiumBadge from '../components/shared/PremiumBadge'
 import RevealIdentityButton from '../components/RevealIdentityButton'
+import QuotedMessage from '../components/chat/QuotedMessage'
 import '../styles/ChatConversation.css'
 
 export default function ChatConversation() {
   const { conversationId } = useParams()
   const navigate = useNavigate()
   const { user, isAuthenticated } = useAuth()
+  const { error } = useDialog()
   const [conversation, setConversation] = useState(null)
   const [messages, setMessages] = useState([])
   const [newMessage, setNewMessage] = useState('')
@@ -95,7 +98,15 @@ export default function ChatConversation() {
       }
 
       const otherParticipant = conv.other_participant
-      const canViewIdentity = user?.is_premium || conv.identity_revealed || false
+
+      // Vérifier si le participant existe (pas supprimé)
+      if (!otherParticipant || !otherParticipant.id) {
+        console.warn('⚠️ Participant supprimé dans la conversation:', conv.id)
+        return // Ignorer cette conversation
+      }
+
+      // L'identité est révélée seulement si payée via wallet
+      const canViewIdentity = conv.identity_revealed || false
 
       let displayName = 'Anonyme'
       if (canViewIdentity) {
@@ -132,7 +143,8 @@ export default function ChatConversation() {
         time: formatTime(msg.created_at),
         sender_id: msg.sender_id,
         type: msg.type,
-        gift_data: msg.gift_data || null
+        gift_data: msg.gift_data || null,
+        anonymous_message: msg.anonymous_message || null
       }))
 
       setMessages(transformedMessages)
@@ -171,7 +183,8 @@ export default function ChatConversation() {
               time: formatTime(event.created_at),
               sender_id: event.sender_id,
               type: event.type,
-              gift_data: event.gift_data || null
+              gift_data: event.gift_data || null,
+              anonymous_message: event.anonymous_message || null
             }
 
             console.log('✅ [CHAT] Ajout du message à la liste:', newMsg)
@@ -232,7 +245,8 @@ export default function ChatConversation() {
           time: formatTime(response.message.created_at),
           sender_id: response.message.sender_id,
           type: response.message.type,
-          gift_data: response.message.gift_data || null
+          gift_data: response.message.gift_data || null,
+          anonymous_message: response.message.anonymous_message || null
         }
 
         setMessages(prev => {
@@ -248,9 +262,9 @@ export default function ChatConversation() {
 
       setNewMessage('')
       setTimeout(() => scrollToBottom(), 100)
-    } catch (error) {
-      console.error('❌ Erreur envoi message:', error)
-      alert('Impossible d\'envoyer le message. Veuillez réessayer.')
+    } catch (err) {
+      console.error('❌ Erreur envoi message:', err)
+      error('Impossible d\'envoyer le message. Veuillez réessayer.')
     } finally {
       setSending(false)
     }
@@ -341,8 +355,8 @@ export default function ChatConversation() {
               <p className={conversation.is_online ? 'status-online' : 'status-offline'}>
                 {conversation.is_online ? '● En ligne' : '○ Hors ligne'}
               </p>
-              {/* Bouton Révéler l'identité si pas premium et pas encore révélé */}
-              {!user?.is_premium && !conversation.identity_revealed && (
+              {/* Bouton Révéler l'identité si pas encore révélé */}
+              {!conversation.identity_revealed && (
                 <div style={{ marginTop: '8px' }}>
                   <RevealIdentityButton
                     message={{ is_identity_revealed: conversation.identity_revealed }}
@@ -380,10 +394,12 @@ export default function ChatConversation() {
             {messages.map(msg => {
               // Si c'est un message cadeau
               if (msg.type === 'gift' && msg.gift_data) {
-                // Déterminer le nom de l'expéditeur (masquer si anonyme)
-                let senderName = conversation?.contact_name || 'Anonyme'
-                if (!msg.is_mine && msg.gift_data.is_anonymous) {
-                  senderName = 'Anonyme'
+                // Déterminer le nom de l'expéditeur (masquer si anonyme ou supprimé)
+                let senderName = 'Anonyme'
+                if (msg.is_mine) {
+                  senderName = 'Vous'
+                } else if (conversation?.contact_name && !msg.gift_data.is_anonymous) {
+                  senderName = conversation.contact_name
                 }
 
                 return (
@@ -404,6 +420,13 @@ export default function ChatConversation() {
                   className={`message-wrapper ${msg.is_mine ? 'mine' : 'theirs'}`}
                 >
                   <div className={`message-bubble ${msg.is_mine ? 'mine' : 'theirs'}`}>
+                    {/* Afficher le message cité si présent */}
+                    {msg.anonymous_message && (
+                      <QuotedMessage
+                        quotedMessage={msg.anonymous_message}
+                        isMine={msg.is_mine}
+                      />
+                    )}
                     <p className="message-text">{msg.content}</p>
                     <span className="message-time">{msg.time}</span>
                   </div>

@@ -4,10 +4,12 @@ import userService from '../services/userService'
 import settingsService from '../services/settingsService'
 import PremiumBadge from '../components/shared/PremiumBadge'
 import PremiumPassModal from '../components/shared/PremiumPassModal'
+import { useDialog } from '../contexts/DialogContext'
 import '../styles/Profile.css'
 
 export default function Profile() {
-  const { user, updateUser } = useAuth()
+  const { user, updateUser, logout } = useAuth()
+  const { success, error: showError, warning, confirm } = useDialog()
   const [isEditing, setIsEditing] = useState(false)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -36,7 +38,6 @@ export default function Profile() {
   const [showDeleteAccountModal, setShowDeleteAccountModal] = useState(false)
   const [showPremiumModal, setShowPremiumModal] = useState(false)
   const [pinData, setPinData] = useState({
-    currentPin: '',
     newPin: '',
     confirmPin: ''
   })
@@ -239,11 +240,14 @@ export default function Profile() {
 
   // Fonction pour afficher les notifications
   const showNotification = (message, type = 'info') => {
-    // Pour l'instant, utilisons alert, mais on peut remplacer par un toast plus tard
     if (type === 'error') {
-      alert('❌ ' + message)
+      showError(message)
+    } else if (type === 'success') {
+      success(message)
+    } else if (type === 'warning') {
+      warning(message)
     } else {
-      alert('✅ ' + message)
+      success(message)
     }
   }
 
@@ -313,27 +317,32 @@ export default function Profile() {
     e.preventDefault()
 
     // Validation
-    if (!pinData.currentPin || !pinData.newPin || !pinData.confirmPin) {
+    if (!pinData.newPin || !pinData.confirmPin) {
       showNotification('Tous les champs sont requis', 'error')
       return
     }
 
     if (pinData.newPin !== pinData.confirmPin) {
-      showNotification('Les nouveaux codes PIN ne correspondent pas', 'error')
+      showNotification('Les codes PIN ne correspondent pas', 'error')
       return
     }
 
-    if (pinData.newPin.length < 4) {
-      showNotification('Le code PIN doit contenir au moins 4 caractères', 'error')
+    if (pinData.newPin.length !== 4) {
+      showNotification('Le code PIN doit contenir exactement 4 chiffres', 'error')
+      return
+    }
+
+    if (!/^\d{4}$/.test(pinData.newPin)) {
+      showNotification('Le code PIN doit contenir uniquement des chiffres', 'error')
       return
     }
 
     try {
       setSaving(true)
-      await userService.changePassword(pinData.currentPin, pinData.newPin)
+      await userService.updatePinDirect(pinData.newPin)
       showNotification('Code PIN modifié avec succès', 'success')
       setShowChangePinModal(false)
-      setPinData({ currentPin: '', newPin: '', confirmPin: '' })
+      setPinData({ newPin: '', confirmPin: '' })
     } catch (error) {
       console.error('Erreur lors du changement de PIN:', error)
       showNotification(
@@ -354,7 +363,8 @@ export default function Profile() {
       return
     }
 
-    if (!confirm('Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible.')) {
+    const confirmed = await confirm('Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible.')
+    if (!confirmed) {
       return
     }
 
@@ -372,6 +382,29 @@ export default function Profile() {
         error.response?.data?.message || 'Erreur lors de la suppression du compte',
         'error'
       )
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  // Gérer la déconnexion
+  const handleLogout = async () => {
+    const confirmed = await confirm('Voulez-vous vraiment vous déconnecter ?')
+    if (!confirmed) {
+      return
+    }
+
+    try {
+      setSaving(true)
+      await logout()
+      showNotification('Déconnexion réussie', 'success')
+      // Rediriger vers la page de connexion
+      setTimeout(() => {
+        window.location.href = '/login'
+      }, 1000)
+    } catch (error) {
+      console.error('Erreur lors de la déconnexion:', error)
+      showNotification('Erreur lors de la déconnexion', 'error')
     } finally {
       setSaving(false)
     }
@@ -659,6 +692,13 @@ export default function Profile() {
           <h3>Zone dangereuse</h3>
           <div className="danger-actions">
             <button
+              className="btn-logout"
+              onClick={handleLogout}
+              disabled={saving}
+            >
+              🚪 Se déconnecter
+            </button>
+            <button
               className="btn-danger-secondary"
               onClick={() => setShowChangePinModal(true)}
             >
@@ -679,34 +719,31 @@ export default function Profile() {
         <div className="modal-overlay" onClick={() => setShowChangePinModal(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <h3>Changer le code PIN</h3>
+            <p style={{ color: '#6b7280', marginBottom: '20px', fontSize: '0.9rem' }}>
+              💡 Définissez un nouveau code PIN à 4 chiffres pour sécuriser votre compte
+            </p>
             <form onSubmit={handleChangePin}>
               <div className="form-group">
-                <label>Code PIN actuel</label>
+                <label>Nouveau code PIN (4 chiffres)</label>
                 <input
-                  type="password"
-                  value={pinData.currentPin}
-                  onChange={(e) => setPinData({ ...pinData, currentPin: e.target.value })}
-                  placeholder="Entrez votre code PIN actuel"
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label>Nouveau code PIN</label>
-                <input
-                  type="password"
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={4}
                   value={pinData.newPin}
-                  onChange={(e) => setPinData({ ...pinData, newPin: e.target.value })}
-                  placeholder="Entrez votre nouveau code PIN"
+                  onChange={(e) => setPinData({ ...pinData, newPin: e.target.value.replace(/\D/g, '') })}
+                  placeholder="Entrez 4 chiffres (ex: 1234)"
                   required
                 />
               </div>
               <div className="form-group">
-                <label>Confirmer le nouveau code PIN</label>
+                <label>Confirmer le code PIN</label>
                 <input
-                  type="password"
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={4}
                   value={pinData.confirmPin}
-                  onChange={(e) => setPinData({ ...pinData, confirmPin: e.target.value })}
-                  placeholder="Confirmez votre nouveau code PIN"
+                  onChange={(e) => setPinData({ ...pinData, confirmPin: e.target.value.replace(/\D/g, '') })}
+                  placeholder="Confirmez les 4 chiffres"
                   required
                 />
               </div>
@@ -716,7 +753,7 @@ export default function Profile() {
                   className="btn-cancel"
                   onClick={() => {
                     setShowChangePinModal(false)
-                    setPinData({ currentPin: '', newPin: '', confirmPin: '' })
+                    setPinData({ newPin: '', confirmPin: '' })
                   }}
                   disabled={saving}
                 >

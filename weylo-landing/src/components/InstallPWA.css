@@ -1,0 +1,261 @@
+.install-pwa-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 20px;
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.install-pwa-container {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 24px;
+  padding: 32px 24px 24px;
+  max-width: 440px;
+  width: 100%;
+  position: relative;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+  animation: slideUp 0.3s ease-out;
+  color: white;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.install-pwa-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: white;
+  transition: all 0.2s;
+}
+
+.install-pwa-close:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.1);
+}
+
+.install-pwa-icon {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 20px;
+  background: white;
+  border-radius: 20px;
+  padding: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.install-pwa-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.install-pwa-title {
+  font-size: 24px;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 12px;
+  color: white;
+}
+
+.install-pwa-description {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 24px;
+  line-height: 1.5;
+  font-size: 15px;
+}
+
+/* Instructions iOS */
+.install-pwa-ios-instructions {
+  margin-bottom: 24px;
+}
+
+.install-pwa-step {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  background: rgba(255, 255, 255, 0.15);
+  padding: 16px;
+  border-radius: 12px;
+  margin-bottom: 12px;
+  backdrop-filter: blur(10px);
+}
+
+.install-pwa-step-number {
+  background: white;
+  color: #667eea;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.install-pwa-step-content {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.install-pwa-step-content p {
+  margin: 0;
+  color: white;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.install-pwa-step-content strong {
+  font-weight: 600;
+}
+
+.install-pwa-step-icon {
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 6px;
+  border-radius: 8px;
+}
+
+/* Actions */
+.install-pwa-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.install-pwa-button {
+  padding: 14px 24px;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.install-pwa-button.primary {
+  background: white;
+  color: #667eea;
+}
+
+.install-pwa-button.primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 255, 255, 0.3);
+}
+
+.install-pwa-button.secondary {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  backdrop-filter: blur(10px);
+}
+
+.install-pwa-button.secondary:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.install-pwa-button:active {
+  transform: scale(0.98);
+}
+
+/* Avantages */
+.install-pwa-benefits {
+  display: flex;
+  justify-content: space-around;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.install-pwa-benefit {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-align: center;
+}
+
+.install-pwa-benefit-icon {
+  font-size: 24px;
+}
+
+.install-pwa-benefit span:last-child {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 500;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .install-pwa-container {
+    padding: 24px 20px 20px;
+    border-radius: 20px;
+  }
+
+  .install-pwa-title {
+    font-size: 20px;
+  }
+
+  .install-pwa-description {
+    font-size: 14px;
+  }
+
+  .install-pwa-icon {
+    width: 64px;
+    height: 64px;
+  }
+
+  .install-pwa-benefits {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .install-pwa-benefit {
+    flex-direction: row;
+    justify-content: flex-start;
+  }
+}

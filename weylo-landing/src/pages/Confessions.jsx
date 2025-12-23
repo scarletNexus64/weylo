@@ -2,10 +2,12 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import confessionsService from '../services/confessionsService'
 import ConfessionCard from '../components/confessions/ConfessionCard'
+import { useDialog } from '../contexts/DialogContext'
 import '../styles/Confessions.css'
 
 export default function Confessions() {
   const { user } = useAuth()
+  const { success, error: showError, warning } = useDialog()
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [newConfession, setNewConfession] = useState('')
   const [confessions, setConfessions] = useState([])
@@ -57,12 +59,12 @@ export default function Confessions() {
 
   const handleCreateConfession = async () => {
     if (newConfession.trim().length < 10) {
-      alert('Ta confession doit contenir au moins 10 caractères')
+      warning('Ta confession doit contenir au moins 10 caractères')
       return
     }
 
     if (!user) {
-      alert('Tu dois être connecté pour créer une confession')
+      warning('Tu dois être connecté pour créer une confession')
       return
     }
 
@@ -74,17 +76,17 @@ export default function Confessions() {
 
       setNewConfession('')
       setShowCreateModal(false)
-      alert('Confession créée ! Elle sera publiée après modération.')
+      success('Confession créée ! Elle sera publiée après modération.')
       loadConfessions()
     } catch (err) {
       console.error('❌ Erreur lors de la création:', err)
-      alert('Impossible de créer la confession')
+      showError('Impossible de créer la confession')
     }
   }
 
   const toggleLike = async (confessionId) => {
     if (!user) {
-      alert('Tu dois être connecté pour liker une confession')
+      warning('Tu dois être connecté pour liker une confession')
       return
     }
 

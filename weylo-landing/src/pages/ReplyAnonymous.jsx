@@ -4,11 +4,13 @@ import { Send, Gift, Image, Loader2, ArrowLeft, Lock, MessageCircle } from 'luci
 import messagesService from '../services/messagesService'
 import giftService from '../services/giftService'
 import chatService from '../services/chatService'
+import { useDialog } from '../contexts/DialogContext'
 import '../styles/ReplyAnonymous.css'
 
 export default function ReplyAnonymous() {
   const { messageId } = useParams()
   const navigate = useNavigate()
+  const { success, error: showError, warning } = useDialog()
 
   const [originalMessage, setOriginalMessage] = useState(null)
   const [replyType, setReplyType] = useState('text') // 'text' ou 'gift'
@@ -63,7 +65,7 @@ export default function ReplyAnonymous() {
 
     if (!originalMessage) {
       console.error('❌ [REPLY] Impossible de répondre - message manquant')
-      alert('Impossible de répondre à ce message')
+      showError('Impossible de répondre à ce message')
       return
     }
 
@@ -72,7 +74,7 @@ export default function ReplyAnonymous() {
 
       if (replyType === 'text') {
         if (!replyContent.trim()) {
-          alert('Veuillez saisir un message')
+          warning('Veuillez saisir un message')
           return
         }
 
@@ -98,7 +100,7 @@ export default function ReplyAnonymous() {
         navigate(`/chat/${conversation.id}`)
       } else if (replyType === 'gift') {
         if (!selectedGift) {
-          alert('Veuillez sélectionner un cadeau')
+          warning('Veuillez sélectionner un cadeau')
           return
         }
 
@@ -109,14 +111,14 @@ export default function ReplyAnonymous() {
           replyContent || null
         )
 
-        alert('✅ Cadeau envoyé avec succès!')
+        success('Cadeau envoyé avec succès!')
 
         // Rediriger vers la page des messages
         navigate('/messages')
       }
     } catch (err) {
       console.error('Error sending reply:', err)
-      alert(err.response?.data?.message || 'Erreur lors de l\'envoi')
+      showError(err.response?.data?.message || 'Erreur lors de l\'envoi')
     } finally {
       setSending(false)
     }

@@ -1,15 +1,17 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Mail, Trash2, Send, Eye, Lock, AlertCircle, Loader2, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Mail, Trash2, Send, AlertCircle, Loader2, ChevronLeft, ChevronRight } from 'lucide-react'
 import messagesService from '../services/messagesService'
 import RevealIdentityButton from '../components/RevealIdentityButton'
 import PremiumBadge from '../components/shared/PremiumBadge'
 import { useAuth } from '../contexts/AuthContext'
+import { useDialog } from '../contexts/DialogContext'
 import '../styles/Messages.css'
 
 export default function Messages() {
   const navigate = useNavigate()
   const { user } = useAuth()
+  const { confirm, error: showError } = useDialog()
   const [messages, setMessages] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -54,7 +56,8 @@ export default function Messages() {
   }
 
   const handleDeleteMessage = async (messageId) => {
-    if (window.confirm('Voulez-vous vraiment supprimer ce message ?')) {
+    const confirmed = await confirm('Voulez-vous vraiment supprimer ce message ?')
+    if (confirmed) {
       try {
         setDeletingId(messageId)
         await messagesService.deleteMessage(messageId)
@@ -63,7 +66,7 @@ export default function Messages() {
         fetchStats()
       } catch (err) {
         console.error('Error deleting message:', err)
-        alert(err.response?.data?.message || 'Erreur lors de la suppression')
+        showError(err.response?.data?.message || 'Erreur lors de la suppression')
       } finally {
         setDeletingId(null)
       }
@@ -233,7 +236,8 @@ export default function Messages() {
                     <span>Répondre</span>
                   </button>
 
-                  {!canViewAllIdentities && !message.is_identity_revealed && (
+                  {/* TEMPORAIRE: Afficher même pour premium pour tester */}
+                  {!message.is_identity_revealed && (
                     <RevealIdentityButton
                       message={message}
                       onReveal={() => handleRevealIdentity(message.id)}

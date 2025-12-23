@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
+import { useDialog } from '../../contexts/DialogContext'
 import storiesService from '../../services/storiesService'
 import premiumService from '../../services/premiumService'
 import PremiumBadge from '../shared/PremiumBadge'
@@ -7,6 +8,7 @@ import './StoryViewer.css'
 
 const StoryViewer = ({ userId, username, allStories = [], currentUserIndex = 0, onClose, onNextUser }) => {
   const { user } = useAuth()
+  const { error: showError } = useDialog()
   const [userStories, setUserStories] = useState([])
   const [currentIndex, setCurrentIndex] = useState(0)
   const [loading, setLoading] = useState(true)
@@ -157,7 +159,7 @@ const StoryViewer = ({ userId, username, allStories = [], currentUserIndex = 0, 
       setShowViewers(true)
     } catch (err) {
       console.error('Erreur lors du chargement des viewers:', err)
-      alert(err.response?.data?.message || 'Erreur lors du chargement des viewers')
+      showError(err.response?.data?.message || 'Erreur lors du chargement des viewers')
     } finally {
       setViewersLoading(false)
     }
@@ -181,7 +183,7 @@ const StoryViewer = ({ userId, username, allStories = [], currentUserIndex = 0, 
       }
     } catch (err) {
       console.error('Erreur lors de l\'abonnement:', err)
-      alert(err.response?.data?.message || 'Erreur lors du paiement')
+      showError(err.response?.data?.message || 'Erreur lors du paiement')
     } finally {
       setRevealLoading(false)
     }

@@ -4,10 +4,12 @@ import { Copy, Check, Mail, MessageCircle } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import Stories from '../components/Stories'
 import userService from '../services/userService'
+import { useDialog } from '../contexts/DialogContext'
 import '../styles/Dashboard.css'
 
 export default function Dashboard() {
   const { user } = useAuth()
+  const { error: showError } = useDialog()
   const [copied, setCopied] = useState(false)
   const [stats, setStats] = useState({
     messages: 0,
@@ -52,7 +54,7 @@ export default function Dashboard() {
     }
   }, [user])
 
-  // Générer le lien dynamiquement selon l'environnement (IP, DNS, localhost, production)
+  // Générer le lien dynamiquement selon l'environnement (IP, DNS, 10.200.82.19, production)
   const getBaseUrl = () => {
     // Utiliser toujours l'origine actuelle pour s'adapter automatiquement au contexte
     return window.location.origin
@@ -83,7 +85,7 @@ export default function Dashboard() {
     } catch (error) {
       console.error('Erreur lors de la copie:', error)
       // Afficher un message d'erreur à l'utilisateur si nécessaire
-      alert('Impossible de copier le lien. Veuillez le copier manuellement.')
+      showError('Impossible de copier le lien. Veuillez le copier manuellement.')
     }
   }
 

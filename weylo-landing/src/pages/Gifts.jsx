@@ -1,7 +1,9 @@
 import { useState } from 'react'
+import { useDialog } from '../contexts/DialogContext'
 import '../styles/Gifts.css'
 
 export default function Gifts() {
+  const { success, warning } = useDialog()
   const [activeTab, setActiveTab] = useState('catalog')
   const [selectedGift, setSelectedGift] = useState(null)
   const [showSendModal, setShowSendModal] = useState(false)
@@ -40,10 +42,10 @@ export default function Gifts() {
 
   const handleSendGift = () => {
     if (!recipient.trim()) {
-      alert('Veuillez entrer un nom d\'utilisateur')
+      warning('Veuillez entrer un nom d\'utilisateur')
       return
     }
-    alert(`Cadeau "${selectedGift.name}" envoyé à @${recipient} pour ${selectedGift.price} FCFA`)
+    success(`Cadeau "${selectedGift.name}" envoyé à @${recipient} pour ${selectedGift.price} FCFA`)
     setShowSendModal(false)
     setRecipient('')
     setSelectedGift(null)

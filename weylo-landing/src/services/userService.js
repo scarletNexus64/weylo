@@ -61,6 +61,21 @@ const userService = {
   },
 
   /**
+   * Changer le PIN directement sans l'ancien PIN (pour comptes anonymes)
+   */
+  async updatePinDirect(newPin) {
+    try {
+      const response = await apiClient.put('/auth/update-pin-direct', {
+        new_pin: newPin
+      })
+      return response.data
+    } catch (error) {
+      console.error('❌ [USER_SERVICE] Erreur updatePinDirect:', error)
+      throw error
+    }
+  },
+
+  /**
    * Upload d'avatar
    */
   async uploadAvatar(file) {

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '../contexts/AuthContext'
+import { useDialog } from '../contexts/DialogContext'
 import {
   ArrowLeft,
   MessageCircle,
@@ -15,6 +16,7 @@ import '../styles/Chat.css'
 
 export default function Chat() {
   const { user, isAuthenticated } = useAuth()
+  const { error: showError } = useDialog()
   const [conversations, setConversations] = useState([])
   const [selectedChat, setSelectedChat] = useState(null)
   const [messages, setMessages] = useState({})
@@ -26,8 +28,7 @@ export default function Chat() {
   const [isWebSocketConnected, setIsWebSocketConnected] = useState(false)
   const messagesEndRef = useRef(null)
 
-  // Vérifier si l'utilisateur peut voir toutes les identités (premium)
-  const canViewAllIdentities = user?.is_premium || false
+  // Les identités sont anonymes par défaut, révélées seulement si payé
 
   useEffect(() => {
     if (!isAuthenticated || !user) return
@@ -98,13 +99,15 @@ export default function Chat() {
       const transformedConversations = response.conversations.map(conv => {
         const otherParticipant = conv.other_participant
 
-        if (!otherParticipant) {
+        // Vérifier si le participant existe (pas supprimé)
+        if (!otherParticipant || !otherParticipant.id) {
+          console.warn('⚠️ Participant supprimé dans la conversation:', conv.id)
           return null
         }
 
-        // Afficher le vrai nom si premium ou si identité révélée
+        // Afficher le vrai nom seulement si identité révélée (payée)
         let displayName = 'Anonyme'
-        const canSeeIdentity = canViewAllIdentities || conv.identity_revealed || false
+        const canSeeIdentity = conv.identity_revealed || false
         if (canSeeIdentity) {
           if (otherParticipant.username) {
             displayName = otherParticipant.username
@@ -231,9 +234,9 @@ export default function Chat() {
 
       setNewMessage('')
       setTimeout(() => scrollToBottom(), 100)
-    } catch (error) {
-      console.error('❌ Erreur envoi message:', error)
-      alert('Impossible d\'envoyer le message. Veuillez réessayer.')
+    } catch (err) {
+      console.error('❌ Erreur envoi message:', err)
+      showError('Impossible d\'envoyer le message. Veuillez réessayer.')
     } finally {
       setSending(false)
     }

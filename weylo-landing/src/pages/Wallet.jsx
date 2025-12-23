@@ -3,6 +3,7 @@ import '../styles/Wallet.css'
 import walletService from '../services/walletService'
 import DepositModal from '../components/wallet/DepositModal'
 import TransactionHistory from '../components/wallet/TransactionHistory'
+import { useDialog } from '../contexts/DialogContext'
 import {
   Wallet as WalletIcon,
   ArrowUpCircle,
@@ -20,6 +21,7 @@ import {
 } from 'lucide-react'
 
 export default function Wallet() {
+  const { success, error: showError, warning } = useDialog()
   const [showWithdrawModal, setShowWithdrawModal] = useState(false)
   const [showDepositModal, setShowDepositModal] = useState(false)
   const [withdrawAmount, setWithdrawAmount] = useState('')
@@ -104,22 +106,22 @@ export default function Wallet() {
 
       // Validation
       if (!amount || amount < minWithdraw) {
-        alert(`Le montant minimum de retrait est de ${minWithdraw} FCFA`)
+        warning(`Le montant minimum de retrait est de ${minWithdraw} FCFA`)
         setWithdrawing(false)
         return
       }
       if (amount % 5 !== 0) {
-        alert('Le montant doit être un multiple de 5 FCFA')
+        warning('Le montant doit être un multiple de 5 FCFA')
         setWithdrawing(false)
         return
       }
       if (amount > balance) {
-        alert('Solde insuffisant')
+        showError('Solde insuffisant')
         setWithdrawing(false)
         return
       }
       if (!phoneNumber || phoneNumber.length < 9) {
-        alert('Veuillez entrer un numéro de téléphone valide')
+        warning('Veuillez entrer un numéro de téléphone valide')
         setWithdrawing(false)
         return
       }
@@ -140,7 +142,7 @@ export default function Wallet() {
 
       console.log('✅ [WALLET] Retrait initié:', response)
 
-      alert(`✅ Demande de retrait envoyée !\n\nMontant: ${amount} FCFA\nOpérateur: ${withdrawMethod}\nStatut: En attente de validation admin\n\nVotre demande sera traitée dans les plus brefs délais.`)
+      success(`Demande de retrait envoyée !\n\nMontant: ${amount} FCFA\nOpérateur: ${withdrawMethod}\nStatut: En attente de validation admin\n\nVotre demande sera traitée dans les plus brefs délais.`)
 
       // Fermer le modal et réinitialiser
       setShowWithdrawModal(false)
@@ -152,7 +154,7 @@ export default function Wallet() {
     } catch (err) {
       console.error('❌ [WALLET] Erreur lors du retrait:', err)
       const errorMessage = err.response?.data?.message || 'Une erreur est survenue lors de la demande de retrait'
-      alert('❌ ' + errorMessage)
+      showError(errorMessage)
     } finally {
       setWithdrawing(false)
     }

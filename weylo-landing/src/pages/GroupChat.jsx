@@ -15,12 +15,14 @@ import {
 import groupsService from '../services/groupsService'
 import websocketService from '../services/websocketService'
 import PremiumBadge from '../components/shared/PremiumBadge'
+import { useDialog } from '../contexts/DialogContext'
 import '../styles/GroupChat.css'
 
 export default function GroupChat() {
   const { groupId } = useParams()
   const navigate = useNavigate()
   const { user, isAuthenticated } = useAuth()
+  const { error: showError } = useDialog()
   const [group, setGroup] = useState(null)
   const [messages, setMessages] = useState([])
   const [members, setMembers] = useState([])
@@ -32,8 +34,7 @@ export default function GroupChat() {
   const [copied, setCopied] = useState(false)
   const messagesEndRef = useRef(null)
 
-  // Vérifier si l'utilisateur peut voir toutes les identités (premium)
-  const canViewAllIdentities = user?.is_premium || false
+  // Les groupes sont 100% anonymes - pas de révélation d'identité
 
   useEffect(() => {
     if (!isAuthenticated || !user || !groupId) {
@@ -106,19 +107,12 @@ export default function GroupChat() {
       setLoading(true)
       const response = await groupsService.getMessages(groupId)
       const transformedMessages = response.messages.map(msg => {
-        // Si l'utilisateur est premium ou si l'identité est révélée, afficher le vrai nom
-        const canSeeIdentity = canViewAllIdentities || msg.identity_revealed || false
-        const senderName = canSeeIdentity && msg.sender
-          ? msg.sender.username || `${msg.sender.first_name || ''} ${msg.sender.last_name || ''}`.trim() || msg.sender_anonymous_name
-          : msg.sender_anonymous_name
-
+        // Les groupes sont 100% anonymes - tout le monde est "Anonyme"
         return {
           id: msg.id,
           content: msg.content,
           is_own: msg.is_own,
-          sender_name: senderName,
-          sender_anonymous_name: msg.sender_anonymous_name,
-          sender_is_premium: canSeeIdentity && msg.sender?.is_premium,
+          sender_name: 'Anonyme',
           type: msg.type,
           time: formatTime(msg.created_at),
           created_at: msg.created_at
@@ -149,19 +143,12 @@ export default function GroupChat() {
               return
             }
 
-            // Si l'utilisateur est premium ou si l'identité est révélée, afficher le vrai nom
-            const canSeeIdentity = canViewAllIdentities || event.identity_revealed || false
-            const senderName = canSeeIdentity && event.sender
-              ? event.sender.username || `${event.sender.first_name || ''} ${event.sender.last_name || ''}`.trim() || event.sender_anonymous_name
-              : event.sender_anonymous_name
-
+            // Les groupes sont 100% anonymes - tout le monde est "Anonyme"
             const newMsg = {
               id: event.id,
               content: event.content,
               is_own: false, // Toujours false car on ignore nos propres messages
-              sender_name: senderName,
-              sender_anonymous_name: event.sender_anonymous_name,
-              sender_is_premium: canSeeIdentity && event.sender?.is_premium,
+              sender_name: 'Anonyme',
               type: event.type,
               time: formatTime(event.created_at),
               created_at: event.created_at
@@ -214,18 +201,12 @@ export default function GroupChat() {
 
       // Ajouter immédiatement le message envoyé (optimistic update)
       if (response.message) {
-        const canSeeIdentity = canViewAllIdentities || response.message.identity_revealed || false
-        const senderName = canSeeIdentity && response.message.sender
-          ? response.message.sender.username || `${response.message.sender.first_name || ''} ${response.message.sender.last_name || ''}`.trim() || response.message.sender_anonymous_name
-          : response.message.sender_anonymous_name
-
+        // Les groupes sont 100% anonymes - tout le monde est "Anonyme"
         const newMsg = {
           id: response.message.id,
           content: response.message.content,
           is_own: true,
-          sender_name: senderName,
-          sender_anonymous_name: response.message.sender_anonymous_name,
-          sender_is_premium: canSeeIdentity && response.message.sender?.is_premium,
+          sender_name: 'Anonyme',
           type: response.message.type,
           time: formatTime(response.message.created_at),
           created_at: response.message.created_at
@@ -237,7 +218,7 @@ export default function GroupChat() {
       setTimeout(() => scrollToBottom(), 100)
     } catch (error) {
       console.error('❌ Erreur envoi message:', error)
-      alert('Impossible d\'envoyer le message. Veuillez réessayer.')
+      showError('Impossible d\'envoyer le message. Veuillez réessayer.')
     } finally {
       setSending(false)
     }
@@ -299,13 +280,6 @@ export default function GroupChat() {
               >
                 <Share2 size={20} strokeWidth={2} />
               </button>
-              <button
-                onClick={() => setShowSettings(true)}
-                className="btn-header-action"
-                aria-label="Paramètres"
-              >
-                <Settings size={20} strokeWidth={2} />
-              </button>
             </div>
           </>
         )}
@@ -326,28 +300,29 @@ export default function GroupChat() {
           </div>
         ) : (
           <>
-            {messages.map(msg => (
-              <div
-                key={msg.id}
-                className={`message-wrapper ${msg.is_own ? 'own' : 'other'}`}
-              >
-                {!msg.is_own && msg.type !== 'system' && (
-                  <div className="message-sender-info">
-                    <div className="message-sender-initial">
-                      {msg.sender_name ? msg.sender_name.charAt(0).toUpperCase() : '?'}
+            {messages
+              .filter(msg => msg && msg.id && msg.content) // Filtrer les messages null/invalides
+              .map(msg => (
+                <div
+                  key={msg.id}
+                  className={`message-wrapper ${msg.is_own ? 'own' : 'other'}`}
+                >
+                  {!msg.is_own && msg.type !== 'system' && (
+                    <div className="message-sender-info">
+                      <div className="message-sender-initial">
+                        {msg.sender_name ? msg.sender_name.charAt(0).toUpperCase() : 'A'}
+                      </div>
+                      <span className="message-sender-name">
+                        {msg.sender_name || 'Anonyme'}
+                      </span>
                     </div>
-                    <span className="message-sender-name">
-                      {msg.sender_name || 'Anonyme'}
-                      {msg.sender_is_premium && <PremiumBadge size="small" />}
-                    </span>
+                  )}
+                  <div className={`message-bubble ${msg.type === 'system' ? 'system' : msg.is_own ? 'own' : 'other'}`}>
+                    <p className="message-text">{msg.content}</p>
+                    <span className="message-time">{msg.time || ''}</span>
                   </div>
-                )}
-                <div className={`message-bubble ${msg.type === 'system' ? 'system' : msg.is_own ? 'own' : 'other'}`}>
-                  <p className="message-text">{msg.content}</p>
-                  <span className="message-time">{msg.time}</span>
                 </div>
-              </div>
-            ))}
+              ))}
             <div ref={messagesEndRef} />
           </>
         )}
@@ -425,7 +400,7 @@ export default function GroupChat() {
               navigate('/groups')
             } catch (error) {
               console.error('❌ Erreur quitter groupe:', error)
-              alert('Impossible de quitter le groupe')
+              showError('Impossible de quitter le groupe')
             }
           }}
         />
@@ -468,29 +443,26 @@ function GroupSettingsModal({ group, members, onClose, onLeave }) {
           <div className="settings-section">
             <h3>Membres ({members.length})</h3>
             <div className="members-list">
-              {members.map(member => {
-                const canSeeMemberIdentity = canViewAllIdentities || member.is_identity_revealed || false
-                const memberDisplayName = canSeeMemberIdentity && member.username
-                  ? `@${member.username}`
-                  : member.anonymous_name || 'Anonyme'
-
-                return (
-                  <div key={member.id} className="member-item">
-                    <div className="member-avatar">
-                      {memberDisplayName.charAt(0).toUpperCase()}
+              {members
+                .filter(member => member && member.id) // Filtrer les membres null/supprimés
+                .map(member => {
+                  // Les groupes sont 100% anonymes - tout le monde est "Anonyme"
+                  return (
+                    <div key={member.id} className="member-item">
+                      <div className="member-avatar">
+                        A
+                      </div>
+                      <div className="member-info">
+                        <span className="member-name">
+                          Anonyme
+                        </span>
+                        {member.role === 'admin' && (
+                          <span className="member-badge">Créateur</span>
+                        )}
+                      </div>
                     </div>
-                    <div className="member-info">
-                      <span className="member-name">
-                        {memberDisplayName}
-                        {canSeeMemberIdentity && member.is_premium && <PremiumBadge size="small" />}
-                      </span>
-                      {member.role === 'admin' && (
-                        <span className="member-badge">Créateur</span>
-                      )}
-                    </div>
-                  </div>
-                )
-              })}
+                  )
+                })}
             </div>
           </div>
 

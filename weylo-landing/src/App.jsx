@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useCountAnimation, useInView } from './hooks/useCountAnimation'
+import legalPagesService from './services/legalPagesService'
+import settingsService from './services/settingsService'
 
 // Composant pour les statistiques animées
 function AnimatedStat({ end, suffix = '', prefix = '', decimals = 0, duration = 2000, start }) {
@@ -33,6 +35,9 @@ function App() {
   const [showCookieBanner, setShowCookieBanner] = useState(true)
   const [activeTab, setActiveTab] = useState('home')
   const [darkMode, setDarkMode] = useState(false)
+  const [legalPages, setLegalPages] = useState([])
+  const [premiumPrice, setPremiumPrice] = useState(450)
+  const [currency, setCurrency] = useState('FCFA')
 
   // Hook pour détecter quand les stats sont visibles
   const [statsRef, statsVisible] = useInView({ threshold: 0.3 })
@@ -56,8 +61,39 @@ function App() {
       document.documentElement.classList.add('dark-mode')
     }
 
+    // Load legal pages
+    loadLegalPages()
+
+    // Load public settings
+    loadPublicSettings()
+
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
+
+  const loadLegalPages = async () => {
+    try {
+      const response = await legalPagesService.getActivePages()
+      if (response.success && response.pages) {
+        setLegalPages(response.pages)
+      }
+    } catch (error) {
+      console.error('Erreur lors du chargement des pages légales:', error)
+    }
+  }
+
+  const loadPublicSettings = async () => {
+    try {
+      const settings = await settingsService.getPublicSettings()
+      if (settings.premium_monthly_price) {
+        setPremiumPrice(settings.premium_monthly_price)
+      }
+      if (settings.currency) {
+        setCurrency(settings.currency)
+      }
+    } catch (error) {
+      console.error('Erreur lors du chargement des paramètres:', error)
+    }
+  }
 
   const acceptCookies = () => {
     localStorage.setItem('cookiesAccepted', 'true')
@@ -286,7 +322,7 @@ function App() {
               <span className="feature-icon">🔓</span>
               <h3>Révélation d'identité</h3>
               <p>
-                Envie de savoir qui t'a écrit ? Abonne-toi au Premium pour 450 FCFA/mois et découvre l'identité de l'expéditeur.
+                Envie de savoir qui t'a écrit ? Abonne-toi au Premium pour {premiumPrice} {currency}/mois et découvre l'identité de l'expéditeur.
               </p>
             </div>
 
@@ -390,7 +426,7 @@ function App() {
             <div className="pricing-card featured">
               <span className="pricing-tag">Populaire</span>
               <h3>Premium</h3>
-              <div className="pricing-price">450 FCFA</div>
+              <div className="pricing-price">{premiumPrice} {currency}</div>
               <div className="pricing-period">Par mois</div>
               <ul className="pricing-features">
                 <li>Tout du plan gratuit</li>
@@ -530,16 +566,18 @@ function App() {
               </ul>
             </div>
 
-            <div className="footer-section">
-              <h4>Légal</h4>
-              <ul className="footer-links">
-                <li><a href="#cgu">Conditions d'utilisation</a></li>
-                <li><a href="#privacy">Politique de confidentialité</a></li>
-                <li><a href="#cookies">Politique des cookies</a></li>
-                <li><a href="#">Règles de la communauté</a></li>
-                <li><a href="#">Mentions légales</a></li>
-              </ul>
-            </div>
+            {legalPages.length > 0 && (
+              <div className="footer-section">
+                <h4>Légal</h4>
+                <ul className="footer-links">
+                  {legalPages.map((page) => (
+                    <li key={page.id}>
+                      <Link to={`/legal/${page.slug}`}>{page.title}</Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
 
             <div className="footer-section">
               <h4>Support</h4>

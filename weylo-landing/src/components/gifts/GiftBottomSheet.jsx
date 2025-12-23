@@ -2,9 +2,11 @@ import { useState, useEffect } from 'react'
 import { X, Loader2, Gift, Wallet, AlertCircle } from 'lucide-react'
 import giftService from '../../services/giftService'
 import walletService from '../../services/walletService'
+import { useDialog } from '../../contexts/DialogContext'
 import './GiftBottomSheet.css'
 
 export default function GiftBottomSheet({ isOpen, onClose, recipientName, conversationId, onGiftSent }) {
+  const { error } = useDialog()
   const [categories, setCategories] = useState([])
   const [gifts, setGifts] = useState([])
   const [selectedCategory, setSelectedCategory] = useState(null)
@@ -94,11 +96,11 @@ export default function GiftBottomSheet({ isOpen, onClose, recipientName, conver
 
     // Vérifier le solde avant d'envoyer
     if (walletBalance < selectedGift.price) {
-      alert(
-        `Solde insuffisant !\n\n` +
+      error(
         `Prix du cadeau : ${selectedGift.formatted_price}\n` +
         `Votre solde : ${walletService.formatAmount(walletBalance)}\n\n` +
-        `Veuillez recharger votre wallet.`
+        `Veuillez recharger votre wallet.`,
+        'Solde insuffisant !'
       )
       return
     }
@@ -132,17 +134,17 @@ export default function GiftBottomSheet({ isOpen, onClose, recipientName, conver
         const requiredAmount = error.response?.data?.required_amount
         const currentBalance = error.response?.data?.current_balance
 
-        alert(
-          `Solde insuffisant !\n\n` +
+        error(
           `Montant requis : ${walletService.formatAmount(requiredAmount || selectedGift.price)}\n` +
           `Votre solde : ${walletService.formatAmount(currentBalance || walletBalance)}\n\n` +
-          `Veuillez recharger votre wallet.`
+          `Veuillez recharger votre wallet.`,
+          'Solde insuffisant !'
         )
 
         // Recharger le solde wallet au cas où il a changé
         await loadWalletBalance()
       } else {
-        alert(errorMessage)
+        error(errorMessage)
       }
     } finally {
       setSending(false)

@@ -203,14 +203,16 @@ const AdminDashboard = () => {
           <div className="chart-card">
             <h3>Top créateurs de stories</h3>
             <div className="ranking-list">
-              {analytics.rankings.top_by_stories.map((user, index) => (
-                <div key={user.id} className="ranking-item">
-                  <span className="ranking-position">#{index + 1}</span>
-                  <span className="ranking-name">@{user.username}</span>
-                  <span className="ranking-value">{user.stories_count} stories</span>
-                  <span className="ranking-views">{user.stories_sum_views_count || 0} vues</span>
-                </div>
-              ))}
+              {analytics.rankings.top_by_stories
+                .filter(user => user && user.id && user.username) // Filtrer les users null/supprimés
+                .map((user, index) => (
+                  <div key={user.id} className="ranking-item">
+                    <span className="ranking-position">#{index + 1}</span>
+                    <span className="ranking-name">@{user.username}</span>
+                    <span className="ranking-value">{user.stories_count || 0} stories</span>
+                    <span className="ranking-views">{user.stories_sum_views_count || 0} vues</span>
+                  </div>
+                ))}
             </div>
           </div>
         )}
@@ -220,13 +222,15 @@ const AdminDashboard = () => {
           <div className="chart-card">
             <h3>Top destinataires de messages</h3>
             <div className="ranking-list">
-              {analytics.rankings.top_by_messages.map((user, index) => (
-                <div key={user.id} className="ranking-item">
-                  <span className="ranking-position">#{index + 1}</span>
-                  <span className="ranking-name">@{user.username}</span>
-                  <span className="ranking-value">{user.received_messages_count} messages</span>
-                </div>
-              ))}
+              {analytics.rankings.top_by_messages
+                .filter(user => user && user.id && user.username) // Filtrer les users null/supprimés
+                .map((user, index) => (
+                  <div key={user.id} className="ranking-item">
+                    <span className="ranking-position">#{index + 1}</span>
+                    <span className="ranking-name">@{user.username}</span>
+                    <span className="ranking-value">{user.received_messages_count || 0} messages</span>
+                  </div>
+                ))}
             </div>
           </div>
         )}
@@ -236,13 +240,15 @@ const AdminDashboard = () => {
           <div className="chart-card">
             <h3>Top destinataires de cadeaux</h3>
             <div className="ranking-list">
-              {analytics.rankings.top_by_gifts.map((user, index) => (
-                <div key={user.id} className="ranking-item">
-                  <span className="ranking-position">#{index + 1}</span>
-                  <span className="ranking-name">@{user.username}</span>
-                  <span className="ranking-value">{user.gifts_value || 0} FCFA</span>
-                </div>
-              ))}
+              {analytics.rankings.top_by_gifts
+                .filter(user => user && user.id && user.username) // Filtrer les users null/supprimés
+                .map((user, index) => (
+                  <div key={user.id} className="ranking-item">
+                    <span className="ranking-position">#{index + 1}</span>
+                    <span className="ranking-name">@{user.username}</span>
+                    <span className="ranking-value">{user.gifts_value || 0} FCFA</span>
+                  </div>
+                ))}
             </div>
           </div>
         )}

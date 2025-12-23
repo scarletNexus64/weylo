@@ -3,24 +3,19 @@ import { useParams, useNavigate } from 'react-router-dom'
 import apiClient from '../services/apiClient'
 import messagesService from '../services/messagesService'
 import { useAuth } from '../contexts/AuthContext'
+import { useDialog } from '../contexts/DialogContext'
 
 export default function SendMessagePage() {
   const { userId, username } = useParams()
   const navigate = useNavigate()
-  const { isAuthenticated, user, loading: authLoading, login } = useAuth()
+  const { isAuthenticated, user, loading: authLoading, loginWithToken } = useAuth()
+  const { success: showSuccess, error: showError, info } = useDialog()
 
   const [recipientUsername, setRecipientUsername] = useState(null)
+  const [recipientFirstName, setRecipientFirstName] = useState(null)
   const [userExists, setUserExists] = useState(false)
   const [loading, setLoading] = useState(true)
   const [message, setMessage] = useState('')
-  const [showLoginOptions, setShowLoginOptions] = useState(false)
-  const [showRegistration, setShowRegistration] = useState(false)
-  const [showLogin, setShowLogin] = useState(false)
-  const [loginCredentials, setLoginCredentials] = useState({ username: '', pin: ['', '', '', ''] })
-  const [firstName, setFirstName] = useState('')
-  const [phone, setPhone] = useState('')
-  const [pin, setPin] = useState(['', '', '', ''])
-  const [showConfirmModal, setShowConfirmModal] = useState(false)
   const [sending, setSending] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
@@ -75,6 +70,7 @@ export default function SendMessagePage() {
         }
 
         setRecipientUsername(response.data.user.username)
+        setRecipientFirstName(response.data.user.first_name)
         setUserExists(true)
       } catch (err) {
         console.error('Error checking user:', err)
@@ -97,217 +93,63 @@ export default function SendMessagePage() {
     }
 
     setError('')
-
-    // Vérifier si l'utilisateur est connecté
-    if (isAuthenticated) {
-      // Utilisateur connecté → envoyer le message directement
-      await handleSendMessageAsLoggedUser()
-    } else {
-      // Utilisateur non connecté → afficher les boutons Login/Register
-      setShowLoginOptions(true)
-    }
-  }
-
-  // Envoyer le message en tant qu'utilisateur connecté (anonyme)
-  const handleSendMessageAsLoggedUser = async () => {
-    setSending(true)
-    setError('')
-
-    try {
-      console.log('👤 Utilisateur connecté, envoi du message anonyme vers:', recipientUsername)
-
-      // Envoyer le message anonyme via messagesService
-      await messagesService.sendMessage(recipientUsername, message)
-
-      console.log('✅ Message envoyé avec succès')
-
-      // Afficher le succès et rediriger vers le dashboard
-      setSuccess(true)
-      setMessage('')
-
-      setTimeout(() => {
-        navigate('/dashboard', { replace: true })
-      }, 1500)
-
-    } catch (err) {
-      console.error('❌ Erreur lors de l\'envoi du message:', err)
-      setError(err.response?.data?.message || 'Erreur lors de l\'envoi du message')
-    } finally {
-      setSending(false)
-    }
-  }
-
-  const handleChooseLogin = () => {
-    setShowLogin(true)
-    setShowRegistration(false)
-    setShowLoginOptions(false)
-  }
-
-  const handleChooseRegister = () => {
-    setShowRegistration(true)
-    setShowLogin(false)
-    setShowLoginOptions(false)
-  }
-
-  const handleLogin = async (e) => {
-    e.preventDefault()
-
-    if (!loginCredentials.username.trim()) {
-      setError('Veuillez entrer votre nom d\'utilisateur ou téléphone')
-      return
-    }
-
-    const pinString = loginCredentials.pin.join('')
-    if (pinString.length !== 4) {
-      setError('Veuillez entrer votre code PIN à 4 chiffres')
-      return
-    }
-
-    setSending(true)
-    setError('')
-
-    try {
-      // Envoyer le username et le pin comme password (car le backend attend password)
-      await login({ username: loginCredentials.username, password: pinString })
-      console.log('✅ Connexion réussie, envoi du message...')
-
-      // Après connexion réussie, envoyer le message
-      setShowLogin(false)
-      await handleSendMessageAsLoggedUser()
-    } catch (err) {
-      console.error('Erreur de connexion:', err)
-      setError(err.message || 'Erreur lors de la connexion')
-      setSending(false)
-    }
-  }
-
-  const handlePinChange = (index, value) => {
-    // Only allow numbers
-    if (value && !/^\d$/.test(value)) return
-
-    const newPin = [...pin]
-    newPin[index] = value
-    setPin(newPin)
-
-    // Auto-focus next input
-    if (value && index < 3) {
-      const nextInput = document.getElementById(`pin-${index + 1}`)
-      if (nextInput) nextInput.focus()
-    }
-  }
-
-  const handlePinKeyDown = (index, e) => {
-    // Handle backspace
-    if (e.key === 'Backspace' && !e.target.value && index > 0) {
-      const prevInput = document.getElementById(`pin-${index - 1}`)
-      if (prevInput) prevInput.focus()
-    }
-  }
-
-  const handleLoginPinChange = (index, value) => {
-    // Only allow numbers
-    if (value && !/^\d$/.test(value)) return
-
-    const newPin = [...loginCredentials.pin]
-    newPin[index] = value
-    setLoginCredentials({ ...loginCredentials, pin: newPin })
-
-    // Auto-focus next input
-    if (value && index < 3) {
-      const nextInput = document.getElementById(`login-pin-${index + 1}`)
-      if (nextInput) nextInput.focus()
-    }
-  }
-
-  const handleLoginPinKeyDown = (index, e) => {
-    // Handle backspace
-    if (e.key === 'Backspace' && !e.target.value && index > 0) {
-      const prevInput = document.getElementById(`login-pin-${index - 1}`)
-      if (prevInput) prevInput.focus()
-    }
-  }
-
-  const handleRegisterAndSend = async (e) => {
-    e.preventDefault()
-
-    const pinString = pin.join('')
-
-    if (!message.trim()) {
-      setError('Veuillez entrer un message')
-      return
-    }
-
-    if (!firstName.trim()) {
-      setError('Veuillez entrer votre prénom')
-      return
-    }
-
-    if (!phone.trim()) {
-      setError('Veuillez entrer votre numéro de téléphone')
-      return
-    }
-
-    // Validate phone format (9-15 digits)
-    const phoneDigits = phone.replace(/\D/g, '')
-    if (phoneDigits.length < 9 || phoneDigits.length > 15) {
-      setError('Le numéro de téléphone doit contenir entre 9 et 15 chiffres')
-      return
-    }
-
-    if (pinString.length !== 4) {
-      setError('Veuillez entrer un code PIN à 4 chiffres')
-      return
-    }
-
-    setError('')
-    // Show confirmation modal instead of sending directly
-    setShowConfirmModal(true)
-  }
-
-  const handleConfirmAndSend = async () => {
-    const pinString = pin.join('')
     setSending(true)
 
     try {
-      if (!recipientUsername) return;
+      if (isAuthenticated) {
+        // Utilisateur connecté → envoyer le message directement via messagesService
+        console.log('👤 Utilisateur connecté, envoi du message anonyme vers:', recipientUsername)
+        await messagesService.sendMessage(recipientUsername, message)
+        console.log('✅ Message envoyé avec succès')
 
-      const response = await apiClient.post('/auth/register-and-send', {
-        recipient_username: recipientUsername,
-        message: message,
-        first_name: firstName,
-        phone: phone,
-        pin: pinString
-      })
+        setSuccess(true)
+        setMessage('')
 
-      console.log('✅ Inscription et envoi réussi')
-
-      setSuccess(true)
-      setMessage('')
-      setFirstName('')
-      setPhone('')
-      setPin(['', '', '', ''])
-      setShowRegistration(false)
-      setShowConfirmModal(false)
-
-      // Si on a reçu un token dans la réponse, l'utilisateur est maintenant connecté
-      if (response.data.data?.credentials) {
-        // Afficher les credentials
-        setTimeout(() => {
-          alert(`🎉 Compte créé et message envoyé !\n\nVos identifiants:\n\nUsername: ${response.data.data.credentials.username}\nMot de passe: ${response.data.data.credentials.password}\n\nCes identifiants ont été envoyés par SMS. Redirection vers le dashboard...`)
-
-          // Rediriger vers le dashboard
-          navigate('/dashboard', { replace: true })
-        }, 1000)
-      } else {
-        // Rediriger directement vers le dashboard
         setTimeout(() => {
           navigate('/dashboard', { replace: true })
         }, 1500)
+
+      } else {
+        // Utilisateur non connecté → créer compte fake et envoyer
+        console.log('👻 Utilisateur non connecté, création de compte anonyme et envoi...')
+
+        const response = await apiClient.post('/auth/register-and-send', {
+          recipient_username: recipientUsername,
+          message: message
+        })
+
+        console.log('✅ Compte créé et message envoyé!', response.data)
+
+        const { token, credentials } = response.data.data
+
+        // Auto-login avec le token
+        await loginWithToken(token, response.data.data.user)
+
+        setSuccess(true)
+        setMessage('')
+
+        // Afficher les credentials avec tips
+        setTimeout(() => {
+          info(
+            `🎉 Message envoyé avec succès !\n\n` +
+            `Votre compte anonyme a été créé :\n\n` +
+            `👤 Username: ${credentials.username}\n` +
+            `🔐 Code PIN: ${credentials.password}\n\n` +
+            `💡 Conseil : Vous pouvez personnaliser votre profil (nom, téléphone, PIN) dans les paramètres pour sécuriser votre compte.\n\n` +
+            `Redirection vers le dashboard...`,
+            15000 // Afficher pendant 15 secondes
+          )
+
+          // Rediriger vers le dashboard après 2 secondes
+          setTimeout(() => {
+            navigate('/dashboard', { replace: true })
+          }, 2000)
+        }, 500)
       }
 
     } catch (err) {
-      setError(err.response?.data?.message || 'Une erreur est survenue')
-      setShowConfirmModal(false)
+      console.error('❌ Erreur lors de l\'envoi:', err)
+      setError(err.response?.data?.message || 'Erreur lors de l\'envoi du message')
     } finally {
       setSending(false)
     }
@@ -438,16 +280,15 @@ export default function SendMessagePage() {
             </svg>
           </div>
           <h2 className={`text-3xl md:text-5xl font-black mb-4 ${darkMode ? 'text-white' : 'text-gray-900'} animate-fadeInUp leading-tight`}>
-            Quelqu'un veut te dire
+            {recipientFirstName || 'Cette personne'} va recevoir
             <br />
             <span className="bg-gradient-to-r from-purple-600 via-pink-600 to-purple-600 bg-clip-text text-transparent animate-gradient-x">
-              quelque chose...
+              ton message secret...
             </span>
           </h2>
           <p className={`text-base md:text-lg ${darkMode ? 'text-gray-300' : 'text-gray-600'} max-w-2xl mx-auto animate-fadeInUp animation-delay-200 leading-relaxed`}>
-            Un message anonyme t'attend. Envoie ta réponse sans savoir qui c'est 🎭
+            Qu'est-ce que tu veux lui dire anonymement ? 🎭
           </p>
-
         </div>
 
         {/* Message Form Card */}
@@ -465,13 +306,13 @@ export default function SendMessagePage() {
                   Ton message anonyme
                 </h3>
                 <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                  Ton identité restera secrète 🤫
+                  {isAuthenticated ? 'Ton identité restera secrète 🤫' : 'Un compte anonyme sera créé automatiquement 🎭'}
                 </p>
               </div>
             </div>
           </div>
 
-          <form onSubmit={showRegistration ? handleRegisterAndSend : handleSubmit} className="p-6 md:p-8">
+          <form onSubmit={handleSubmit} className="p-6 md:p-8">
             {/* Message Textarea */}
             <div className="mb-6">
               <label htmlFor="message" className={`block text-sm font-semibold mb-3 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
@@ -516,269 +357,6 @@ export default function SendMessagePage() {
               </div>
             </div>
 
-            {/* Choice Buttons - Login or Register - Only show if showLoginOptions is true */}
-            {showLoginOptions && !showRegistration && !showLogin && (
-              <div className="mb-6">
-                <h4 className={`text-center font-bold text-lg mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                  Pour continuer, choisis une option :
-                </h4>
-                <div className="grid grid-cols-2 gap-4">
-                  <button
-                    type="button"
-                    onClick={handleChooseLogin}
-                    className={`p-4 rounded-2xl border-2 transition-all duration-300 transform hover:scale-105 ${
-                      darkMode
-                        ? 'bg-gradient-to-br from-green-900/30 to-emerald-900/30 border-green-700/50 hover:border-green-600'
-                        : 'bg-gradient-to-br from-green-50 to-emerald-50 border-green-200 hover:border-green-400'
-                    }`}
-                  >
-                    <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center mx-auto mb-3">
-                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
-                      </svg>
-                    </div>
-                    <h5 className={`font-bold mb-1 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                      Se connecter
-                    </h5>
-                    <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                      J'ai déjà un compte
-                    </p>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={handleChooseRegister}
-                    className={`p-4 rounded-2xl border-2 transition-all duration-300 transform hover:scale-105 ${
-                      darkMode
-                        ? 'bg-gradient-to-br from-blue-900/30 to-indigo-900/30 border-blue-700/50 hover:border-blue-600'
-                        : 'bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200 hover:border-blue-400'
-                    }`}
-                  >
-                    <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center mx-auto mb-3">
-                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-                      </svg>
-                    </div>
-                    <h5 className={`font-bold mb-1 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                      Créer un compte
-                    </h5>
-                    <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                      Je suis nouveau
-                    </p>
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Login Form */}
-            {showLogin && (
-              <div className={`mb-6 p-6 bg-gradient-to-br ${darkMode ? 'from-green-900/30 to-emerald-900/30' : 'from-green-50 to-emerald-50'} border-2 ${darkMode ? 'border-green-700/50' : 'border-green-200'} rounded-2xl animate-scaleIn relative overflow-hidden`}>
-                <div className="absolute inset-0 bg-gradient-to-r from-green-500/10 to-emerald-500/10 animate-shimmer"></div>
-
-                <div className="flex items-start mb-5 relative z-10">
-                  <div className="w-14 h-14 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-xl animate-bounce-slow">
-                    <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
-                    </svg>
-                  </div>
-                  <div className="ml-4">
-                    <h4 className={`font-black text-xl ${darkMode ? 'text-white' : 'text-gray-900'}`}>Connexion</h4>
-                    <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'} mt-1`}>Connecte-toi pour continuer</p>
-                  </div>
-                </div>
-
-                <div className="space-y-5 relative z-10">
-                  {/* Username/Phone Input */}
-                  <div className="animate-slideInLeft animation-delay-100">
-                    <label htmlFor="loginUsername" className={`block text-sm font-semibold mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'} flex items-center gap-2`}>
-                      <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                      </svg>
-                      Nom d'utilisateur ou téléphone
-                    </label>
-                    <input
-                      type="text"
-                      id="loginUsername"
-                      value={loginCredentials.username}
-                      onChange={(e) => setLoginCredentials({ ...loginCredentials, username: e.target.value })}
-                      className={`w-full px-4 py-3 border-2 rounded-xl focus:outline-none focus:ring-4 focus:ring-green-500/20 transition-all duration-300 ${
-                        darkMode
-                          ? 'bg-gray-900/50 border-gray-600 text-white placeholder-gray-500 focus:border-green-500'
-                          : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-green-400'
-                      } hover:border-green-300 hover:shadow-md focus:scale-[1.01]`}
-                      placeholder="@username ou +237XXXXXXXXX"
-                      required
-                    />
-                  </div>
-
-                  {/* PIN Input */}
-                  <div className="animate-slideInLeft animation-delay-150">
-                    <label className={`block text-sm font-semibold mb-3 ${darkMode ? 'text-gray-300' : 'text-gray-700'} flex items-center gap-2`}>
-                      <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                      </svg>
-                      Code PIN (4 chiffres)
-                    </label>
-                    <div className="flex gap-3 justify-center">
-                      {[0, 1, 2, 3].map((index) => (
-                        <input
-                          key={`login-pin-${index}`}
-                          id={`login-pin-${index}`}
-                          type="text"
-                          inputMode="numeric"
-                          maxLength={1}
-                          value={loginCredentials.pin[index]}
-                          onChange={(e) => handleLoginPinChange(index, e.target.value)}
-                          onKeyDown={(e) => handleLoginPinKeyDown(index, e)}
-                          className={`w-14 h-14 sm:w-16 sm:h-16 text-center text-2xl font-black border-2 rounded-xl focus:outline-none focus:ring-4 focus:ring-green-500/30 transition-all duration-300 transform ${
-                            darkMode
-                              ? 'bg-gray-900/70 border-gray-600 text-white focus:border-green-500 focus:bg-gray-900'
-                              : 'bg-white border-gray-200 text-gray-900 focus:border-green-400 focus:bg-green-50/50'
-                          } hover:border-green-300 hover:shadow-lg focus:scale-110 animate-scaleIn animation-delay-${250 + index * 50}`}
-                          style={{ animationDelay: `${0.25 + index * 0.05}s` }}
-                          required
-                        />
-                      ))}
-                    </div>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowLogin(false)
-                      setShowRegistration(false)
-                      setShowLoginOptions(true)
-                    }}
-                    className={`text-sm ${darkMode ? 'text-gray-400 hover:text-gray-300' : 'text-gray-600 hover:text-gray-900'} transition-colors`}
-                  >
-                    ← Retour aux options
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Registration Form */}
-            {showRegistration && (
-              <div className={`mb-6 p-6 bg-gradient-to-br ${darkMode ? 'from-blue-900/30 to-indigo-900/30' : 'from-blue-50 to-indigo-50'} border-2 ${darkMode ? 'border-blue-700/50' : 'border-blue-200'} rounded-2xl animate-scaleIn relative overflow-hidden`}>
-                <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-indigo-500/10 animate-shimmer"></div>
-
-                <div className="flex items-start mb-5 relative z-10">
-                  <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-xl animate-bounce-slow">
-                    <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-                    </svg>
-                  </div>
-                  <div className="ml-4">
-                    <h4 className={`font-black text-xl ${darkMode ? 'text-white' : 'text-gray-900'}`}>Dernière étape ! ⚡</h4>
-                    <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'} mt-1`}>Crée ton compte en 2 secondes pour envoyer</p>
-                  </div>
-                </div>
-
-                <div className="space-y-5 relative z-10">
-                  {/* First Name Input */}
-                  <div className="animate-slideInLeft animation-delay-100">
-                    <label htmlFor="firstName" className={`block text-sm font-semibold mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'} flex items-center gap-2`}>
-                      <svg className="w-4 h-4 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                      </svg>
-                      Prénom
-                    </label>
-                    <input
-                      type="text"
-                      id="firstName"
-                      value={firstName}
-                      onChange={(e) => setFirstName(e.target.value)}
-                      className={`w-full px-4 py-3 border-2 rounded-xl focus:outline-none focus:ring-4 focus:ring-purple-500/20 transition-all duration-300 ${
-                        darkMode
-                          ? 'bg-gray-900/50 border-gray-600 text-white placeholder-gray-500 focus:border-purple-500'
-                          : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-purple-400'
-                      } hover:border-purple-300 hover:shadow-md focus:scale-[1.01]`}
-                      placeholder="Ton prénom"
-                      required
-                    />
-                  </div>
-
-                  {/* Phone Input */}
-                  <div className="animate-slideInLeft animation-delay-150">
-                    <label htmlFor="phone" className={`block text-sm font-semibold mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'} flex items-center gap-2`}>
-                      <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                      </svg>
-                      Numéro de téléphone
-                    </label>
-                    <input
-                      type="tel"
-                      id="phone"
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      className={`w-full px-4 py-3 border-2 rounded-xl focus:outline-none focus:ring-4 focus:ring-green-500/20 transition-all duration-300 ${
-                        darkMode
-                          ? 'bg-gray-900/50 border-gray-600 text-white placeholder-gray-500 focus:border-green-500'
-                          : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-green-400'
-                      } hover:border-green-300 hover:shadow-md focus:scale-[1.01]`}
-                      placeholder="+237 6XX XX XX XX"
-                      required
-                    />
-                  </div>
-
-                  {/* PIN Input */}
-                  <div className="animate-slideInLeft animation-delay-200">
-                    <label className={`block text-sm font-semibold mb-3 ${darkMode ? 'text-gray-300' : 'text-gray-700'} flex items-center gap-2`}>
-                      <svg className="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                      </svg>
-                      Code PIN (4 chiffres)
-                    </label>
-                    <div className="flex gap-3 justify-center">
-                      {[0, 1, 2, 3].map((index) => (
-                        <input
-                          key={`pin-${index}`}
-                          id={`pin-${index}`}
-                          type="text"
-                          inputMode="numeric"
-                          maxLength={1}
-                          value={pin[index]}
-                          onChange={(e) => handlePinChange(index, e.target.value)}
-                          onKeyDown={(e) => handlePinKeyDown(index, e)}
-                          className={`w-14 h-14 sm:w-16 sm:h-16 text-center text-2xl font-black border-2 rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-500/30 transition-all duration-300 transform ${
-                            darkMode
-                              ? 'bg-gray-900/70 border-gray-600 text-white focus:border-blue-500 focus:bg-gray-900'
-                              : 'bg-white border-gray-200 text-gray-900 focus:border-blue-400 focus:bg-blue-50/50'
-                          } hover:border-blue-300 hover:shadow-lg focus:scale-110 animate-scaleIn animation-delay-${250 + index * 50}`}
-                          style={{ animationDelay: `${0.25 + index * 0.05}s` }}
-                          required
-                        />
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Security Notice */}
-                  <div className={`p-3 rounded-xl ${darkMode ? 'bg-gray-900/50' : 'bg-white/50'} border ${darkMode ? 'border-gray-700' : 'border-gray-200'} animate-fadeInUp animation-delay-400`}>
-                    <div className="flex items-start gap-2">
-                      <svg className="w-5 h-5 text-purple-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                        Ce code PIN sécurisera ton compte. <span className="font-semibold">Ne le partage avec personne !</span>
-                      </p>
-                    </div>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowLogin(false)
-                      setShowRegistration(false)
-                      setShowLoginOptions(true)
-                    }}
-                    className={`text-sm ${darkMode ? 'text-gray-400 hover:text-gray-300' : 'text-gray-600 hover:text-gray-900'} transition-colors`}
-                  >
-                    ← Retour aux options
-                  </button>
-                </div>
-              </div>
-            )}
-
             {/* Error Message */}
             {error && (
               <div className="mb-4 p-4 bg-red-50 dark:bg-red-900/20 border-2 border-red-200 dark:border-red-800 rounded-xl animate-shake relative overflow-hidden">
@@ -805,78 +383,44 @@ export default function SendMessagePage() {
               </div>
             )}
 
-            {/* Submit Button - Always show, but behavior depends on state */}
-            {!showLoginOptions && (
-              <button
-                type={showLogin ? "button" : "submit"}
-                onClick={showLogin ? handleLogin : undefined}
-                disabled={sending}
-                className={`w-full relative overflow-hidden text-white font-black py-5 px-8 rounded-2xl shadow-2xl transform transition-all duration-500 hover:scale-[1.02] hover:shadow-purple-500/50 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none group animate-pulse-button bg-[length:200%_auto] ${
-                  showLogin
-                    ? 'bg-gradient-to-r from-green-600 via-emerald-600 to-green-600'
-                    : 'bg-gradient-to-r from-purple-600 via-pink-600 to-purple-600'
-                }`}
-              >
-                {/* Animated shine effect */}
-                <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></span>
+            {/* Submit Button */}
+            <button
+              type="submit"
+              disabled={sending}
+              className={`w-full relative overflow-hidden text-white font-black py-5 px-8 rounded-2xl shadow-2xl transform transition-all duration-500 hover:scale-[1.02] hover:shadow-purple-500/50 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none group animate-pulse-button bg-[length:200%_auto] bg-gradient-to-r from-purple-600 via-pink-600 to-purple-600`}
+            >
+              {/* Animated shine effect */}
+              <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></span>
 
-                {/* Gradient overlay on hover */}
-                <span className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-[length:200%_auto] animate-gradient-x ${
-                  showLogin
-                    ? 'bg-gradient-to-r from-emerald-600 via-green-600 to-emerald-600'
-                    : 'bg-gradient-to-r from-pink-600 via-purple-600 to-pink-600'
-                }`}></span>
+              {/* Gradient overlay on hover */}
+              <span className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-[length:200%_auto] animate-gradient-x bg-gradient-to-r from-pink-600 via-purple-600 to-pink-600"></span>
 
-                {/* Animated particles */}
-                <span className="absolute top-2 left-1/4 w-2 h-2 bg-white/50 rounded-full animate-particle-1"></span>
-                <span className="absolute bottom-2 right-1/4 w-2 h-2 bg-white/50 rounded-full animate-particle-2"></span>
-                <span className="absolute top-1/2 left-1/2 w-2 h-2 bg-white/50 rounded-full animate-particle-3"></span>
+              {/* Animated particles */}
+              <span className="absolute top-2 left-1/4 w-2 h-2 bg-white/50 rounded-full animate-particle-1"></span>
+              <span className="absolute bottom-2 right-1/4 w-2 h-2 bg-white/50 rounded-full animate-particle-2"></span>
+              <span className="absolute top-1/2 left-1/2 w-2 h-2 bg-white/50 rounded-full animate-particle-3"></span>
 
-                <span className="relative z-10 flex items-center justify-center gap-3 text-base md:text-lg">
-                  {sending ? (
-                    <>
-                      <svg className="animate-spin h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      <span className="animate-pulse">{showLogin ? 'Connexion...' : 'Envoi en cours...'}</span>
-                    </>
-                  ) : (
-                    <>
-                      {showLogin ? (
-                        <>
-                          <svg className="w-6 h-6 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
-                          </svg>
-                          <span className="group-hover:tracking-wider transition-all duration-300">Se connecter</span>
-                        </>
-                      ) : showRegistration ? (
-                        <>
-                          <svg className="w-6 h-6 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                          </svg>
-                          <span className="group-hover:tracking-wider transition-all duration-300">Créer mon compte et envoyer</span>
-                        </>
-                      ) : isAuthenticated ? (
-                        <>
-                          <svg className="w-6 h-6 group-hover:rotate-12 group-hover:scale-110 transition-all duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-                          </svg>
-                          <span className="group-hover:tracking-wider transition-all duration-300">Envoyer le message</span>
-                        </>
-                      ) : (
-                        <>
-                          <svg className="w-6 h-6 group-hover:rotate-12 group-hover:scale-110 transition-all duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-                          </svg>
-                          <span className="group-hover:tracking-wider transition-all duration-300">Envoyer le message</span>
-                        </>
-                      )}
-                    </>
-                  )}
-                </span>
-              </button>
-            )}
+              <span className="relative z-10 flex items-center justify-center gap-3 text-base md:text-lg">
+                {sending ? (
+                  <>
+                    <svg className="animate-spin h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span className="animate-pulse">Envoi en cours...</span>
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-6 h-6 group-hover:rotate-12 group-hover:scale-110 transition-all duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                    </svg>
+                    <span className="group-hover:tracking-wider transition-all duration-300">
+                      {isAuthenticated ? 'Envoyer le message' : 'Envoyer anonymement'}
+                    </span>
+                  </>
+                )}
+              </span>
+            </button>
           </form>
         </div>
 
@@ -893,7 +437,7 @@ export default function SendMessagePage() {
             <ul className="space-y-3 text-sm">
               {[
                 'Messages 100% anonymes et sécurisés',
-                'Inscription rapide en 2 secondes',
+                'Compte créé automatiquement en 1 clic',
                 'Chat en temps réel avec streaks 🔥',
                 'Cadeaux virtuels et confessions'
               ].map((feature, index) => (
@@ -935,139 +479,6 @@ export default function SendMessagePage() {
           </div>
         </div>
       </main>
-
-      {/* Confirmation Modal */}
-      {showConfirmModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-fadeIn">
-          {/* Backdrop */}
-          <div
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-fadeIn"
-            onClick={() => !sending && setShowConfirmModal(false)}
-          ></div>
-
-          {/* Modal */}
-          <div className={`relative w-full max-w-md ${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-3xl shadow-2xl p-8 animate-scaleIn`}>
-            {/* Header */}
-            <div className="text-center mb-6">
-              <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-600 rounded-full flex items-center justify-center mx-auto mb-4 animate-bounce-slow shadow-2xl">
-                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <h3 className={`text-2xl font-black mb-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                Confirmer tes informations
-              </h3>
-              <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                Vérifie bien tes données avant de continuer
-              </p>
-            </div>
-
-            {/* Info Display */}
-            <div className="space-y-4 mb-8">
-              {/* First Name */}
-              <div className={`p-4 rounded-2xl ${darkMode ? 'bg-gray-900/50 border border-gray-700' : 'bg-purple-50 border border-purple-100'} animate-slideInLeft animation-delay-100`}>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center flex-shrink-0">
-                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                    </svg>
-                  </div>
-                  <div className="flex-1">
-                    <p className={`text-xs font-semibold mb-1 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Prénom</p>
-                    <p className={`text-lg font-black ${darkMode ? 'text-white' : 'text-gray-900'}`}>{firstName}</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Phone */}
-              <div className={`p-4 rounded-2xl ${darkMode ? 'bg-gray-900/50 border border-gray-700' : 'bg-green-50 border border-green-100'} animate-slideInLeft animation-delay-150`}>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center flex-shrink-0">
-                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                    </svg>
-                  </div>
-                  <div className="flex-1">
-                    <p className={`text-xs font-semibold mb-1 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Téléphone</p>
-                    <p className={`text-lg font-black ${darkMode ? 'text-white' : 'text-gray-900'}`}>{phone}</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* PIN */}
-              <div className={`p-4 rounded-2xl ${darkMode ? 'bg-gray-900/50 border border-gray-700' : 'bg-blue-50 border border-blue-100'} animate-slideInLeft animation-delay-200`}>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center flex-shrink-0">
-                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                    </svg>
-                  </div>
-                  <div className="flex-1">
-                    <p className={`text-xs font-semibold mb-1 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Code PIN</p>
-                    <div className="flex gap-2">
-                      {pin.map((digit, index) => (
-                        <div
-                          key={index}
-                          className={`w-10 h-10 rounded-lg ${darkMode ? 'bg-gray-800' : 'bg-white'} border-2 ${darkMode ? 'border-gray-600' : 'border-gray-200'} flex items-center justify-center`}
-                        >
-                          <span className={`text-xl font-black ${darkMode ? 'text-white' : 'text-gray-900'}`}>{digit}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Warning */}
-              <div className={`p-3 rounded-xl ${darkMode ? 'bg-orange-900/20 border border-orange-800' : 'bg-orange-50 border border-orange-200'} animate-fadeInUp animation-delay-300`}>
-                <div className="flex items-start gap-2">
-                  <svg className="w-5 h-5 text-orange-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                  </svg>
-                  <p className={`text-xs ${darkMode ? 'text-orange-400' : 'text-orange-700'} font-medium`}>
-                    Ces informations ne pourront pas être modifiées après validation
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Actions */}
-            <div className="flex gap-3">
-              <button
-                onClick={() => setShowConfirmModal(false)}
-                disabled={sending}
-                className={`flex-1 px-6 py-3 rounded-xl font-bold transition-all duration-300 transform hover:scale-105 ${
-                  darkMode
-                    ? 'bg-gray-700 text-white hover:bg-gray-600'
-                    : 'bg-gray-200 text-gray-900 hover:bg-gray-300'
-                } disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none`}
-              >
-                Modifier
-              </button>
-              <button
-                onClick={handleConfirmAndSend}
-                disabled={sending}
-                className="flex-1 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-bold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none relative overflow-hidden group"
-              >
-                {sending ? (
-                  <span className="flex items-center justify-center gap-2">
-                    <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Envoi...
-                  </span>
-                ) : (
-                  <>
-                    <span className="absolute inset-0 bg-gradient-to-r from-pink-600 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
-                    <span className="relative">Confirmer</span>
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Footer */}
       <footer className={`relative z-10 mt-12 pb-8 border-t ${darkMode ? 'border-gray-800' : 'border-purple-100'}`}>

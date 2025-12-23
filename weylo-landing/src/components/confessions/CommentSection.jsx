@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react'
 import confessionsService from '../../services/confessionsService'
+import { useDialog } from '../../contexts/DialogContext'
 import './CommentSection.css'
 
 export default function CommentSection({ confessionId, currentUser, onCommentAdded, onCommentDeleted }) {
+  const { warning, error, confirm } = useDialog()
   const [comments, setComments] = useState([])
   const [loading, setLoading] = useState(true)
   const [newComment, setNewComment] = useState('')
@@ -30,12 +32,12 @@ export default function CommentSection({ confessionId, currentUser, onCommentAdd
     e.preventDefault()
 
     if (!newComment.trim()) {
-      alert('Écris un commentaire')
+      warning('Écris un commentaire')
       return
     }
 
     if (!currentUser) {
-      alert('Tu dois être connecté pour commenter')
+      warning('Tu dois être connecté pour commenter')
       return
     }
 
@@ -47,14 +49,15 @@ export default function CommentSection({ confessionId, currentUser, onCommentAdd
       onCommentAdded(confessionId)
     } catch (err) {
       console.error('❌ Erreur lors de l\'ajout du commentaire:', err)
-      alert('Impossible d\'ajouter le commentaire')
+      error('Impossible d\'ajouter le commentaire')
     } finally {
       setSubmitting(false)
     }
   }
 
   const handleDeleteComment = async (commentId) => {
-    if (!confirm('Supprimer ce commentaire ?')) return
+    const confirmed = await confirm('Supprimer ce commentaire ?')
+    if (!confirmed) return
 
     try {
       await confessionsService.deleteComment(confessionId, commentId)
@@ -64,7 +67,7 @@ export default function CommentSection({ confessionId, currentUser, onCommentAdd
       }
     } catch (err) {
       console.error('❌ Erreur lors de la suppression:', err)
-      alert('Impossible de supprimer le commentaire')
+      error('Impossible de supprimer le commentaire')
     }
   }
 

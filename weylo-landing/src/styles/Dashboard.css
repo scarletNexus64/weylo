@@ -190,11 +190,23 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  animation: copyButtonPulse 2s ease-in-out infinite;
+  box-shadow: 0 0 0 0 rgba(147, 51, 234, 0.7);
+}
+
+@keyframes copyButtonPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(147, 51, 234, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(147, 51, 234, 0);
+  }
 }
 
 .btn-copy:hover {
   transform: translateY(-50%) scale(1.05);
-  box-shadow: 0 4px 12px rgba(147, 51, 234, 0.3);
+  box-shadow: 0 4px 12px rgba(147, 51, 234, 0.5);
+  animation: none;
 }
 
 .btn-copy:active {
@@ -244,10 +256,65 @@
 
 .share-btn.whatsapp {
   background: #25D366;
+  position: relative;
+  animation: whatsappShine 3s ease-in-out infinite, whatsappBounce 2s ease-in-out infinite;
+}
+
+@keyframes whatsappShine {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.7), 0 0 20px rgba(37, 211, 102, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgba(37, 211, 102, 0), 0 0 30px rgba(37, 211, 102, 0.6);
+  }
+}
+
+@keyframes whatsappBounce {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+  }
+  25% {
+    transform: translateY(-4px) scale(1.02);
+  }
+  50% {
+    transform: translateY(0) scale(1);
+  }
+  75% {
+    transform: translateY(-2px) scale(1.01);
+  }
+}
+
+.share-btn.whatsapp::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(45deg, #25D366, #20BA5A, #25D366);
+  border-radius: 14px;
+  opacity: 0;
+  z-index: -1;
+  animation: whatsappGlow 2s ease-in-out infinite;
+}
+
+@keyframes whatsappGlow {
+  0%, 100% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 0.6;
+  }
 }
 
 .share-btn.whatsapp:hover {
   background: #20BA5A;
+  animation: none;
+  transform: translateY(-4px) scale(1.05);
+}
+
+.share-btn.whatsapp:hover::before {
+  animation: none;
 }
 
 .share-btn.instagram {

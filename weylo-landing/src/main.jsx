@@ -2,6 +2,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
+import { DialogProvider } from './contexts/DialogContext'
 import './index.css'
 import App from './App.jsx'
 import LoginPage from './pages/LoginPage'
@@ -22,6 +23,8 @@ import Wallet from './pages/Wallet'
 import PaymentReturnPage from './pages/PaymentReturnPage'
 import Profile from './pages/Profile'
 import AdminDashboard from './pages/AdminDashboard'
+import LegalPage from './pages/LegalPage'
+import InstallPWA from './components/InstallPWA'
 
 // Protected Route Component
 function ProtectedRoute({ children }) {
@@ -77,8 +80,10 @@ function AdminRoute({ children }) {
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <AuthProvider>
-      <BrowserRouter>
-        <Routes>
+      <DialogProvider>
+        <BrowserRouter>
+          <InstallPWA />
+          <Routes>
           {/* Public Routes */}
           <Route
             path="/"
@@ -106,6 +111,9 @@ createRoot(document.getElementById('root')).render(
           />
           <Route path="/m/:userId" element={<SendMessagePage />} />
           <Route path="/u/:username" element={<SendMessagePage />} />
+
+          {/* Legal Pages (Public) */}
+          <Route path="/legal/:slug" element={<LegalPage />} />
 
           {/* Group Join Routes (can be accessed without full authentication) */}
           <Route path="/groups/join/:inviteCode" element={<JoinGroup />} />
@@ -147,8 +155,23 @@ createRoot(document.getElementById('root')).render(
 
           {/* 404 */}
           <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </BrowserRouter>
+          </Routes>
+        </BrowserRouter>
+      </DialogProvider>
     </AuthProvider>
   </StrictMode>,
 )
+
+// Enregistrement du Service Worker
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker
+      .register('/sw.js')
+      .then((registration) => {
+        console.log('Service Worker enregistré avec succès:', registration.scope)
+      })
+      .catch((error) => {
+        console.error('Erreur lors de l\'enregistrement du Service Worker:', error)
+      })
+  })
+}

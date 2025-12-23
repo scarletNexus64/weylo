@@ -240,6 +240,40 @@ export const AuthProvider = ({ children }) => {
     }
   }
 
+  // Login with token (pour auto-login après création de compte)
+  const loginWithToken = async (token, userData = null) => {
+    console.log('🔑 [AUTH_CONTEXT] Auto-login avec token...', {
+      token: token ? `${token.substring(0, 20)}...` : null,
+      hasUserData: !!userData
+    })
+
+    try {
+      // Sauvegarder le token d'abord
+      localStorage.setItem('weylo_token', token)
+
+      // Charger les stats de l'utilisateur
+      const dashboardResponse = await apiClient.get('/users/dashboard')
+      const userWithStats = {
+        ...dashboardResponse.data.user,
+        stats: dashboardResponse.data.stats
+      }
+      setUser(userWithStats)
+      localStorage.setItem('weylo_user', JSON.stringify(userWithStats))
+      console.log('✅ [AUTH_CONTEXT] Auto-login réussi!')
+      return userWithStats
+    } catch (error) {
+      // Fallback: utiliser les données fournies si disponibles
+      if (userData) {
+        console.warn('⚠️ [AUTH_CONTEXT] Impossible de charger les stats, utilisation des données fournies')
+        setUser(userData)
+        localStorage.setItem('weylo_user', JSON.stringify(userData))
+        return userData
+      }
+      console.error('❌ [AUTH_CONTEXT] Erreur lors de l\'auto-login:', error)
+      throw error
+    }
+  }
+
   const value = {
     user,
     loading,
@@ -248,7 +282,8 @@ export const AuthProvider = ({ children }) => {
     register,
     logout,
     updateUser,
-    refreshUser
+    refreshUser,
+    loginWithToken
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

@@ -106,6 +106,37 @@ const messagesService = {
   startConversationFromMessage: async (messageId) => {
     const response = await apiClient.post(`/messages/${messageId}/start-conversation`)
     return response.data
+  },
+
+  /**
+   * Initier le paiement pour révéler l'identité (via Lygos)
+   * @param {number} messageId - ID du message
+   * @param {string} phoneNumber - Numéro de téléphone pour le paiement
+   * @param {string} operator - Opérateur mobile (MTN_MOMO_CMR ou ORANGE_MONEY_CMR)
+   */
+  initiateRevealPayment: async (messageId, phoneNumber, operator) => {
+    const response = await apiClient.post(`/reveal-identity/messages/${messageId}/initiate`, {
+      phone_number: phoneNumber,
+      operator: operator
+    })
+    return response.data
+  },
+
+  /**
+   * Vérifier le statut du paiement de révélation
+   * @param {number} messageId - ID du message
+   */
+  checkRevealPaymentStatus: async (messageId) => {
+    const response = await apiClient.get(`/reveal-identity/messages/${messageId}/status`)
+    return response.data
+  },
+
+  /**
+   * Obtenir le prix pour révéler une identité
+   */
+  getRevealPrice: async () => {
+    const response = await apiClient.get('/reveal-identity/price')
+    return response.data
   }
 }
 

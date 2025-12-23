@@ -283,3 +283,326 @@
     width: 100%;
   }
 }
+
+/* Payment Form Styles */
+.payment-form {
+  width: 100%;
+}
+
+.payment-info-box {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px;
+  background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+  border-radius: 16px;
+  margin-bottom: 24px;
+  border: 2px solid #667eea30;
+}
+
+.payment-info-box svg {
+  color: #667eea;
+  flex-shrink: 0;
+}
+
+.payment-info-box strong {
+  display: block;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 4px;
+}
+
+.price-large {
+  font-size: 28px;
+  font-weight: 700;
+  color: #667eea;
+  margin: 0;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 8px;
+}
+
+.label-hint {
+  font-size: 12px;
+  font-weight: 400;
+  color: #9ca3af;
+  margin-left: 4px;
+}
+
+.form-select,
+.form-input {
+  width: 100%;
+  padding: 12px 16px;
+  font-size: 15px;
+  border: 2px solid #e5e7eb;
+  border-radius: 10px;
+  background: white;
+  color: #1f2937;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.form-select:focus,
+.form-input:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.phone-input-wrapper {
+  position: relative;
+}
+
+.phone-input-wrapper .input-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9ca3af;
+  pointer-events: none;
+}
+
+.phone-input-wrapper .form-input {
+  padding-left: 44px;
+}
+
+.input-help {
+  display: block;
+  margin-top: 6px;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.payment-error {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+  color: #dc2626;
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
+.payment-error svg {
+  flex-shrink: 0;
+}
+
+/* Payment Status Box */
+.payment-status-box {
+  text-align: center;
+  padding: 32px 20px;
+}
+
+.payment-spinner {
+  color: #667eea;
+  margin: 0 auto 16px;
+}
+
+.payment-icon.success {
+  color: #10b981;
+  margin: 0 auto 16px;
+}
+
+.payment-status-box h4 {
+  margin: 0 0 8px 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.payment-status-box > p {
+  margin: 0 0 20px 0;
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.payment-details {
+  background: #f9fafb;
+  padding: 16px;
+  border-radius: 12px;
+  text-align: left;
+}
+
+.payment-details p {
+  margin: 8px 0;
+  font-size: 14px;
+  color: #374151;
+}
+
+.payment-details strong {
+  font-weight: 600;
+  color: #1f2937;
+}
+
+/* Reveal Payment Modal - slightly larger */
+.reveal-payment-modal {
+  max-width: 520px;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .payment-info-box {
+    padding: 16px;
+  }
+
+  .price-large {
+    font-size: 24px;
+  }
+
+  .payment-status-box {
+    padding: 24px 16px;
+  }
+
+  .reveal-payment-modal {
+    max-width: 95%;
+  }
+}
+
+/* ==================== DARK MODE ==================== */
+
+/* Button Dark Mode */
+.dark .btn-reveal {
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+}
+
+.dark .btn-reveal:hover:not(:disabled) {
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+/* Modal Dark Mode */
+.dark .reveal-modal-overlay {
+  background: rgba(0, 0, 0, 0.8);
+}
+
+.dark .reveal-modal {
+  background: #1f2937;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+}
+
+.dark .reveal-modal-header {
+  border-bottom: 1px solid #374151;
+}
+
+.dark .reveal-modal-header h3 {
+  color: #f9fafb;
+}
+
+.dark .reveal-modal-content > p {
+  color: #9ca3af;
+}
+
+/* Payment Info Box Dark Mode */
+.dark .payment-info-box {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%);
+  border-color: rgba(102, 126, 234, 0.3);
+}
+
+.dark .payment-info-box strong {
+  color: #f9fafb;
+}
+
+/* Form Dark Mode */
+.dark .form-group label {
+  color: #e5e7eb;
+}
+
+.dark .label-hint {
+  color: #6b7280;
+}
+
+.dark .form-select,
+.dark .form-input {
+  background: #374151;
+  color: #f9fafb;
+  border-color: #4b5563;
+}
+
+.dark .form-select:focus,
+.dark .form-input:focus {
+  background: #374151;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+}
+
+.dark .phone-input-wrapper .input-icon {
+  color: #6b7280;
+}
+
+.dark .input-help {
+  color: #9ca3af;
+}
+
+/* Select Options Dark Mode */
+.dark .form-select option {
+  background: #374151;
+  color: #f9fafb;
+}
+
+/* Benefits Dark Mode */
+.dark .reveal-benefits {
+  background: #374151;
+}
+
+.dark .reveal-benefits h4 {
+  color: #f9fafb;
+}
+
+.dark .reveal-benefits li {
+  color: #d1d5db;
+}
+
+/* Modal Actions Dark Mode */
+.dark .reveal-modal-actions {
+  border-top: 1px solid #374151;
+}
+
+.dark .btn-cancel {
+  background: #374151;
+  color: #d1d5db;
+  border-color: #4b5563;
+}
+
+.dark .btn-cancel:hover {
+  background: #4b5563;
+}
+
+/* Payment Status Dark Mode */
+.dark .payment-status-box h4 {
+  color: #f9fafb;
+}
+
+.dark .payment-status-box > p {
+  color: #9ca3af;
+}
+
+.dark .payment-details {
+  background: #374151;
+}
+
+.dark .payment-details p {
+  color: #d1d5db;
+}
+
+.dark .payment-details strong {
+  color: #f9fafb;
+}
+
+/* Error Dark Mode */
+.dark .payment-error {
+  background: rgba(220, 38, 38, 0.1);
+  border-color: rgba(220, 38, 38, 0.3);
+  color: #fca5a5;
+}

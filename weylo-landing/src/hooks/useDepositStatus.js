@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import cinetpayService from '../services/cinetpay.service'
 import walletService from '../services/walletService'
+import { useDialog } from '../contexts/DialogContext'
 
 /**
  * Hook pour vérifier le statut d'un dépôt CinetPay
@@ -12,6 +13,7 @@ import walletService from '../services/walletService'
  * @param {Function} props.onFailure - Callback appelé en cas d'échec
  */
 export const useDepositStatus = ({ transactionId, onSuccess, onFailure }) => {
+  const { success, error: showError, warning } = useDialog()
   const [state, setState] = useState({
     status: 'checking', // checking, pending, completed, failed
     isLoading: true,
@@ -70,9 +72,7 @@ export const useDepositStatus = ({ transactionId, onSuccess, onFailure }) => {
           }))
 
           // Afficher un message de succès
-          if (window.alert) {
-            alert(`✅ Dépôt réussi!\n${response.amount || ''} FCFA ajoutés à votre compte.`)
-          }
+          success(`${response.amount || ''} FCFA ajoutés à votre compte.`, 'Dépôt réussi !')
 
           // Appeler le callback de succès
           onSuccess?.()
@@ -91,9 +91,7 @@ export const useDepositStatus = ({ transactionId, onSuccess, onFailure }) => {
             error: response.message || 'Le paiement a échoué'
           }))
 
-          if (window.alert) {
-            alert('❌ Le paiement a échoué ou été annulé.')
-          }
+          showError('Le paiement a échoué ou été annulé.')
 
           onFailure?.()
           return
@@ -138,9 +136,7 @@ export const useDepositStatus = ({ transactionId, onSuccess, onFailure }) => {
           error: 'Délai d\'attente dépassé'
         }))
 
-        if (window.alert) {
-          alert('⏰ Délai d\'attente dépassé. Veuillez vérifier votre compte.')
-        }
+        warning('Délai d\'attente dépassé. Veuillez vérifier votre compte.')
       }
     }, 10 * 60 * 1000)
 
