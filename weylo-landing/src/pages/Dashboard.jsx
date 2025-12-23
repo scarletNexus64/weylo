@@ -54,7 +54,7 @@ export default function Dashboard() {
     }
   }, [user])
 
-  // Générer le lien dynamiquement selon l'environnement (IP, DNS, 10.200.82.19, production)
+  // Générer le lien dynamiquement selon l'environnement (IP, DNS, 192.168.1.149, production)
   const getBaseUrl = () => {
     // Utiliser toujours l'origine actuelle pour s'adapter automatiquement au contexte
     return window.location.origin

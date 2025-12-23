@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 // Base URL de l'API
-const API_URL = import.meta.env.VITE_API_URL || 'http://10.200.82.19:8000/api/v1'
+const API_URL = import.meta.env.VITE_API_URL || 'https://weylo-adminpanel.space/api/v1'
 
 console.log('🔧 [API_CLIENT] Configuration:', {
   baseURL: API_URL,

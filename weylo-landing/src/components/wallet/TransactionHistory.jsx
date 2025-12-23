@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import {
   ArrowUpRight,
   ArrowDownLeft,
@@ -12,13 +12,17 @@ import {
   Wallet,
   RefreshCw,
   XCircle,
-  AlertCircle
+  AlertCircle,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react'
 
 /**
  * Composant pour afficher l'historique des transactions du wallet
  */
 const TransactionHistory = ({ transactions = [], filter = 'all', onFilterChange, loading = false }) => {
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 5 // Limiter à 5 transactions par page
 
   // Filtrer les transactions selon le filtre actif
   const filteredTransactions = transactions.filter(t => {
@@ -28,6 +32,55 @@ const TransactionHistory = ({ transactions = [], filter = 'all', onFilterChange,
     if (filter === 'withdrawal') return t.type === 'withdrawal' || t.description?.toLowerCase().includes('retrait')
     return true
   })
+
+  // Calculer la pagination
+  const totalPages = Math.ceil(filteredTransactions.length / itemsPerPage)
+  const startIndex = (currentPage - 1) * itemsPerPage
+  const endIndex = startIndex + itemsPerPage
+  const paginatedTransactions = filteredTransactions.slice(startIndex, endIndex)
+
+  // Réinitialiser à la page 1 quand le filtre change
+  React.useEffect(() => {
+    setCurrentPage(1)
+  }, [filter])
+
+  // Scroll vers le haut de la liste lors du changement de page
+  React.useEffect(() => {
+    if (currentPage > 1) {
+      const transactionSection = document.querySelector('.transactions-section')
+      if (transactionSection) {
+        const yOffset = -80 // Offset pour ne pas cacher sous le header
+        const y = transactionSection.getBoundingClientRect().top + window.pageYOffset + yOffset
+        window.scrollTo({ top: y, behavior: 'smooth' })
+      }
+    }
+  }, [currentPage])
+
+  // S'assurer que les transactions sont visibles au premier chargement sur mobile
+  React.useEffect(() => {
+    const checkVisibility = () => {
+      const transactionList = document.querySelector('.transaction-list')
+      if (transactionList && window.innerWidth <= 768) {
+        const rect = transactionList.getBoundingClientRect()
+        const windowHeight = window.innerHeight
+
+        // Si la liste des transactions est cachée ou partiellement visible
+        if (rect.top > windowHeight - 100) {
+          // Scroll doucement pour montrer les transactions
+          setTimeout(() => {
+            transactionList.scrollIntoView({
+              behavior: 'smooth',
+              block: 'nearest',
+              inline: 'nearest'
+            })
+          }, 300)
+        }
+      }
+    }
+
+    // Vérifier après le chargement initial
+    checkVisibility()
+  }, [transactions])
 
   // Formater la date de façon relative
   const formatDate = (dateString) => {
@@ -57,22 +110,22 @@ const TransactionHistory = ({ transactions = [], filter = 'all', onFilterChange,
 
     // Vérifier d'abord le type explicite
     if (type === 'deposit' || description.includes('dépôt') || description.includes('depot')) {
-      return <Download size={20} className="text-green-600" />
+      return <Download size={20} style={{ color: '#10b981' }} />
     }
     if (type === 'withdrawal' || description.includes('retrait')) {
-      return <Upload size={20} className="text-red-600" />
+      return <Upload size={20} style={{ color: '#ef4444' }} />
     }
     if (description.includes('cadeau') || description.includes('gift')) {
-      return <Gift size={20} className="text-pink-600" />
+      return <Gift size={20} style={{ color: '#ec4899' }} />
     }
     if (description.includes('paiement')) {
-      return <CreditCard size={20} className="text-blue-600" />
+      return <CreditCard size={20} style={{ color: '#3b82f6' }} />
     }
 
     // Sinon, basé sur le montant
     return transaction.amount > 0
-      ? <ArrowUpRight size={20} className="text-green-600" />
-      : <ArrowDownLeft size={20} className="text-red-600" />
+      ? <ArrowUpRight size={20} style={{ color: '#10b981' }} />
+      : <ArrowDownLeft size={20} style={{ color: '#ef4444' }} />
   }
 
   // Obtenir le badge de statut
@@ -83,37 +136,27 @@ const TransactionHistory = ({ transactions = [], filter = 'all', onFilterChange,
       pending: {
         icon: Clock,
         text: 'En attente',
-        bgColor: 'bg-yellow-50',
-        textColor: 'text-yellow-700',
-        borderColor: 'border-yellow-200'
+        className: 'status-pending'
       },
       processing: {
         icon: RefreshCw,
         text: 'En cours',
-        bgColor: 'bg-blue-50',
-        textColor: 'text-blue-700',
-        borderColor: 'border-blue-200'
+        className: 'status-processing'
       },
       completed: {
         icon: Check,
         text: 'Complété',
-        bgColor: 'bg-green-50',
-        textColor: 'text-green-700',
-        borderColor: 'border-green-200'
+        className: 'status-completed'
       },
       failed: {
         icon: XCircle,
         text: 'Échoué',
-        bgColor: 'bg-red-50',
-        textColor: 'text-red-700',
-        borderColor: 'border-red-200'
+        className: 'status-failed'
       },
       cancelled: {
         icon: X,
         text: 'Annulé',
-        bgColor: 'bg-gray-50',
-        textColor: 'text-gray-700',
-        borderColor: 'border-gray-200'
+        className: 'status-cancelled'
       }
     }
 
@@ -121,9 +164,9 @@ const TransactionHistory = ({ transactions = [], filter = 'all', onFilterChange,
     const StatusIcon = config.icon
 
     return (
-      <div className={`flex items-center gap-1 ${config.textColor} ${config.bgColor} border ${config.borderColor} px-2 py-1 rounded-full`}>
+      <div className={`transaction-status-badge ${config.className}`}>
         <StatusIcon size={14} className={status === 'processing' ? 'animate-spin' : ''} />
-        <span className="text-xs font-medium">{config.text}</span>
+        <span>{config.text}</span>
       </div>
     )
   }
@@ -136,13 +179,13 @@ const TransactionHistory = ({ transactions = [], filter = 'all', onFilterChange,
       const phone = meta.phone_number || ''
 
       return (
-        <div className="flex items-center gap-2 mt-1">
+        <div className="transaction-meta">
           {phone && (
-            <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded">
+            <span className="transaction-meta-badge">
               {operator} - {phone}
             </span>
           )}
-          <span className="text-xs text-gray-500">
+          <span className="transaction-time">
             {formatDate(transaction.created_at)}
           </span>
         </div>
@@ -150,13 +193,13 @@ const TransactionHistory = ({ transactions = [], filter = 'all', onFilterChange,
     }
 
     return (
-      <div className="flex items-center gap-2 mt-1">
+      <div className="transaction-meta">
         {transaction.reference && (
-          <span className="text-xs text-gray-500 font-mono bg-gray-100 px-2 py-0.5 rounded">
+          <span className="transaction-meta-badge">
             Réf: {transaction.reference.slice(0, 12)}...
           </span>
         )}
-        <span className="text-xs text-gray-500">
+        <span className="transaction-time">
           {formatDate(transaction.created_at)}
         </span>
       </div>
@@ -165,9 +208,9 @@ const TransactionHistory = ({ transactions = [], filter = 'all', onFilterChange,
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
-        <span className="ml-3 text-gray-600">Chargement...</span>
+      <div className="transaction-loading">
+        <div className="transaction-loading-spinner"></div>
+        <span>Chargement...</span>
       </div>
     )
   }
@@ -175,38 +218,24 @@ const TransactionHistory = ({ transactions = [], filter = 'all', onFilterChange,
   return (
     <div className="transactions-section">
       {/* Header avec filtres */}
-      <div className="flex items-center justify-between mb-6">
-        <h3 className="text-lg font-semibold text-gray-900">
-          Historique
-        </h3>
+      <div className="transaction-filters">
+        <h3>Historique</h3>
         <div className="flex gap-2">
           <button
             onClick={() => onFilterChange?.('all')}
-            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-              filter === 'all'
-                ? 'bg-purple-600 text-white'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-            }`}
+            className={`transaction-filter-btn ${filter === 'all' ? 'active-all' : ''}`}
           >
             Toutes
           </button>
           <button
             onClick={() => onFilterChange?.('deposit')}
-            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-              filter === 'deposit'
-                ? 'bg-green-600 text-white'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-            }`}
+            className={`transaction-filter-btn ${filter === 'deposit' ? 'active-green' : ''}`}
           >
             Dépôts
           </button>
           <button
             onClick={() => onFilterChange?.('withdrawal')}
-            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-              filter === 'withdrawal'
-                ? 'bg-red-600 text-white'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-            }`}
+            className={`transaction-filter-btn ${filter === 'withdrawal' ? 'active-red' : ''}`}
           >
             Retraits
           </button>
@@ -214,58 +243,82 @@ const TransactionHistory = ({ transactions = [], filter = 'all', onFilterChange,
       </div>
 
       {/* Liste des transactions */}
-      <div className="space-y-3">
+      <div className="transaction-list">
         {filteredTransactions.length === 0 ? (
-          <div className="text-center py-12 bg-gray-50 rounded-lg">
-            <Wallet size={48} className="mx-auto text-gray-400 mb-3" />
-            <p className="text-gray-600 font-medium">Aucune transaction</p>
-            <p className="text-gray-500 text-sm mt-1">
+          <div className="transaction-empty">
+            <Wallet size={48} />
+            <p>Aucune transaction</p>
+            <p className="subtitle">
               Vos transactions apparaîtront ici
             </p>
           </div>
         ) : (
-          filteredTransactions.map((transaction) => (
-            <div
-              key={transaction.id}
-              className="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-lg hover:shadow-md transition-shadow"
-            >
+          paginatedTransactions.map((transaction) => (
+            <div key={transaction.id} className="transaction-item">
               {/* Icône */}
-              <div className={`flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center ${
-                transaction.amount > 0 ? 'bg-green-50' : 'bg-red-50'
-              }`}>
+              <div className={`transaction-icon-wrapper ${transaction.amount > 0 ? 'credit' : 'debit'}`}>
                 {getTransactionIcon(transaction)}
               </div>
 
               {/* Détails */}
-              <div className="flex-1 min-w-0">
-                <p className="font-medium text-gray-900 truncate">
+              <div className="transaction-details">
+                <p className="transaction-description">
                   {transaction.description || 'Transaction'}
                 </p>
                 {getTransactionDetails(transaction)}
               </div>
 
               {/* Montant */}
-              <div className="flex-shrink-0 text-right">
-                <p className={`font-semibold text-lg ${
-                  transaction.amount > 0 ? 'text-green-600' : 'text-red-600'
-                }`}>
+              <div className="transaction-amount-section">
+                <p className={`transaction-amount ${transaction.amount > 0 ? 'credit' : 'debit'}`}>
                   {transaction.formatted_amount ||
                     `${transaction.amount > 0 ? '+' : ''}${Math.abs(transaction.amount).toLocaleString()} FCFA`
                   }
                 </p>
-                <div className="mt-1">
-                  {getStatusBadge(transaction)}
-                </div>
+                {getStatusBadge(transaction)}
               </div>
             </div>
           ))
         )}
       </div>
 
-      {/* Footer avec pagination si nécessaire */}
-      {filteredTransactions.length > 0 && (
-        <div className="mt-6 text-center text-sm text-gray-500">
-          {filteredTransactions.length} transaction{filteredTransactions.length > 1 ? 's' : ''}
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="transaction-pagination">
+          <div className="pagination-info">
+            Affichage {startIndex + 1}-{Math.min(endIndex, filteredTransactions.length)} sur {filteredTransactions.length} transactions
+          </div>
+          <div className="pagination-buttons">
+            <button
+              onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+              disabled={currentPage === 1}
+              className="pagination-btn"
+            >
+              <ChevronLeft size={16} />
+              <span className="hidden sm:inline">Précédent</span>
+            </button>
+
+            <div className="flex items-center gap-1">
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                <button
+                  key={page}
+                  onClick={() => setCurrentPage(page)}
+                  className={`pagination-page-btn ${currentPage === page ? 'active' : ''}`}
+                >
+                  {page}
+                </button>
+              ))}
+            </div>
+
+            <button
+              onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+              disabled={currentPage === totalPages}
+              className="pagination-btn"
+            >
+              <span className="hidden sm:inline">Suivant</span>
+              <ChevronRight size={16} />
+            </button>
+          </div>
         </div>
       )}
     </div>

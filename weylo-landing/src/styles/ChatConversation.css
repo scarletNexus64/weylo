@@ -526,10 +526,10 @@
   color: white;
 }
 
-/* Responsive */
+/* Responsive - Tablet */
 @media (max-width: 768px) {
   .chat-conversation-header {
-    padding: 16px;
+    padding: 14px 16px;
   }
 
   .conversation-avatar-header {
@@ -569,13 +569,154 @@
   }
 
   .message-input {
-    font-size: 14px;
+    font-size: 16px; /* 16px minimum pour éviter le zoom automatique sur iOS */
     padding: 10px 14px;
   }
 
   .btn-send {
+    width: 44px; /* Minimum 44px pour iOS touch targets */
+    height: 44px;
+  }
+
+  .btn-attach,
+  .btn-image-upload,
+  .btn-gift {
+    width: 44px;
+    height: 44px;
+  }
+}
+
+/* Responsive - iPhone et petits mobiles */
+@media (max-width: 480px) {
+  .chat-conversation-page {
+    padding-bottom: 80px; /* Plus d'espace pour le BottomNav sur petits écrans */
+  }
+
+  .chat-conversation-header {
+    padding: 12px 14px;
+  }
+
+  .chat-conversation-header .btn-back {
+    width: 36px;
+    height: 36px;
+  }
+
+  .conversation-avatar-header {
     width: 40px;
     height: 40px;
+    font-size: 15px;
+  }
+
+  .conversation-info-header h2 {
+    font-size: 15px;
+  }
+
+  .conversation-info-header p {
+    font-size: 12px;
+  }
+
+  .chat-header-streak {
+    padding: 6px 10px;
+    gap: 4px;
+  }
+
+  .chat-header-streak .streak-flame {
+    font-size: 16px;
+  }
+
+  .chat-header-streak .streak-count {
+    font-size: 14px;
+  }
+
+  .chat-header-streak .streak-label {
+    display: none; /* Cacher le label "jours" sur très petits écrans */
+  }
+
+  .messages-area {
+    padding: 12px;
+    gap: 10px;
+  }
+
+  .message-bubble {
+    max-width: 90%;
+    padding: 10px 14px;
+  }
+
+  .message-text {
+    font-size: 14px;
+    line-height: 1.4;
+  }
+
+  .message-time {
+    font-size: 11px;
+  }
+
+  .input-area {
+    padding: 10px 12px;
+    gap: 6px;
+  }
+
+  .message-input {
+    font-size: 16px; /* Important pour iOS */
+    padding: 10px 12px;
+  }
+
+  .btn-send,
+  .btn-attach,
+  .btn-image-upload,
+  .btn-gift {
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+  }
+}
+
+/* Responsive - iPhone SE et très petits écrans */
+@media (max-width: 380px) {
+  .chat-conversation-header {
+    gap: 8px;
+    padding: 10px 12px;
+  }
+
+  .conversation-avatar-header {
+    width: 36px;
+    height: 36px;
+    font-size: 14px;
+  }
+
+  .conversation-info-header h2 {
+    font-size: 14px;
+  }
+
+  .chat-header-streak {
+    padding: 4px 8px;
+  }
+
+  .message-bubble {
+    padding: 8px 12px;
+  }
+
+  .message-text {
+    font-size: 13px;
+  }
+
+  .input-area {
+    gap: 4px;
+  }
+
+  .btn-send,
+  .btn-attach,
+  .btn-image-upload,
+  .btn-gift {
+    width: 36px;
+    height: 36px;
+  }
+
+  .btn-send svg,
+  .btn-attach svg,
+  .btn-gift svg {
+    width: 18px;
+    height: 18px;
   }
 }
 

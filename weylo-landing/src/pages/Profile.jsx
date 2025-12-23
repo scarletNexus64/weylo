@@ -1,15 +1,19 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../contexts/AuthContext'
+import { useNavigate } from 'react-router-dom'
 import userService from '../services/userService'
 import settingsService from '../services/settingsService'
+import walletService from '../services/walletService'
 import PremiumBadge from '../components/shared/PremiumBadge'
 import PremiumPassModal from '../components/shared/PremiumPassModal'
 import { useDialog } from '../contexts/DialogContext'
+import { Wallet, ChevronRight } from 'lucide-react'
 import '../styles/Profile.css'
 
 export default function Profile() {
   const { user, updateUser, logout } = useAuth()
   const { success, error: showError, warning, confirm } = useDialog()
+  const navigate = useNavigate()
   const [isEditing, setIsEditing] = useState(false)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -52,10 +56,15 @@ export default function Profile() {
     currency: 'FCFA'
   })
 
+  // États pour le portefeuille (juste le solde pour l'aperçu)
+  const [balance, setBalance] = useState(0)
+  const [loadingWallet, setLoadingWallet] = useState(false)
+
   // Charger les données du profil au montage
   useEffect(() => {
     loadDashboardData()
     loadAppSettings()
+    loadWalletData()
   }, [])
 
   // Charger les paramètres de l'application
@@ -169,6 +178,19 @@ export default function Profile() {
       }
     } finally {
       setLoading(false)
+    }
+  }
+
+  // Charger le solde du wallet
+  const loadWalletData = async () => {
+    try {
+      setLoadingWallet(true)
+      const walletInfo = await walletService.getWalletInfo()
+      setBalance(walletInfo.wallet?.balance || 0)
+    } catch (err) {
+      console.error('❌ [PROFILE] Erreur lors du chargement du wallet:', err)
+    } finally {
+      setLoadingWallet(false)
     }
   }
 
@@ -556,7 +578,46 @@ export default function Profile() {
           </div>
         </div>
 
-        {/* Premium Section
+        {/* Wallet Section - Clickable Card */}
+        <div
+          className="profile-wallet-card"
+          onClick={() => navigate('/wallet')}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault()
+              navigate('/wallet')
+            }
+          }}
+        >
+          <div className="wallet-card-header">
+            <div className="wallet-card-icon">
+              <Wallet size={20} />
+            </div>
+            <h3>Mon Portefeuille</h3>
+            <ChevronRight className="wallet-card-arrow" size={18} />
+          </div>
+
+          <div className="wallet-card-balance">
+            <span className="wallet-card-label">Solde disponible</span>
+            <div className="wallet-card-amount">
+              {loadingWallet ? (
+                <span className="wallet-loading">Chargement...</span>
+              ) : (
+                <>
+                  {balance.toLocaleString()} <span className="wallet-currency">FCFA</span>
+                </>
+              )}
+            </div>
+          </div>
+
+          <div className="wallet-card-footer">
+            <span>Cliquez pour gérer votre portefeuille</span>
+          </div>
+        </div>
+
+        {/* Premium Section */}
         {appSettings.premium_enabled && (
           <div className="premium-section">
             <div className="premium-content">
@@ -617,9 +678,9 @@ export default function Profile() {
                   </div>
 
                   <ul className="premium-features" style={{ marginBottom: '20px' }}>
-                    <li>✓ Révélation d'identité illimitée</li>
+                    <li>✓ Révélation d'identité illimitée dans les chats</li>
+                    <li>✓ Révélation d'identité illimitée dans les groupes</li>
                     <li>✓ Badge Premium exclusif</li>
-                    <li>✓ Statistiques avancées</li>
                     <li>✓ Support prioritaire</li>
                   </ul>
 
@@ -631,15 +692,15 @@ export default function Profile() {
                 // Affichage pour les utilisateurs non-Premium
                 <>
                   <h3>Passe au Premium</h3>
-                  <p>Révèle l'identité des expéditeurs et accède à des fonctionnalités exclusives</p>
+                  <p>Révèle l'identité de tous les expéditeurs dans les chats et les groupes</p>
                   <ul className="premium-features">
-                    <li>✓ Révélation d'identité illimitée</li>
+                    <li>✓ Révélation d'identité illimitée dans les chats</li>
+                    <li>✓ Révélation d'identité illimitée dans les groupes</li>
                     <li>✓ Badge Premium exclusif</li>
-                    <li>✓ Statistiques avancées</li>
                     <li>✓ Support prioritaire</li>
                   </ul>
                   <button className="btn-premium" onClick={() => setShowPremiumModal(true)}>
-                    Devenir Premium - {appSettings.premium_monthly_price} {appSettings.currency}/mois
+                    👑 Devenir Premium - {appSettings.premium_monthly_price} {appSettings.currency}/mois
                   </button>
                   <p className="premium-note" style={{ marginTop: '10px', fontSize: '0.85rem', color: '#888' }}>
                     Prix de révélation unitaire : {appSettings.reveal_anonymous_price} {appSettings.currency}
@@ -648,9 +709,9 @@ export default function Profile() {
               )}
             </div>
           </div>
-        )} */}
+        )}
 
-          {/* Account Stats */}
+        {/* Account Stats */}
         <div className="account-stats-section">
           <h3>Statistiques du compte</h3>
           <div className="stats-grid">

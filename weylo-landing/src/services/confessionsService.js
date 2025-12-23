@@ -34,6 +34,13 @@ class ConfessionsService {
   }
 
   /**
+   * Alias pour getConfession
+   */
+  async getConfessionById(confessionId) {
+    return this.getConfession(confessionId)
+  }
+
+  /**
    * Liker une confession
    */
   async likeConfession(confessionId) {

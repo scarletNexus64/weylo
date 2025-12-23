@@ -58,7 +58,7 @@ function App() {
     const savedDarkMode = localStorage.getItem('darkMode')
     if (savedDarkMode === 'true') {
       setDarkMode(true)
-      document.documentElement.classList.add('dark-mode')
+      document.documentElement.classList.add('dark')
     }
 
     // Load legal pages
@@ -106,9 +106,9 @@ function App() {
     localStorage.setItem('darkMode', newDarkMode.toString())
 
     if (newDarkMode) {
-      document.documentElement.classList.add('dark-mode')
+      document.documentElement.classList.add('dark')
     } else {
-      document.documentElement.classList.remove('dark-mode')
+      document.documentElement.classList.remove('dark')
     }
   }
 

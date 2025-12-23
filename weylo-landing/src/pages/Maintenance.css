@@ -1,0 +1,110 @@
+.maintenance-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 2rem;
+}
+
+.maintenance-container {
+  text-align: center;
+  color: white;
+  max-width: 600px;
+  width: 100%;
+}
+
+.maintenance-icon {
+  width: 120px;
+  height: 120px;
+  margin: 0 auto 2rem;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(10px);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.maintenance-icon svg {
+  width: 60px;
+  height: 60px;
+  color: white;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.8;
+  }
+}
+
+.maintenance-container h1 {
+  font-size: 2.5rem;
+  font-weight: bold;
+  margin-bottom: 1.5rem;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.maintenance-message {
+  font-size: 1.25rem;
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+  opacity: 0.95;
+}
+
+.maintenance-timer {
+  font-size: 1.125rem;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 0.75rem 1.5rem;
+  border-radius: 9999px;
+  display: inline-block;
+  margin-bottom: 2rem;
+  backdrop-filter: blur(10px);
+}
+
+.maintenance-footer {
+  margin-top: 3rem;
+  padding-top: 2rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.maintenance-footer p {
+  font-size: 1rem;
+  opacity: 0.8;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .maintenance-page {
+    padding: 1rem;
+  }
+
+  .maintenance-icon {
+    width: 100px;
+    height: 100px;
+  }
+
+  .maintenance-icon svg {
+    width: 50px;
+    height: 50px;
+  }
+
+  .maintenance-container h1 {
+    font-size: 2rem;
+  }
+
+  .maintenance-message {
+    font-size: 1.125rem;
+  }
+
+  .maintenance-timer {
+    font-size: 1rem;
+  }
+}

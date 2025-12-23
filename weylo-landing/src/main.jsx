@@ -1,4 +1,4 @@
-import { StrictMode } from 'react'
+import { StrictMode, useState, useEffect } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
@@ -13,6 +13,7 @@ import Dashboard from './pages/Dashboard'
 import Messages from './pages/Messages'
 import ReplyAnonymous from './pages/ReplyAnonymous'
 import Confessions from './pages/Confessions'
+import ConfessionDetail from './pages/ConfessionDetail'
 import ConversationsList from './pages/ConversationsList'
 import ChatConversation from './pages/ChatConversation'
 import Groups from './pages/Groups'
@@ -25,6 +26,8 @@ import Profile from './pages/Profile'
 import AdminDashboard from './pages/AdminDashboard'
 import LegalPage from './pages/LegalPage'
 import InstallPWA from './components/InstallPWA'
+import Maintenance from './pages/Maintenance'
+import dashboardService from './services/dashboardService'
 
 // Protected Route Component
 function ProtectedRoute({ children }) {
@@ -77,13 +80,65 @@ function AdminRoute({ children }) {
   return isAdmin ? children : <Navigate to="/dashboard" replace />
 }
 
+// Maintenance Mode Wrapper
+function MaintenanceWrapper({ children }) {
+  const [isMaintenanceMode, setIsMaintenanceMode] = useState(false)
+  const [maintenanceData, setMaintenanceData] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const { user } = useAuth()
+
+  useEffect(() => {
+    checkMaintenanceMode()
+    // Check every 5 minutes
+    const interval = setInterval(checkMaintenanceMode, 5 * 60 * 1000)
+    return () => clearInterval(interval)
+  }, [])
+
+  const checkMaintenanceMode = async () => {
+    try {
+      const response = await dashboardService.getMaintenanceStatus()
+      if (response.success && response.data) {
+        setIsMaintenanceMode(response.data.enabled || false)
+        setMaintenanceData(response.data)
+      }
+    } catch (err) {
+      console.error('Erreur vérification mode maintenance:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <div>Chargement...</div>
+      </div>
+    )
+  }
+
+  // Allow admins to bypass maintenance mode
+  const isAdmin = user?.role === 'admin' || user?.role === 'superadmin' || user?.role === 'moderator'
+
+  if (isMaintenanceMode && !isAdmin) {
+    return (
+      <Maintenance
+        message={maintenanceData?.message}
+        estimatedEndTime={maintenanceData?.estimated_end_time}
+      />
+    )
+  }
+
+  return children
+}
+
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <AuthProvider>
       <DialogProvider>
-        <BrowserRouter>
-          <InstallPWA />
-          <Routes>
+        <MaintenanceWrapper>
+          <BrowserRouter>
+            <InstallPWA />
+            <Routes>
           {/* Public Routes */}
           <Route
             path="/"
@@ -111,6 +166,9 @@ createRoot(document.getElementById('root')).render(
           />
           <Route path="/m/:userId" element={<SendMessagePage />} />
           <Route path="/u/:username" element={<SendMessagePage />} />
+
+          {/* Public Confession Detail */}
+          <Route path="/confessions/:id" element={<ConfessionDetail />} />
 
           {/* Legal Pages (Public) */}
           <Route path="/legal/:slug" element={<LegalPage />} />
@@ -156,7 +214,8 @@ createRoot(document.getElementById('root')).render(
           {/* 404 */}
           <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
-        </BrowserRouter>
+          </BrowserRouter>
+        </MaintenanceWrapper>
       </DialogProvider>
     </AuthProvider>
   </StrictMode>,

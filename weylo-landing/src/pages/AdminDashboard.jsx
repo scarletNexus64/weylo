@@ -10,6 +10,12 @@ const AdminDashboard = () => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [period, setPeriod] = useState(30)
+  const [maintenanceMode, setMaintenanceMode] = useState({
+    enabled: false,
+    message: 'Le site est actuellement en maintenance. Nous reviendrons bientôt !',
+    estimated_end_time: ''
+  })
+  const [maintenanceLoading, setMaintenanceLoading] = useState(false)
 
   // Vérifier si l'utilisateur est admin
   const isAdmin = user?.role === 'admin' || user?.role === 'superadmin' || user?.role === 'moderator'
@@ -22,6 +28,7 @@ const AdminDashboard = () => {
     }
 
     loadDashboardData()
+    loadMaintenanceStatus()
   }, [isAdmin, period])
 
   const loadDashboardData = async () => {
@@ -39,6 +46,58 @@ const AdminDashboard = () => {
       setError(err.response?.data?.message || 'Erreur lors du chargement du dashboard')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const loadMaintenanceStatus = async () => {
+    try {
+      const response = await dashboardService.getMaintenanceStatus()
+      if (response.success && response.data) {
+        setMaintenanceMode({
+          enabled: response.data.enabled || false,
+          message: response.data.message || 'Le site est actuellement en maintenance. Nous reviendrons bientôt !',
+          estimated_end_time: response.data.estimated_end_time || ''
+        })
+      }
+    } catch (err) {
+      console.error('Erreur chargement mode maintenance:', err)
+    }
+  }
+
+  const handleMaintenanceToggle = async () => {
+    try {
+      setMaintenanceLoading(true)
+      const response = await dashboardService.updateMaintenanceMode({
+        enabled: !maintenanceMode.enabled,
+        message: maintenanceMode.message,
+        estimated_end_time: maintenanceMode.estimated_end_time || null
+      })
+
+      if (response.success) {
+        setMaintenanceMode(prev => ({ ...prev, enabled: !prev.enabled }))
+        alert(`Mode maintenance ${!maintenanceMode.enabled ? 'activé' : 'désactivé'} avec succès`)
+      }
+    } catch (err) {
+      console.error('Erreur mise à jour mode maintenance:', err)
+      alert('Erreur lors de la mise à jour du mode maintenance')
+    } finally {
+      setMaintenanceLoading(false)
+    }
+  }
+
+  const handleMaintenanceUpdate = async () => {
+    try {
+      setMaintenanceLoading(true)
+      const response = await dashboardService.updateMaintenanceMode(maintenanceMode)
+
+      if (response.success) {
+        alert('Paramètres de maintenance mis à jour avec succès')
+      }
+    } catch (err) {
+      console.error('Erreur mise à jour mode maintenance:', err)
+      alert('Erreur lors de la mise à jour des paramètres')
+    } finally {
+      setMaintenanceLoading(false)
     }
   }
 
@@ -81,6 +140,46 @@ const AdminDashboard = () => {
             <option value={90}>90 derniers jours</option>
             <option value={365}>1 an</option>
           </select>
+        </div>
+      </div>
+
+      {/* Mode Maintenance */}
+      <div className="maintenance-section">
+        <div className="maintenance-header">
+          <h2>Mode Maintenance</h2>
+          <button
+            className={`maintenance-toggle ${maintenanceMode.enabled ? 'active' : ''}`}
+            onClick={handleMaintenanceToggle}
+            disabled={maintenanceLoading}
+          >
+            {maintenanceLoading ? 'Chargement...' : (maintenanceMode.enabled ? 'Désactiver' : 'Activer')}
+          </button>
+        </div>
+        <div className="maintenance-config">
+          <div className="form-group">
+            <label>Message de maintenance</label>
+            <textarea
+              value={maintenanceMode.message}
+              onChange={(e) => setMaintenanceMode(prev => ({ ...prev, message: e.target.value }))}
+              placeholder="Message à afficher aux utilisateurs"
+              rows={3}
+            />
+          </div>
+          <div className="form-group">
+            <label>Fin estimée (optionnel)</label>
+            <input
+              type="datetime-local"
+              value={maintenanceMode.estimated_end_time}
+              onChange={(e) => setMaintenanceMode(prev => ({ ...prev, estimated_end_time: e.target.value }))}
+            />
+          </div>
+          <button
+            className="btn-update-maintenance"
+            onClick={handleMaintenanceUpdate}
+            disabled={maintenanceLoading}
+          >
+            Mettre à jour les paramètres
+          </button>
         </div>
       </div>
 

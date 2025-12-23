@@ -14,8 +14,6 @@ import {
   CreditCard,
   X,
   Clock,
-  CheckCircle,
-  XCircle,
   AlertCircle,
   RefreshCw
 } from 'lucide-react'
@@ -164,14 +162,13 @@ export default function Wallet() {
   if (loading) {
     return (
       <div className="wallet-page">
-        <div className="page-header">
-          <h1>Portefeuille 💰</h1>
-          <p>Chargement des données...</p>
+        <div className="wallet-header">
+          <h1>Portefeuille</h1>
         </div>
-        <div className="wallet-content">
-          <div className="loading-spinner">
-            <div className="spinner"></div>
-            <p>Chargement en cours...</p>
+        <div className="wallet-container">
+          <div className="loading-state">
+            <div className="loading-spinner"></div>
+            <p>Chargement...</p>
           </div>
         </div>
       </div>
@@ -182,14 +179,14 @@ export default function Wallet() {
   if (error) {
     return (
       <div className="wallet-page">
-        <div className="page-header">
-          <h1>Portefeuille 💰</h1>
-          <p>Une erreur est survenue</p>
+        <div className="wallet-header">
+          <h1>Portefeuille</h1>
         </div>
-        <div className="wallet-content">
-          <div className="error-message">
+        <div className="wallet-container">
+          <div className="error-state">
             <p>{error}</p>
             <button className="btn-retry" onClick={loadWalletData}>
+              <RefreshCw size={18} />
               Réessayer
             </button>
           </div>
@@ -200,116 +197,116 @@ export default function Wallet() {
 
   return (
     <div className="wallet-page">
-      <div className="page-header">
-        <h1>Portefeuille</h1>
-        <p>Gère ton argent, reçois et retire tes gains facilement</p>
+      {/* Header */}
+      <div className="wallet-header">
+        <div>
+          <h1>Portefeuille</h1>
+          <p>Gère ton argent facilement</p>
+        </div>
       </div>
 
-      <div className="wallet-content">
-        {/* Balance Card */}
+      <div className="wallet-container">
+        {/* Balance Card - Compact et moderne */}
         <div className="balance-card">
-          <div className="balance-header">
-            <h3>Solde disponible</h3>
-            <span className="balance-icon">
-              <WalletIcon size={32} />
-            </span>
+          <div className="balance-top">
+            <div className="balance-info-section">
+              <span className="balance-label">Solde disponible</span>
+              <div className="balance-amount">{balance.toLocaleString()} <span className="currency">FCFA</span></div>
+            </div>
+            <div className="balance-icon">
+              <WalletIcon size={28} />
+            </div>
           </div>
-          <div className="balance-amount">{balance.toLocaleString()} FCFA</div>
+
           <div className="balance-actions">
-            <button className="btn-topup" onClick={() => setShowDepositModal(true)}>
-              <ArrowUpCircle size={18} />
-              <span>Recharger</span>
+            <button className="btn-action btn-deposit" onClick={() => setShowDepositModal(true)}>
+              <ArrowUpCircle size={20} />
+              Recharger
             </button>
-            <button className="btn-withdraw" onClick={() => setShowWithdrawModal(true)}>
-              <ArrowDownCircle size={18} />
-              <span>Retirer</span>
+            <button className="btn-action btn-withdraw" onClick={() => setShowWithdrawModal(true)}>
+              <ArrowDownCircle size={20} />
+              Retirer
             </button>
           </div>
-          <div className="balance-info">
-            <span>Minimum retrait: {minWithdraw.toLocaleString()} FCFA</span>
+
+          {/* Quick Stats intégrées - Ultra compact */}
+          <div className="balance-stats">
+            <div className="balance-stat-item stat-earnings">
+              <TrendingUp size={14} />
+              <span className="balance-stat-label">Gains</span>
+              <span className="balance-stat-value">+{(stats?.total_earnings || 0).toLocaleString()}</span>
+            </div>
+            <div className="balance-stat-divider"></div>
+            <div className="balance-stat-item stat-withdrawals">
+              <TrendingDown size={14} />
+              <span className="balance-stat-label">Retraits</span>
+              <span className="balance-stat-value">-{(stats?.total_withdrawals || 0).toLocaleString()}</span>
+            </div>
+          </div>
+
+          <div className="balance-footer">
+            <span className="min-withdraw-info">Min. retrait: {minWithdraw.toLocaleString()} FCFA</span>
           </div>
         </div>
 
-        {/* Quick Stats */}
-        <div className="quick-stats">
-          <div className="stat-item">
-            <div className="stat-icon green">
-              <TrendingUp size={24} />
-            </div>
-            <div className="stat-details">
-              <div className="stat-label">Gains totaux</div>
-              <div className="stat-value green">
-                +{(stats?.total_earnings || 0).toLocaleString()} FCFA
-              </div>
-            </div>
-          </div>
-          <div className="stat-item">
-            <div className="stat-icon red">
-              <TrendingDown size={24} />
-            </div>
-            <div className="stat-details">
-              <div className="stat-label">Dépenses totales</div>
-              <div className="stat-value red">
-                -{(stats?.total_withdrawals || 0).toLocaleString()} FCFA
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Retraits en attente */}
+        {/* Retraits en attente - Design moderne */}
         {pendingWithdrawals.length > 0 && (
-          <div className="pending-withdrawals-section">
+          <div className="pending-section">
             <div className="section-header">
-              <h3>Retraits en attente de validation</h3>
-              <span className="badge-count">{pendingWithdrawals.length}</span>
+              <h3>Retraits en attente</h3>
+              <span className="pending-count">{pendingWithdrawals.length}</span>
             </div>
+
             <div className="pending-list">
               {pendingWithdrawals.map((withdrawal) => {
                 const meta = withdrawal.meta || {}
                 const statusConfig = {
-                  pending: { icon: Clock, color: 'orange', text: 'En attente admin' },
-                  processing: { icon: RefreshCw, color: 'blue', text: 'En cours de transfert' }
+                  pending: { icon: Clock, color: 'warning', text: 'En attente' },
+                  processing: { icon: RefreshCw, color: 'info', text: 'En cours' }
                 }
                 const config = statusConfig[withdrawal.status] || statusConfig.pending
                 const StatusIcon = config.icon
 
                 return (
-                  <div key={withdrawal.id} className="pending-withdrawal-item">
-                    <div className="withdrawal-icon">
-                      <ArrowDownCircle size={24} />
+                  <div key={withdrawal.id} className="pending-item">
+                    <div className="pending-item-icon">
+                      <ArrowDownCircle size={20} />
                     </div>
-                    <div className="withdrawal-details">
-                      <div className="withdrawal-amount">
+                    <div className="pending-item-content">
+                      <div className="pending-amount">
                         {Math.abs(withdrawal.amount).toLocaleString()} FCFA
                       </div>
-                      <div className="withdrawal-info">
-                        <span>{meta.operator || 'Mobile Money'} - {meta.phone_number}</span>
-                        <span className="withdrawal-date">
-                          {new Date(withdrawal.created_at).toLocaleDateString('fr-FR', {
-                            day: '2-digit',
-                            month: 'short',
-                            hour: '2-digit',
-                            minute: '2-digit'
-                          })}
-                        </span>
+                      <div className="pending-details">
+                        <span>{meta.operator || 'Mobile Money'}</span>
+                        <span className="pending-dot">•</span>
+                        <span>{meta.phone_number}</span>
+                      </div>
+                      <div className="pending-date">
+                        {new Date(withdrawal.created_at).toLocaleDateString('fr-FR', {
+                          day: 'numeric',
+                          month: 'short',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
                       </div>
                     </div>
-                    <div className={`withdrawal-status status-${config.color}`}>
-                      <StatusIcon size={16} />
+                    <div className={`pending-status status-${config.color}`}>
+                      <StatusIcon size={14} />
                       <span>{config.text}</span>
                     </div>
                   </div>
                 )
               })}
             </div>
-            <div className="pending-info">
+
+            <div className="pending-notice">
               <AlertCircle size={16} />
-              <p>Vos demandes de retrait sont en cours de validation par l'administrateur. Vous serez notifié une fois le transfert effectué.</p>
+              <p>Vos demandes seront validées dans les meilleurs délais</p>
             </div>
           </div>
         )}
 
-        {/* Transactions - Nouveau composant */}
+        {/* Transactions History */}
         <TransactionHistory
           transactions={transactions}
           filter={filter}
@@ -318,65 +315,55 @@ export default function Wallet() {
         />
       </div>
 
-      {/* Withdraw Modal */}
+      {/* Withdraw Modal - Design moderne */}
       {showWithdrawModal && (
         <div className="modal-overlay" onClick={() => setShowWithdrawModal(false)}>
-          <div className="wallet-modal" onClick={(e) => e.stopPropagation()}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h3>Retrait Mobile Money</h3>
-              <button className="btn-close" onClick={() => setShowWithdrawModal(false)}>
+              <button className="modal-close" onClick={() => setShowWithdrawModal(false)}>
                 <X size={20} />
               </button>
             </div>
+
             <div className="modal-body">
-              <div className="balance-info-modal">
-                <span>Solde disponible:</span>
-                <span className="balance-value">{balance.toLocaleString()} FCFA</span>
+              <div className="modal-balance">
+                <span>Solde disponible</span>
+                <span className="modal-balance-value">{balance.toLocaleString()} FCFA</span>
               </div>
 
               <div className="form-group">
                 <label>Montant à retirer</label>
                 <input
                   type="number"
-                  placeholder={`Minimum ${minWithdraw} FCFA`}
+                  placeholder={`Min. ${minWithdraw} FCFA`}
                   value={withdrawAmount}
                   onChange={(e) => setWithdrawAmount(e.target.value)}
                   min={minWithdraw}
                   max={balance}
                 />
-                <span className="input-hint">Minimum: {minWithdraw.toLocaleString()} FCFA</span>
+                <span className="form-hint">Multiple de 5 FCFA</span>
               </div>
 
               <div className="form-group">
                 <label>Opérateur Mobile Money</label>
-                <div className="payment-methods">
-                  <div
-                    className={`payment-method ${withdrawMethod === 'MTN' ? 'active' : ''}`}
+                <div className="operator-grid">
+                  <button
+                    type="button"
+                    className={`operator-btn ${withdrawMethod === 'MTN' ? 'active' : ''}`}
                     onClick={() => setWithdrawMethod('MTN')}
                   >
-                    <div className="method-icon">
-                      <Smartphone size={28} />
-                    </div>
-                    <div className="method-name">MTN Mobile Money</div>
-                  </div>
-                  <div
-                    className={`payment-method ${withdrawMethod === 'ORANGE' ? 'active' : ''}`}
+                    <Smartphone size={24} />
+                    <span>MTN</span>
+                  </button>
+                  <button
+                    type="button"
+                    className={`operator-btn ${withdrawMethod === 'ORANGE' ? 'active' : ''}`}
                     onClick={() => setWithdrawMethod('ORANGE')}
                   >
-                    <div className="method-icon">
-                      <Smartphone size={28} />
-                    </div>
-                    <div className="method-name">Orange Money</div>
-                  </div>
-                  {/* <div
-                    className={`payment-method ${withdrawMethod === 'MOOV' ? 'active' : ''}`}
-                    onClick={() => setWithdrawMethod('MOOV')}
-                  >
-                    <div className="method-icon">
-                      <Smartphone size={28} />
-                    </div>
-                    <div className="method-name">Moov Money</div>
-                  </div> */}
+                    <Smartphone size={24} />
+                    <span>Orange</span>
+                  </button>
                 </div>
               </div>
 
@@ -390,40 +377,48 @@ export default function Wallet() {
                 />
               </div>
 
-              <div className="withdrawal-info">
-                <p className="info-item">
+              <div className="modal-info">
+                <div className="info-item">
                   <AlertCircle size={14} />
-                  <span>Votre demande sera validée manuellement par l'administrateur</span>
-                </p>
-                <p className="info-item">
+                  <span>Validation manuelle par l'admin</span>
+                </div>
+                <div className="info-item">
                   <Clock size={14} />
-                  <span>Les retraits sont généralement traités en quelques heures</span>
-                </p>
-                <p className="info-item">
+                  <span>Traitement en quelques heures</span>
+                </div>
+                <div className="info-item">
                   <CreditCard size={14} />
                   <span>Transfert gratuit via CinetPay</span>
-                </p>
+                </div>
               </div>
             </div>
+
             <div className="modal-footer">
-              <button className="btn-cancel" onClick={() => setShowWithdrawModal(false)} disabled={withdrawing}>
+              <button
+                className="btn-cancel"
+                onClick={() => setShowWithdrawModal(false)}
+                disabled={withdrawing}
+              >
                 Annuler
               </button>
-              <button className="btn-submit" onClick={handleWithdraw} disabled={withdrawing}>
-                {withdrawing ? 'Envoi en cours...' : `Retirer ${withdrawAmount ? parseFloat(withdrawAmount).toLocaleString() : '0'} FCFA`}
+              <button
+                className="btn-submit"
+                onClick={handleWithdraw}
+                disabled={withdrawing}
+              >
+                {withdrawing ? 'Envoi...' : `Retirer ${withdrawAmount ? parseFloat(withdrawAmount).toLocaleString() : '0'} FCFA`}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* DepositModal - CinetPay Integration (Formaneo System) */}
+      {/* DepositModal */}
       <DepositModal
         isOpen={showDepositModal}
         onClose={() => setShowDepositModal(false)}
         onSuccess={() => {
           setShowDepositModal(false)
-          // Le rechargement se fera automatiquement après le retour de la page payment
         }}
       />
     </div>

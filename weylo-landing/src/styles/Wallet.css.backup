@@ -7,20 +7,6 @@
   max-width: 800px;
   margin: 0 auto;
   padding: 0;
-  width: 100%;
-  box-sizing: border-box;
-  scroll-padding-top: 120px;
-}
-
-.wallet-page *,
-.wallet-page *::before,
-.wallet-page *::after {
-  box-sizing: border-box;
-}
-
-/* Scroll behavior smooth pour la pagination */
-html {
-  scroll-behavior: smooth;
 }
 
 /* Header */
@@ -125,7 +111,6 @@ html.dark .wallet-header {
   grid-template-columns: 1fr 1fr;
   gap: 10px;
   margin-bottom: 12px;
-  width: 100%;
 }
 
 .btn-action {
@@ -140,8 +125,6 @@ html.dark .wallet-header {
   align-items: center;
   justify-content: center;
   gap: 6px;
-  min-width: 0;
-  white-space: nowrap;
 }
 
 .btn-deposit {
@@ -172,56 +155,6 @@ html.dark .wallet-header {
   transform: scale(0.98);
 }
 
-/* Balance Stats - Intégrées dans la card */
-.balance-stats {
-  display: flex;
-  align-items: center;
-  justify-content: space-around;
-  padding: 12px 0;
-  margin: 12px 0 0;
-  border-top: 1px solid rgba(255, 255, 255, 0.15);
-}
-
-.balance-stat-item {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex: 1;
-  justify-content: center;
-}
-
-.balance-stat-item svg {
-  flex-shrink: 0;
-}
-
-.balance-stat-item.stat-earnings svg {
-  color: rgba(255, 255, 255, 0.95);
-}
-
-.balance-stat-item.stat-withdrawals svg {
-  color: rgba(255, 255, 255, 0.95);
-}
-
-.balance-stat-label {
-  font-size: 11px;
-  opacity: 0.8;
-  font-weight: 500;
-  white-space: nowrap;
-}
-
-.balance-stat-value {
-  font-size: 13px;
-  font-weight: 700;
-  white-space: nowrap;
-}
-
-.balance-stat-divider {
-  width: 1px;
-  height: 24px;
-  background: rgba(255, 255, 255, 0.2);
-  flex-shrink: 0;
-}
-
 .balance-footer {
   text-align: center;
   padding-top: 10px;
@@ -234,12 +167,82 @@ html.dark .wallet-header {
 }
 
 /* ============================================
-   STATS GRID - DEPRECATED (Now integrated in balance card)
+   STATS GRID - COMPACT
    ============================================ */
 
-/* Keeping for backwards compatibility if needed */
 .stats-grid {
-  display: none; /* Hidden by default, stats now in balance card */
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.stat-card {
+  background: var(--bg-secondary);
+  padding: 16px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  border: 1px solid var(--border-color);
+}
+
+html.dark .stat-card {
+  background: var(--card-bg);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(217, 70, 239, 0.15);
+  border-color: var(--primary-500);
+}
+
+.stat-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.stat-earnings .stat-icon {
+  background: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+}
+
+.stat-withdrawals .stat-icon {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+
+.stat-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.stat-value {
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.stat-earnings .stat-value {
+  color: #10b981;
+}
+
+.stat-withdrawals .stat-value {
+  color: #ef4444;
 }
 
 /* ============================================
@@ -793,6 +796,353 @@ html.dark .loading-spinner {
 }
 
 /* ============================================
+   RESPONSIVE - TABLET & MOBILE
+   ============================================ */
+
+@media (max-width: 768px) {
+  /* Container principal - pas de padding comme Dashboard */
+  .wallet-page {
+    padding: 0;
+  }
+
+  /* Header avec background */
+  .wallet-header {
+    padding: 16px;
+    margin-bottom: 0;
+    background: white;
+    border-bottom: none;
+  }
+
+  html.dark .wallet-header {
+    background: #1a1a1a;
+  }
+
+  .wallet-header h1 {
+    font-size: 24px;
+  }
+
+  .wallet-header p {
+    font-size: 13px;
+  }
+
+  /* Container - sections séparées */
+  .wallet-container {
+    padding: 0;
+    gap: 0;
+  }
+
+  /* Balance Card - section complète */
+  .balance-card {
+    padding: 20px 16px;
+    border-radius: 0;
+    margin-bottom: 16px;
+  }
+
+  .balance-amount {
+    font-size: 28px;
+  }
+
+  /* Stats Grid - section avec background */
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    padding: 0 16px 16px;
+    background: white;
+    margin-bottom: 16px;
+  }
+
+  html.dark .stats-grid {
+    background: #1a1a1a;
+  }
+
+  .stat-card {
+    padding: 14px;
+    border-radius: 10px;
+  }
+
+  /* Pending Section - section avec background */
+  .pending-section {
+    padding: 16px;
+    border-radius: 0;
+    margin-bottom: 16px;
+    background: white;
+  }
+
+  html.dark .pending-section {
+    background: #1a1a1a;
+    border-color: rgba(251, 146, 60, 0.3);
+  }
+
+  .section-header h3 {
+    font-size: 15px;
+  }
+
+  /* Transactions Section - section avec background */
+  .transactions-section {
+    padding: 16px;
+    padding-bottom: 80px;
+    background: white;
+    margin-top: 0;
+  }
+
+  html.dark .transactions-section {
+    background: #1a1a1a;
+  }
+
+  .transactions-section .transaction-filters {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .transaction-filter-btn {
+    padding: 8px 14px;
+    font-size: 13px;
+  }
+
+  .transaction-item {
+    padding: 12px;
+    gap: 10px;
+    border-radius: 10px;
+  }
+
+  .transaction-icon-wrapper {
+    width: 44px;
+    height: 44px;
+  }
+
+  .transaction-description {
+    font-size: 14px;
+  }
+
+  .transaction-amount {
+    font-size: 16px;
+  }
+
+  .transaction-status-badge {
+    padding: 4px 8px;
+    font-size: 11px;
+  }
+
+  .pagination-btn {
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+
+  .pagination-page-btn {
+    width: 36px;
+    height: 36px;
+    font-size: 13px;
+  }
+
+  .pagination-info {
+    font-size: 12px;
+  }
+
+  /* Modal */
+  .modal-overlay {
+    padding: 0;
+    align-items: flex-end;
+  }
+
+  .modal-content {
+    border-radius: 18px 18px 0 0;
+    max-height: 92vh;
+  }
+
+  .modal-header {
+    padding: 18px 16px;
+  }
+
+  .modal-header h3 {
+    font-size: 18px;
+  }
+
+  .modal-body {
+    padding: 18px 16px;
+  }
+
+  .modal-footer {
+    padding: 14px 16px;
+  }
+
+  .operator-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Touch improvements */
+  .balance-card,
+  .stat-card,
+  .transaction-item,
+  .transaction-filter-btn,
+  .btn-action {
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .balance-card:active,
+  .stat-card:active,
+  .transaction-item:active,
+  .btn-action:active {
+    transform: scale(0.98);
+  }
+}
+
+/* ============================================
+   RESPONSIVE - SMALL MOBILE
+   ============================================ */
+
+@media (max-width: 480px) {
+  /* Header */
+  .wallet-header {
+    padding: 14px;
+  }
+
+  .wallet-header h1 {
+    font-size: 22px;
+  }
+
+  .wallet-header p {
+    font-size: 12px;
+  }
+
+  /* Balance Card */
+  .balance-card {
+    padding: 18px 14px;
+  }
+
+  .balance-amount {
+    font-size: 26px;
+  }
+
+  .balance-amount .currency {
+    font-size: 14px;
+  }
+
+  .balance-icon {
+    width: 44px;
+    height: 44px;
+  }
+
+  .btn-action {
+    padding: 11px 14px;
+    font-size: 13px;
+    min-height: 44px;
+  }
+
+  /* Stats Grid */
+  .stats-grid {
+    padding: 0 14px 14px;
+    gap: 8px;
+  }
+
+  .stat-card {
+    padding: 12px;
+  }
+
+  .stat-icon {
+    width: 36px;
+    height: 36px;
+  }
+
+  .stat-value {
+    font-size: 16px;
+  }
+
+  .stat-label {
+    font-size: 11px;
+  }
+
+  /* Pending Section */
+  .pending-section {
+    padding: 14px;
+  }
+
+  .pending-item {
+    padding: 10px;
+  }
+
+  .pending-item-icon {
+    width: 36px;
+    height: 36px;
+  }
+
+  .pending-amount {
+    font-size: 15px;
+  }
+
+  .pending-status {
+    padding: 4px 8px;
+    font-size: 10px;
+  }
+
+  /* Transactions Section */
+  .transactions-section {
+    padding: 14px;
+    padding-bottom: 75px;
+  }
+
+  .transactions-section h3 {
+    font-size: 16px;
+  }
+
+  .transaction-item {
+    padding: 10px;
+  }
+
+  .transaction-icon-wrapper {
+    width: 40px;
+    height: 40px;
+  }
+
+  .transaction-description {
+    font-size: 13px;
+  }
+
+  .transaction-amount {
+    font-size: 15px;
+  }
+
+  .transaction-status-badge {
+    padding: 3px 8px;
+    font-size: 10px;
+  }
+
+  .transaction-meta-badge {
+    font-size: 11px;
+    padding: 3px 6px;
+  }
+
+  .transaction-time {
+    font-size: 11px;
+  }
+
+  /* Modal */
+  .modal-header {
+    padding: 16px 14px;
+  }
+
+  .modal-body {
+    padding: 16px 14px;
+  }
+
+  .form-group input {
+    padding: 11px 12px;
+    font-size: 16px; /* Minimum 16px pour iOS */
+  }
+
+  .btn-cancel,
+  .btn-submit {
+    padding: 12px 18px;
+    font-size: 15px;
+    min-height: 46px;
+  }
+}
+
+/* ============================================
    TRANSACTIONS SECTION - LIGHT/DARK SUPPORT
    ============================================ */
 
@@ -1112,7 +1462,6 @@ html.dark .transaction-empty {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  scroll-margin-top: 120px;
 }
 
 html.dark .transaction-pagination {
@@ -1238,147 +1587,14 @@ html.dark .transaction-loading-spinner {
 }
 
 /* ============================================
-   RESPONSIVE - TABLET & MOBILE
+   RESPONSIVE - SMALL MOBILE
    ============================================ */
 
 @media (max-width: 768px) {
-  /* Container principal - pas de padding comme Dashboard */
-  .wallet-page {
-    padding: 0;
-  }
-
-  /* Header avec background */
-  .wallet-header {
-    padding: 16px;
-    margin-bottom: 0;
-    background: white;
-    border-bottom: none;
-  }
-
-  html.dark .wallet-header {
-    background: #1a1a1a;
-  }
-
-  .wallet-header h1 {
-    font-size: 24px;
-  }
-
-  .wallet-header p {
-    font-size: 13px;
-  }
-
-  /* Container - sections séparées */
-  .wallet-container {
-    padding: 0;
-    gap: 0;
-  }
-
-  /* Balance Card - section complète */
-  .balance-card {
-    padding: 20px 16px;
-    border-radius: 0;
-    margin-bottom: 0;
-  }
-
-  .balance-amount {
-    font-size: 28px;
-  }
-
-  .balance-stats {
-    padding: 10px 0;
-    margin-top: 10px;
-  }
-
-  .balance-stat-item {
-    gap: 4px;
-  }
-
-  .balance-stat-label {
-    font-size: 10px;
-  }
-
-  .balance-stat-value {
-    font-size: 12px;
-  }
-
-  .balance-stat-divider {
-    height: 20px;
-  }
-
-  /* Pending Section - Plus compact */
-  .pending-section {
-    padding: 12px 16px;
-    border-radius: 0;
-    margin-bottom: 0;
-    background: white;
-  }
-
-  html.dark .pending-section {
-    background: #1a1a1a;
-    border-color: rgba(251, 146, 60, 0.3);
-  }
-
-  .section-header {
-    margin-bottom: 10px;
-  }
-
-  .section-header h3 {
-    font-size: 14px;
-  }
-
-  .pending-count {
-    padding: 3px 8px;
-    font-size: 11px;
-  }
-
-  .pending-item {
-    padding: 10px;
-    gap: 10px;
-  }
-
-  .pending-item-icon {
-    width: 36px;
-    height: 36px;
-  }
-
-  .pending-amount {
-    font-size: 15px;
-  }
-
-  .pending-status {
-    padding: 4px 10px;
-    font-size: 11px;
-  }
-
-  .pending-notice {
-    padding: 8px;
-    font-size: 11px;
-  }
-
-  /* Transactions Section - section avec background */
-  .transactions-section {
-    padding: 16px;
-    padding-bottom: 120px;
-    background: white;
-    margin-top: 0;
-    min-height: calc(100vh - 400px);
-    display: flex;
-    flex-direction: column;
-  }
-
-  html.dark .transactions-section {
-    background: #1a1a1a;
-  }
-
-  .transaction-list {
-    flex: 1;
-  }
-
   .transactions-section .transaction-filters {
     flex-direction: column;
     align-items: flex-start;
     gap: 12px;
-    margin-bottom: 16px;
   }
 
   .transaction-filter-btn {
@@ -1389,7 +1605,6 @@ html.dark .transaction-loading-spinner {
   .transaction-item {
     padding: 12px;
     gap: 10px;
-    border-radius: 10px;
   }
 
   .transaction-icon-wrapper {
@@ -1405,11 +1620,6 @@ html.dark .transaction-loading-spinner {
     font-size: 16px;
   }
 
-  .transaction-status-badge {
-    padding: 4px 8px;
-    font-size: 11px;
-  }
-
   .pagination-btn {
     padding: 6px 12px;
     font-size: 13px;
@@ -1420,181 +1630,57 @@ html.dark .transaction-loading-spinner {
     height: 36px;
     font-size: 13px;
   }
-
-  .pagination-info {
-    font-size: 12px;
-  }
-
-  /* Modal */
-  .modal-overlay {
-    padding: 0;
-    align-items: flex-end;
-  }
-
-  .modal-content {
-    border-radius: 18px 18px 0 0;
-    max-height: 92vh;
-  }
-
-  .modal-header {
-    padding: 18px 16px;
-  }
-
-  .modal-header h3 {
-    font-size: 18px;
-  }
-
-  .modal-body {
-    padding: 18px 16px;
-  }
-
-  .modal-footer {
-    padding: 14px 16px;
-  }
-
-  .operator-grid {
-    grid-template-columns: 1fr;
-  }
-
-  /* Touch improvements */
-  .balance-card,
-  .stat-card,
-  .transaction-item,
-  .transaction-filter-btn,
-  .btn-action {
-    cursor: pointer;
-    user-select: none;
-    -webkit-user-select: none;
-    -webkit-tap-highlight-color: transparent;
-  }
-
-  .balance-card:active,
-  .stat-card:active,
-  .transaction-item:active,
-  .btn-action:active {
-    transform: scale(0.98);
-  }
 }
 
-/* ============================================
-   RESPONSIVE - SMALL MOBILE
-   ============================================ */
+@media (max-width: 380px) {
+  .wallet-header h1 {
+    font-size: 20px;
+  }
 
-@media (max-width: 480px) {
-  /* Header */
-  .wallet-header {
+  .wallet-container {
+    padding: 0 12px 70px;
+    gap: 10px;
+  }
+
+  .balance-card {
     padding: 14px;
   }
 
-  .wallet-header h1 {
-    font-size: 22px;
-  }
-
-  .wallet-header p {
-    font-size: 12px;
-  }
-
-  /* Balance Card - Plus compact */
-  .balance-card {
-    padding: 16px 14px 14px;
-  }
-
-  .balance-top {
-    margin-bottom: 10px;
-  }
-
   .balance-amount {
-    font-size: 26px;
-  }
-
-  .balance-amount .currency {
-    font-size: 14px;
-  }
-
-  .balance-icon {
-    width: 40px;
-    height: 40px;
-  }
-
-  .balance-actions {
-    gap: 8px;
-    margin-bottom: 0;
+    font-size: 24px;
   }
 
   .btn-action {
     padding: 10px 12px;
     font-size: 13px;
     min-height: 42px;
-    gap: 4px;
   }
 
-  /* Balance Stats - responsive */
-  .balance-stats {
-    padding: 8px 0;
-    margin-top: 8px;
+  .stat-card {
+    padding: 12px;
   }
 
-  .balance-stat-item {
-    gap: 3px;
-  }
-
-  .balance-stat-item svg {
-    width: 12px;
-    height: 12px;
-  }
-
-  .balance-stat-label {
-    font-size: 9px;
-  }
-
-  .balance-stat-value {
-    font-size: 11px;
-  }
-
-  .balance-stat-divider {
-    height: 18px;
-  }
-
-  .balance-footer {
-    padding-top: 8px;
-  }
-
-  .min-withdraw-info {
-    font-size: 11px;
-  }
-
-  /* Pending Section */
-  .pending-section {
-    padding: 14px;
-  }
-
-  .pending-item {
-    padding: 10px;
-  }
-
-  .pending-item-icon {
-    width: 36px;
-    height: 36px;
-  }
-
-  .pending-amount {
+  .stat-value {
     font-size: 15px;
   }
 
-  .pending-status {
-    padding: 4px 8px;
-    font-size: 10px;
+  .pending-section {
+    padding: 12px;
   }
 
-  /* Transactions Section */
-  .transactions-section {
-    padding: 14px;
-    padding-bottom: 100px;
-    min-height: calc(100vh - 350px);
+  .modal-header {
+    padding: 14px 12px;
   }
 
-  .transactions-section h3 {
-    font-size: 16px;
+  .modal-body {
+    padding: 14px 12px;
+  }
+
+  .btn-cancel,
+  .btn-submit {
+    padding: 11px 16px;
+    font-size: 14px;
+    min-height: 44px;
   }
 
   .transaction-item {
@@ -1616,171 +1702,6 @@ html.dark .transaction-loading-spinner {
 
   .transaction-status-badge {
     padding: 3px 8px;
-    font-size: 10px;
-  }
-
-  .transaction-meta-badge {
     font-size: 11px;
-    padding: 3px 6px;
-  }
-
-  .transaction-time {
-    font-size: 11px;
-  }
-
-  /* Modal */
-  .modal-header {
-    padding: 16px 14px;
-  }
-
-  .modal-body {
-    padding: 16px 14px;
-  }
-
-  .form-group input {
-    padding: 11px 12px;
-    font-size: 16px; /* Minimum 16px pour iOS */
-  }
-
-  .btn-cancel,
-  .btn-submit {
-    padding: 12px 18px;
-    font-size: 15px;
-    min-height: 46px;
-  }
-}
-
-/* ============================================
-   RESPONSIVE - VERY SMALL MOBILE (< 360px)
-   ============================================ */
-
-@media (max-width: 360px) {
-  /* Balance Card - Ultra compact */
-  .balance-card {
-    padding: 14px 12px 12px !important;
-  }
-
-  .balance-top {
-    margin-bottom: 8px !important;
-  }
-
-  .balance-amount {
-    font-size: 24px !important;
-  }
-
-  .balance-icon {
-    width: 36px !important;
-    height: 36px !important;
-  }
-
-  .balance-icon svg {
-    width: 24px !important;
-    height: 24px !important;
-  }
-
-  .balance-actions {
-    gap: 6px !important;
-    margin-bottom: 0 !important;
-  }
-
-  .btn-action {
-    padding: 9px 8px !important;
-    font-size: 12px !important;
-    gap: 3px !important;
-    min-height: 40px !important;
-  }
-
-  .btn-action svg {
-    width: 16px;
-    height: 16px;
-  }
-
-  /* Balance Stats - très petit écran */
-  .balance-stats {
-    padding: 6px 0 !important;
-    margin-top: 6px !important;
-  }
-
-  .balance-stat-item {
-    gap: 2px !important;
-    flex-direction: column;
-  }
-
-  .balance-stat-item svg {
-    width: 12px !important;
-    height: 12px !important;
-  }
-
-  .balance-stat-label {
-    font-size: 8px !important;
-  }
-
-  .balance-stat-value {
-    font-size: 10px !important;
-  }
-
-  .balance-stat-divider {
-    height: 28px !important;
-  }
-
-  .balance-footer {
-    padding-top: 6px !important;
-  }
-
-  .min-withdraw-info {
-    font-size: 10px !important;
-  }
-
-  /* Pending Section */
-  .pending-section {
-    padding: 12px !important;
-  }
-
-  .pending-item {
-    padding: 8px !important;
-    gap: 8px !important;
-  }
-
-  .pending-item-icon {
-    width: 32px !important;
-    height: 32px !important;
-  }
-
-  .pending-amount {
-    font-size: 14px !important;
-  }
-
-  /* Transactions Section */
-  .transactions-section {
-    padding: 12px !important;
-    padding-bottom: 100px !important;
-    min-height: calc(100vh - 320px) !important;
-  }
-
-  .transactions-section h3 {
-    font-size: 15px !important;
-  }
-
-  .transaction-item {
-    padding: 8px !important;
-    gap: 8px !important;
-  }
-
-  .transaction-icon-wrapper {
-    width: 36px !important;
-    height: 36px !important;
-  }
-
-  .transaction-icon-wrapper svg {
-    width: 16px;
-    height: 16px;
-  }
-
-  .transaction-description {
-    font-size: 12px !important;
-  }
-
-  .transaction-amount {
-    font-size: 14px !important;
   }
 }

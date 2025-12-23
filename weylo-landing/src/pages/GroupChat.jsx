@@ -107,12 +107,27 @@ export default function GroupChat() {
       setLoading(true)
       const response = await groupsService.getMessages(groupId)
       const transformedMessages = response.messages.map(msg => {
-        // Les groupes sont 100% anonymes - tout le monde est "Anonyme"
+        // Afficher l'identité si révélée (premium), sinon "Anonyme"
+        let senderName = 'Anonyme'
+        let senderAvatar = 'A'
+
+        if (msg.sender_first_name || msg.sender_username) {
+          // L'utilisateur a un premium pass - identité révélée
+          senderName = msg.sender_username || `${msg.sender_first_name} ${msg.sender_last_name || ''}`.trim()
+          senderAvatar = msg.sender_initial || senderName.charAt(0).toUpperCase()
+        } else if (msg.sender_name) {
+          // Pas premium - anonyme
+          senderName = msg.sender_name
+          senderAvatar = msg.sender_initial || 'A'
+        }
+
         return {
           id: msg.id,
           content: msg.content,
           is_own: msg.is_own,
-          sender_name: 'Anonyme',
+          sender_name: senderName,
+          sender_avatar: senderAvatar,
+          sender_avatar_url: msg.sender_avatar_url,
           type: msg.type,
           time: formatTime(msg.created_at),
           created_at: msg.created_at
@@ -143,12 +158,27 @@ export default function GroupChat() {
               return
             }
 
-            // Les groupes sont 100% anonymes - tout le monde est "Anonyme"
+            // Afficher l'identité si révélée (premium), sinon "Anonyme"
+            let senderName = 'Anonyme'
+            let senderAvatar = 'A'
+
+            if (event.sender_first_name || event.sender_username) {
+              // L'utilisateur a un premium pass - identité révélée
+              senderName = event.sender_username || `${event.sender_first_name} ${event.sender_last_name || ''}`.trim()
+              senderAvatar = event.sender_initial || senderName.charAt(0).toUpperCase()
+            } else if (event.sender_name) {
+              // Pas premium - anonyme
+              senderName = event.sender_name
+              senderAvatar = event.sender_initial || 'A'
+            }
+
             const newMsg = {
               id: event.id,
               content: event.content,
               is_own: false, // Toujours false car on ignore nos propres messages
-              sender_name: 'Anonyme',
+              sender_name: senderName,
+              sender_avatar: senderAvatar,
+              sender_avatar_url: event.sender_avatar_url,
               type: event.type,
               time: formatTime(event.created_at),
               created_at: event.created_at
@@ -201,12 +231,27 @@ export default function GroupChat() {
 
       // Ajouter immédiatement le message envoyé (optimistic update)
       if (response.message) {
-        // Les groupes sont 100% anonymes - tout le monde est "Anonyme"
+        // Afficher l'identité si révélée (premium), sinon "Anonyme"
+        let senderName = 'Anonyme'
+        let senderAvatar = 'A'
+
+        if (response.message.sender_first_name || response.message.sender_username) {
+          // L'utilisateur a un premium pass - identité révélée
+          senderName = response.message.sender_username || `${response.message.sender_first_name} ${response.message.sender_last_name || ''}`.trim()
+          senderAvatar = response.message.sender_initial || senderName.charAt(0).toUpperCase()
+        } else if (response.message.sender_name) {
+          // Pas premium - anonyme
+          senderName = response.message.sender_name
+          senderAvatar = response.message.sender_initial || 'A'
+        }
+
         const newMsg = {
           id: response.message.id,
           content: response.message.content,
           is_own: true,
-          sender_name: 'Anonyme',
+          sender_name: senderName,
+          sender_avatar: senderAvatar,
+          sender_avatar_url: response.message.sender_avatar_url,
           type: response.message.type,
           time: formatTime(response.message.created_at),
           created_at: response.message.created_at
@@ -310,7 +355,11 @@ export default function GroupChat() {
                   {!msg.is_own && msg.type !== 'system' && (
                     <div className="message-sender-info">
                       <div className="message-sender-initial">
-                        {msg.sender_name ? msg.sender_name.charAt(0).toUpperCase() : 'A'}
+                        {msg.sender_avatar_url ? (
+                          <img src={msg.sender_avatar_url} alt={msg.sender_name} className="sender-avatar-img" />
+                        ) : (
+                          msg.sender_avatar || 'A'
+                        )}
                       </div>
                       <span className="message-sender-name">
                         {msg.sender_name || 'Anonyme'}
@@ -446,15 +495,34 @@ function GroupSettingsModal({ group, members, onClose, onLeave }) {
               {members
                 .filter(member => member && member.id) // Filtrer les membres null/supprimés
                 .map(member => {
-                  // Les groupes sont 100% anonymes - tout le monde est "Anonyme"
+                  // Afficher l'identité si révélée (premium), sinon "Anonyme"
+                  let displayName = 'Anonyme'
+                  let avatarContent = 'A'
+                  let avatarUrl = null
+
+                  if (member.is_identity_revealed) {
+                    // L'utilisateur a un premium pass - identité révélée
+                    displayName = member.username || `${member.first_name || ''} ${member.last_name || ''}`.trim()
+                    avatarContent = member.initial || displayName.charAt(0).toUpperCase()
+                    avatarUrl = member.avatar_url
+                  } else {
+                    // Pas premium - anonyme
+                    displayName = member.display_name || 'Anonyme'
+                    avatarContent = member.initial || 'A'
+                  }
+
                   return (
                     <div key={member.id} className="member-item">
                       <div className="member-avatar">
-                        A
+                        {avatarUrl ? (
+                          <img src={avatarUrl} alt={displayName} className="member-avatar-img" />
+                        ) : (
+                          avatarContent
+                        )}
                       </div>
                       <div className="member-info">
                         <span className="member-name">
-                          Anonyme
+                          {displayName}
                         </span>
                         {member.role === 'admin' && (
                           <span className="member-badge">Créateur</span>

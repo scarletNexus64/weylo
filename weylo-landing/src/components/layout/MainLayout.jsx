@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
-import { Home, Mail, Megaphone, MessageCircle, Wallet, User, Settings, Moon, Sun, Bell, Search, Menu, LogOut } from 'lucide-react'
+import { Home, Mail, Megaphone, MessageCircle, User, Settings, Moon, Sun, Search, Menu, LogOut } from 'lucide-react'
 import BottomNav from './BottomNav'
 import './MainLayout.css'
 
@@ -33,7 +33,6 @@ export default function MainLayout() {
     { path: '/messages', icon: Mail, label: 'Messages', badge: user?.stats?.messages_received || 0 },
     { path: '/confessions', icon: Megaphone, label: 'Confessions', badge: user?.stats?.confessions_received || 0 },
     { path: '/chat', icon: MessageCircle, label: 'Chat', badge: 3 },
-    { path: '/wallet', icon: Wallet, label: 'Portefeuille' },
     { path: '/profile', icon: User, label: 'Profil' },
     { path: '/settings', icon: Settings, label: 'Paramètres' },
   ]
@@ -118,18 +117,11 @@ export default function MainLayout() {
               {darkMode ? <Sun size={20} strokeWidth={2} /> : <Moon size={20} strokeWidth={2} />}
             </button>
 
-            <Link to="/notifications" className="navbar-btn notification-btn" title="Notifications">
+            {/* Notifications - Masqué temporairement */}
+            {/* <Link to="/notifications" className="navbar-btn notification-btn" title="Notifications">
               <Bell size={20} strokeWidth={2} />
               <span className="notification-badge">5</span>
-            </Link>
-
-            <Link to="/wallet" className="navbar-btn navbar-wallet-btn" title="Portefeuille">
-              <Wallet size={20} strokeWidth={2} />
-              <span className="wallet-balance">
-                {user?.wallet_balance || 0} FCFA
-                {user?.is_verified && <span className="navbar-verified-indicator" title="Compte vérifié">✓</span>}
-              </span>
-            </Link>
+            </Link> */}
 
             <Link to="/settings" className="navbar-btn navbar-settings-btn" title="Paramètres">
               <Settings size={20} strokeWidth={2} />

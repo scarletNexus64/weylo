@@ -38,6 +38,22 @@ const dashboardService = {
   getRecentActivity: async () => {
     const response = await apiClient.get('/admin/recent-activity')
     return response.data
+  },
+
+  /**
+   * Récupérer le statut du mode maintenance
+   */
+  getMaintenanceStatus: async () => {
+    const response = await apiClient.get('/maintenance/status')
+    return response.data
+  },
+
+  /**
+   * Mettre à jour le mode maintenance
+   */
+  updateMaintenanceMode: async (data) => {
+    const response = await apiClient.put('/admin/maintenance/update', data)
+    return response.data
   }
 }
 
