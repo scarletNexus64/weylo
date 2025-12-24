@@ -379,10 +379,6 @@ export default function Wallet() {
 
               <div className="modal-info">
                 <div className="info-item">
-                  <AlertCircle size={14} />
-                  <span>Validation manuelle par l'admin</span>
-                </div>
-                <div className="info-item">
                   <Clock size={14} />
                   <span>Traitement en quelques heures</span>
                 </div>

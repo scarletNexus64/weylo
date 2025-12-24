@@ -8,7 +8,6 @@ export default function GiftMessage({ gift, isMine, senderName, time }) {
 
   // Vérifier que le cadeau existe (protection contre les données null)
   if (!gift || !gift.name) {
-    console.warn('⚠️ Cadeau invalide ou supprimé')
     return null
   }
 

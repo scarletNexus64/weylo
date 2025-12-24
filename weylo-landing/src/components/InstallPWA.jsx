@@ -8,29 +8,57 @@ const InstallPWA = () => {
   const [isIOS, setIsIOS] = useState(false);
   const [isStandalone, setIsStandalone] = useState(false);
 
+  // Détecter iOS et Standalone au montage
   useEffect(() => {
     // Détecter si l'app est déjà en mode standalone (PWA installée et lancée)
-    const checkStandalone = () => {
-      const isInStandaloneMode =
-        window.matchMedia('(display-mode: standalone)').matches ||
-        window.navigator.standalone ||
-        document.referrer.includes('android-app://');
+    const isInStandaloneMode =
+      window.matchMedia('(display-mode: standalone)').matches ||
+      window.navigator.standalone ||
+      document.referrer.includes('android-app://');
 
-      setIsStandalone(isInStandaloneMode);
-    };
+    setIsStandalone(isInStandaloneMode);
 
     // Détecter iOS
-    const checkIOS = () => {
-      const userAgent = window.navigator.userAgent.toLowerCase();
-      const isIOSDevice = /iphone|ipad|ipod/.test(userAgent);
-      setIsIOS(isIOSDevice);
+    const userAgent = window.navigator.userAgent.toLowerCase();
+    const isIOSDevice = /iphone|ipad|ipod/.test(userAgent);
+    setIsIOS(isIOSDevice);
+  }, []);
+
+  // Gérer l'événement beforeinstallprompt pour Android/Chrome
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (e) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+
+      // Vérifier si l'utilisateur a déjà refusé
+      const installDismissed = localStorage.getItem('installPromptDismissed');
+      const installDismissedDate = localStorage.getItem('installPromptDismissedDate');
+
+      // Si refusé il y a moins de 7 jours, ne pas afficher
+      if (installDismissed && installDismissedDate) {
+        const daysSinceDismissed = (Date.now() - parseInt(installDismissedDate)) / (1000 * 60 * 60 * 24);
+        if (daysSinceDismissed < 7) {
+          return;
+        }
+      }
+
+      // Afficher le prompt après 3 secondes (pour ne pas être trop agressif)
+      setTimeout(() => {
+        setShowInstallPrompt(true);
+      }, 3000);
     };
 
-    checkStandalone();
-    checkIOS();
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
 
-    // Si déjà en mode standalone, ne rien afficher
-    if (isStandalone) {
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    };
+  }, []);
+
+  // Afficher le prompt pour iOS une fois la détection terminée
+  useEffect(() => {
+    // Si déjà en mode standalone ou pas iOS, ne rien faire
+    if (isStandalone || !isIOS) {
       return;
     }
 
@@ -46,30 +74,13 @@ const InstallPWA = () => {
       }
     }
 
-    // Pour Android/Chrome - Capturer l'événement beforeinstallprompt
-    const handleBeforeInstallPrompt = (e) => {
-      e.preventDefault();
-      setDeferredPrompt(e);
+    // Afficher le prompt après 3 secondes
+    const timer = setTimeout(() => {
+      setShowInstallPrompt(true);
+    }, 3000);
 
-      // Afficher le prompt après 3 secondes (pour ne pas être trop agressif)
-      setTimeout(() => {
-        setShowInstallPrompt(true);
-      }, 3000);
-    };
-
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-
-    // Pour iOS - Afficher le prompt personnalisé
-    if (isIOS && !isStandalone) {
-      setTimeout(() => {
-        setShowInstallPrompt(true);
-      }, 3000);
-    }
-
-    return () => {
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-    };
-  }, [isStandalone]);
+    return () => clearTimeout(timer);
+  }, [isIOS, isStandalone]);
 
   const handleInstallClick = async () => {
     if (!isIOS && deferredPrompt) {

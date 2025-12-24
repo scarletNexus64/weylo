@@ -55,7 +55,7 @@ export default function ReplyAnonymous() {
       const data = await giftService.getCatalog()
       setGifts(data.gifts || [])
     } catch (err) {
-      console.error('Error loading gifts:', err)
+      // Error silencieuse
     }
   }
 
@@ -104,17 +104,31 @@ export default function ReplyAnonymous() {
           return
         }
 
-        // Envoyer un cadeau anonyme
-        await giftService.sendGift(
-          originalMessage.sender.username,
-          selectedGift.id,
-          replyContent || null
+        console.log('🎁 [REPLY] Envoi d\'un cadeau en réponse au message ID:', originalMessage.id)
+
+        // Démarrer une conversation à partir du message anonyme
+        const conversationResponse = await messagesService.startConversationFromMessage(
+          originalMessage.id
         )
+
+        console.log('✅ [REPLY] Conversation créée/obtenue pour le cadeau:', conversationResponse)
+
+        const conversation = conversationResponse.conversation
+
+        // Envoyer le cadeau dans la conversation (toujours anonyme en réponse)
+        await giftService.sendInConversation(
+          conversation.id,
+          selectedGift.id,
+          replyContent || null,
+          true // Toujours anonyme en réponse à un message anonyme
+        )
+
+        console.log('✅ [REPLY] Cadeau envoyé avec succès dans la conversation')
 
         success('Cadeau envoyé avec succès!')
 
-        // Rediriger vers la page des messages
-        navigate('/messages')
+        // Rediriger vers la conversation
+        navigate(`/chat/${conversation.id}`)
       }
     } catch (err) {
       console.error('Error sending reply:', err)
@@ -245,6 +259,7 @@ export default function ReplyAnonymous() {
             <Gift size={18} />
             <h3>Choisir un cadeau</h3>
           </div>
+
           <div className="gifts-grid">
             {gifts.map(gift => (
               <div
@@ -278,7 +293,7 @@ export default function ReplyAnonymous() {
 
       {/* Info Card */}
       <div className="info-card">
-        <div className="info-icon">{replyType === 'text' ? '💬' : '🎭'}</div>
+        <div className="info-icon">{replyType === 'text' ? '💬' : '🎁'}</div>
         <div className="info-content">
           {replyType === 'text' ? (
             <>
@@ -290,9 +305,10 @@ export default function ReplyAnonymous() {
             </>
           ) : (
             <>
-              <h4>Cadeau anonyme</h4>
+              <h4>Envoyer un cadeau anonyme</h4>
               <p>
-                Votre identité restera masquée. Le destinataire pourra révéler votre identité moyennant 450 FCFA.
+                Le cadeau sera envoyé de manière anonyme et démarrera une conversation.
+                Le destinataire pourra révéler votre identité en payant 450 FCFA.
               </p>
             </>
           )}

@@ -20,6 +20,10 @@ const StoryViewer = ({ userId, username, allStories = [], currentUserIndex = 0, 
   const [showViewers, setShowViewers] = useState(false)
   const [viewers, setViewers] = useState([])
   const [viewersLoading, setViewersLoading] = useState(false)
+  const [touchStart, setTouchStart] = useState({ x: 0, y: 0, time: 0 })
+  const [touchEnd, setTouchEnd] = useState({ x: 0, y: 0, time: 0 })
+  const [swipeOffset, setSwipeOffset] = useState(0)
+  const [isSwipingVertical, setIsSwipingVertical] = useState(false)
   const timerRef = useRef(null)
   const progressIntervalRef = useRef(null)
 
@@ -201,6 +205,117 @@ const StoryViewer = ({ userId, username, allStories = [], currentUserIndex = 0, 
     }
   }
 
+  const handleTouchStart = (e) => {
+    const now = Date.now()
+    setTouchStart({
+      x: e.touches[0].clientX,
+      y: e.touches[0].clientY,
+      time: now
+    })
+    setTouchEnd({
+      x: e.touches[0].clientX,
+      y: e.touches[0].clientY,
+      time: now
+    })
+    setIsSwipingVertical(false)
+    handlePause()
+  }
+
+  const handleTouchMove = (e) => {
+    const currentX = e.touches[0].clientX
+    const currentY = e.touches[0].clientY
+
+    setTouchEnd({
+      x: currentX,
+      y: currentY,
+      time: Date.now()
+    })
+
+    // Calculer les deltas
+    const deltaY = currentY - touchStart.y
+    const deltaX = Math.abs(currentX - touchStart.x)
+    const absDeltaY = Math.abs(deltaY)
+
+    // Détecter si c'est un swipe vertical dès les premiers mouvements
+    if (!isSwipingVertical && (absDeltaY > 10 || deltaX > 10)) {
+      if (absDeltaY > deltaX * 0.7) {
+        setIsSwipingVertical(true)
+      }
+    }
+
+    // Si c'est un swipe vertical, appliquer l'offset avec effet rubber band
+    if (isSwipingVertical || absDeltaY > deltaX) {
+      // Empêcher le scroll par défaut
+      e.preventDefault()
+
+      // Effet rubber band : réduire le mouvement au-delà d'un certain seuil
+      let offset = deltaY
+      const maxOffset = 300
+      if (absDeltaY > maxOffset) {
+        const excess = absDeltaY - maxOffset
+        offset = deltaY > 0
+          ? maxOffset + excess * 0.3
+          : -(maxOffset + excess * 0.3)
+      }
+
+      setSwipeOffset(offset)
+    }
+  }
+
+  const handleTouchEnd = () => {
+    const deltaX = Math.abs(touchEnd.x - touchStart.x)
+    const deltaY = touchEnd.y - touchStart.y
+    const absDeltaY = Math.abs(deltaY)
+    const timeDelta = touchEnd.time - touchStart.time
+
+    // Calculer la vélocité (px/ms)
+    const velocity = timeDelta > 0 ? absDeltaY / timeDelta : 0
+
+    // Seuils ajustés
+    const minSwipeDistance = 80 // Distance minimale
+    const minVelocity = 0.5 // Vélocité minimale pour un swipe rapide
+    const quickSwipeDistance = 40 // Distance minimale pour un swipe rapide
+
+    // Réinitialiser le flag
+    setIsSwipingVertical(false)
+
+    // Détection améliorée du swipe vertical
+    const isVerticalSwipe = absDeltaY > deltaX
+    const isStrongSwipe = absDeltaY > minSwipeDistance
+    const isQuickSwipe = velocity > minVelocity && absDeltaY > quickSwipeDistance
+
+    // Fermer si swipe vertical significatif OU swipe rapide
+    if (isVerticalSwipe && (isStrongSwipe || isQuickSwipe)) {
+      // Animation de fermeture
+      setSwipeOffset(deltaY > 0 ? 1000 : -1000)
+      setTimeout(() => {
+        onClose()
+      }, 200)
+      return
+    }
+
+    // Réinitialiser l'offset avec animation
+    setSwipeOffset(0)
+
+    // Swipe horizontal pour navigation (seulement si pas vertical)
+    if (!isVerticalSwipe && deltaX > minSwipeDistance) {
+      const rect = document.querySelector('.story-viewer-content')?.getBoundingClientRect()
+      if (rect) {
+        const startX = touchStart.x - rect.left
+        const third = rect.width / 3
+
+        if (startX < third) {
+          goToPreviousStory()
+        } else if (startX > third * 2) {
+          goToNextStory()
+        }
+      }
+    } else if (deltaX < 10 && absDeltaY < 10) {
+      // Tap simple seulement si très peu de mouvement
+      handleResume()
+    }
+  }
+
   if (loading) {
     return (
       <div className="story-viewer-overlay">
@@ -228,7 +343,14 @@ const StoryViewer = ({ userId, username, allStories = [], currentUserIndex = 0, 
 
   return (
     <div className="story-viewer-overlay">
-      <div className="story-viewer-container">
+      <div
+        className="story-viewer-container"
+        style={{
+          transform: `translateY(${swipeOffset}px) scale(${swipeOffset !== 0 ? Math.max(0.9, 1 - Math.abs(swipeOffset) / 1000) : 1})`,
+          opacity: swipeOffset !== 0 ? Math.max(0.3, 1 - Math.abs(swipeOffset) / 400) : 1,
+          transition: Math.abs(swipeOffset) > 500 ? 'transform 0.2s ease-out, opacity 0.2s ease-out' : swipeOffset === 0 ? 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease-out' : 'none'
+        }}
+      >
         {/* Progress bars */}
         <div className="story-progress-bars">
           {userStories.map((_, index) => (
@@ -285,8 +407,9 @@ const StoryViewer = ({ userId, username, allStories = [], currentUserIndex = 0, 
           onClick={handleAreaClick}
           onMouseDown={handlePause}
           onMouseUp={handleResume}
-          onTouchStart={handlePause}
-          onTouchEnd={handleResume}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
         >
           {currentStory.type === 'image' && (
             <img

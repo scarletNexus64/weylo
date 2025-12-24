@@ -229,18 +229,57 @@ class WebSocketService {
 
     const channel = this.echo.private(channelName)
 
-    // Message de chat envoyé
+    // DEBUGGER : Écouter TOUS les événements du channel (via notification)
+    channel.notification((notification) => {
+      console.log('🔔 [WEBSOCKET DEBUG] Notification reçue:', notification)
+    })
+
+    // DEBUGGER : Bind directement sur pusher pour voir TOUS les events
+    if (this.echo.connector && this.echo.connector.pusher) {
+      const pusherChannel = this.echo.connector.pusher.channel(`private-${channelName}`)
+      if (pusherChannel) {
+        pusherChannel.bind_global((eventName, data) => {
+          console.log(`🌍 [WEBSOCKET DEBUG] Événement global capturé sur ${channelName}:`, { eventName, data })
+        })
+      }
+    }
+
+    // Essayer plusieurs noms d'événements possibles
     if (callbacks.onChatMessageSent) {
+      // Nom 1 : .message.sent
       channel.listen('.message.sent', (event) => {
-        console.log('💬 [WEBSOCKET] Message de chat reçu (RAW):', event)
-        console.log('💬 [WEBSOCKET] Type:', typeof event)
-        console.log('💬 [WEBSOCKET] Keys:', Object.keys(event))
+        console.log('💬 [WEBSOCKET] Message reçu (.message.sent):', event)
+        callbacks.onChatMessageSent(event)
+      })
+
+      // Nom 2 : ChatMessageSent (nom de classe Laravel)
+      channel.listen('ChatMessageSent', (event) => {
+        console.log('💬 [WEBSOCKET] Message reçu (ChatMessageSent):', event)
+        callbacks.onChatMessageSent(event)
+      })
+
+      // Nom 3 : .ChatMessageSent
+      channel.listen('.ChatMessageSent', (event) => {
+        console.log('💬 [WEBSOCKET] Message reçu (.ChatMessageSent):', event)
+        callbacks.onChatMessageSent(event)
+      })
+
+      // Nom 4 : MessageSent
+      channel.listen('MessageSent', (event) => {
+        console.log('💬 [WEBSOCKET] Message reçu (MessageSent):', event)
+        callbacks.onChatMessageSent(event)
+      })
+
+      // Nom 5 : .MessageSent
+      channel.listen('.MessageSent', (event) => {
+        console.log('💬 [WEBSOCKET] Message reçu (.MessageSent):', event)
         callbacks.onChatMessageSent(event)
       })
     }
 
     // Log de la souscription réussie
     console.log('✅ [WEBSOCKET] Souscription au channel de conversation réussie:', channelName)
+    console.log('🔍 [WEBSOCKET] En attente d\'événements sur:', channelName)
 
     return channel
   }

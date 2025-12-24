@@ -2,6 +2,8 @@
   padding: 1rem 0;
   background: white;
   border-bottom: 1px solid #e5e7eb;
+  width: 100%;
+  overflow: hidden;
 }
 
 .stories-scroll {
@@ -11,6 +13,7 @@
   padding: 0 1rem;
   scrollbar-width: none; /* Firefox */
   -ms-overflow-style: none; /* IE/Edge */
+  -webkit-overflow-scrolling: touch;
 }
 
 .stories-scroll::-webkit-scrollbar {
@@ -70,6 +73,10 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
 }
 
 .story-count {
@@ -94,9 +101,44 @@
 }
 
 @media (max-width: 768px) {
+  .stories-feed {
+    padding: 0.75rem 0;
+  }
+
+  .stories-scroll {
+    gap: 0.75rem;
+    padding: 0 0.75rem;
+  }
+
+  .story-item {
+    gap: 0.375rem;
+  }
+
   .story-avatar {
     width: 50px;
     height: 50px;
+  }
+
+  .story-username {
+    font-size: 0.65rem;
+    max-width: 55px;
+  }
+
+  .story-count {
+    font-size: 0.65rem;
+    padding: 0.1rem 0.4rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .stories-scroll {
+    gap: 0.625rem;
+    padding: 0 0.5rem;
+  }
+
+  .story-avatar {
+    width: 56px;
+    height: 56px;
   }
 
   .story-username {

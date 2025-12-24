@@ -89,9 +89,15 @@
 /* Options Grid */
 .options-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 20px;
   margin-bottom: 32px;
+}
+
+@media (max-width: 900px) {
+  .options-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 .option-card {
@@ -212,9 +218,21 @@
 /* Quick Actions (When user has groups) */
 .quick-actions {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(3, 1fr);
   gap: 12px;
   margin-bottom: 24px;
+}
+
+@media (max-width: 640px) {
+  .quick-actions {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 400px) {
+  .quick-actions {
+    grid-template-columns: 1fr;
+  }
 }
 
 .quick-action-btn {
@@ -1113,5 +1131,505 @@
 
   .stat-item {
     font-size: 11px;
+  }
+
+  .discover-card {
+    padding: 14px;
+  }
+
+  .discover-filters {
+    flex-direction: column;
+  }
+
+  .search-box {
+    width: 100%;
+  }
+
+  .sort-select {
+    width: 100%;
+  }
+}
+
+/* ==================== DISCOVER VIEW ==================== */
+
+.discover-view {
+  max-width: 100%;
+}
+
+/* Discover Filters */
+.discover-filters {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.search-box {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: #f9fafb;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  transition: all 0.2s;
+}
+
+.dark .search-box {
+  background: #1f1f1f;
+  border-color: #2d2d2d;
+}
+
+.search-box:focus-within {
+  border-color: #9333ea;
+  background: white;
+}
+
+.dark .search-box:focus-within {
+  border-color: #a855f7;
+  background: #262626;
+}
+
+.search-box svg {
+  color: #9ca3af;
+  flex-shrink: 0;
+}
+
+.search-box input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 15px;
+  color: #111827;
+}
+
+.dark .search-box input {
+  color: white;
+}
+
+.search-box input::placeholder {
+  color: #9ca3af;
+}
+
+.sort-select {
+  padding: 12px 16px;
+  background: #f9fafb;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 500;
+  color: #111827;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s;
+}
+
+.dark .sort-select {
+  background: #1f1f1f;
+  border-color: #2d2d2d;
+  color: white;
+}
+
+.sort-select:hover,
+.sort-select:focus {
+  border-color: #9333ea;
+}
+
+/* Discover List */
+.discover-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.discover-card {
+  background: white;
+  border: 2px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 20px;
+  transition: all 0.2s;
+}
+
+.dark .discover-card {
+  background: #1a1a1a;
+  border-color: #2d2d2d;
+}
+
+.discover-card:hover {
+  border-color: #9333ea;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(147, 51, 234, 0.1);
+}
+
+.discover-card-header {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.group-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.group-name-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.group-name-row h3 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dark .group-name-row h3 {
+  color: white;
+}
+
+.public-badge {
+  color: #10b981;
+  flex-shrink: 0;
+}
+
+.group-description {
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.dark .group-description {
+  color: #9ca3af;
+}
+
+/* Discover Card Stats */
+.discover-card-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.stat-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: #f3f4f6;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #6b7280;
+}
+
+.dark .stat-badge {
+  background: #262626;
+  color: #9ca3af;
+}
+
+.stat-badge svg {
+  color: #9ca3af;
+  flex-shrink: 0;
+}
+
+.dark .stat-badge svg {
+  color: #6b7280;
+}
+
+.stat-badge.activity {
+  background: linear-gradient(135deg, #ddd6fe, #fce7f3);
+  color: #9333ea;
+}
+
+.dark .stat-badge.activity {
+  background: linear-gradient(135deg, #4c1d95, #831843);
+  color: #e9d5ff;
+}
+
+/* Discover Card Footer */
+.discover-card-footer {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.btn-join-public {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #9333ea, #db2777);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-join-public:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(147, 51, 234, 0.3);
+}
+
+.btn-join-public:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.btn-join-public:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-already-member {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: #f3f4f6;
+  color: #6b7280;
+  border: 2px solid #e5e7eb;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: not-allowed;
+}
+
+.dark .btn-already-member {
+  background: #262626;
+  border-color: #2d2d2d;
+  color: #9ca3af;
+}
+
+.btn-full {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: #fef2f2;
+  color: #dc2626;
+  border: 2px solid #fecaca;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: not-allowed;
+}
+
+.dark .btn-full {
+  background: #450a0a;
+  border-color: #7f1d1d;
+  color: #fca5a5;
+}
+
+/* Option Card Discover */
+.option-card.discover-card {
+  background: linear-gradient(135deg, #faf5ff, #fce7f3);
+  border-color: #e9d5ff;
+}
+
+.dark .option-card.discover-card {
+  background: linear-gradient(135deg, #2e1065, #500724);
+  border-color: #4c1d95;
+}
+
+.option-card.discover-card:hover {
+  border-color: #9333ea;
+  box-shadow: 0 12px 24px rgba(147, 51, 234, 0.15);
+}
+
+.option-card.discover-card .option-icon {
+  background: linear-gradient(135deg, #a855f7, #ec4899);
+}
+
+/* Quick Action Discover Button */
+.quick-action-btn.discover {
+  background: linear-gradient(135deg, #faf5ff, #fce7f3);
+  color: #9333ea;
+  border-color: #e9d5ff;
+}
+
+.dark .quick-action-btn.discover {
+  background: linear-gradient(135deg, #2e1065, #500724);
+  color: #e9d5ff;
+  border-color: #4c1d95;
+}
+
+.quick-action-btn.discover:hover {
+  border-color: #9333ea;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(147, 51, 234, 0.15);
+}
+
+.quick-action-btn.discover svg {
+  color: #a855f7;
+}
+
+.dark .quick-action-btn.discover svg {
+  color: #c084fc;
+}
+
+/* ==================== RESPONSIVE - DISCOVER VIEW ==================== */
+
+@media (max-width: 768px) {
+  /* Discover filters mobile */
+  .discover-filters {
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  .search-box {
+    width: 100%;
+    padding: 10px 14px;
+  }
+
+  .search-box input {
+    font-size: 14px;
+  }
+
+  .sort-select {
+    width: 100%;
+    padding: 10px 14px;
+    font-size: 14px;
+  }
+
+  .discover-card {
+    padding: 14px;
+  }
+
+  .discover-card-header {
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .discover-card .group-avatar {
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+  }
+
+  .group-name-row h3 {
+    font-size: 16px;
+  }
+
+  .group-description {
+    font-size: 13px;
+    -webkit-line-clamp: 3;
+  }
+
+  .discover-card-stats {
+    gap: 8px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+  }
+
+  .stat-badge {
+    font-size: 12px;
+    padding: 5px 10px;
+  }
+
+  .discover-card-footer {
+    margin-top: 4px;
+  }
+
+  .btn-join-public,
+  .btn-already-member,
+  .btn-full {
+    width: 100%;
+    justify-content: center;
+    padding: 10px 16px;
+    font-size: 14px;
+  }
+
+  .quick-action-btn span {
+    font-size: 13px;
+  }
+}
+
+/* Extra small screens - Discover view */
+@media (max-width: 480px) {
+  .discover-filters {
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  .search-box {
+    padding: 10px 12px;
+  }
+
+  .search-box input {
+    font-size: 13px;
+  }
+
+  .sort-select {
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+
+  .discover-card {
+    padding: 12px;
+  }
+
+  .discover-card-header {
+    gap: 10px;
+  }
+
+  .discover-card .group-avatar {
+    width: 40px;
+    height: 40px;
+  }
+
+  .group-name-row {
+    flex-wrap: wrap;
+  }
+
+  .group-name-row h3 {
+    font-size: 15px;
+  }
+
+  .group-description {
+    font-size: 12px;
+  }
+
+  .discover-card-stats {
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+
+  .stat-badge {
+    font-size: 11px;
+    padding: 4px 8px;
+  }
+
+  .stat-badge svg {
+    width: 12px;
+    height: 12px;
+  }
+
+  .btn-join-public,
+  .btn-already-member,
+  .btn-full {
+    padding: 10px 14px;
+    font-size: 13px;
+  }
+
+  .btn-join-public svg,
+  .btn-already-member svg,
+  .btn-full svg {
+    width: 14px;
+    height: 14px;
   }
 }

@@ -43,7 +43,7 @@ export default function GiftBottomSheet({ isOpen, onClose, recipientName, conver
       const catalogResponse = await giftService.getCatalog()
       setGifts(catalogResponse.gifts || [])
     } catch (error) {
-      console.error('Erreur chargement catégories:', error)
+      // Error silencieuse
     } finally {
       setLoading(false)
     }
@@ -82,7 +82,7 @@ export default function GiftBottomSheet({ isOpen, onClose, recipientName, conver
         const response = await giftService.getGiftsByCategory(category.id)
         setGifts(response.gifts || [])
       } catch (error) {
-        console.error('Erreur chargement cadeaux:', error)
+        // Error silencieuse
       }
     }
   }
@@ -126,7 +126,6 @@ export default function GiftBottomSheet({ isOpen, onClose, recipientName, conver
       setMessage('')
       setIsAnonymous(false)
     } catch (error) {
-      console.error('Erreur envoi cadeau:', error)
       const errorMessage = error.response?.data?.message || 'Erreur lors de l\'envoi du cadeau. Veuillez réessayer.'
 
       // Si erreur de solde insuffisant du backend

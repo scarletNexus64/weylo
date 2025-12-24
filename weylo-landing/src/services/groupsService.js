@@ -30,13 +30,37 @@ const groupsService = {
   },
 
   /**
-   * Rejoindre un groupe via code d'invitation
-   * @param {string} inviteCode - Code d'invitation du groupe
+   * Découvrir les groupes publics (sans être membre)
+   * @param {string} search - Terme de recherche optionnel
+   * @param {string} sortBy - Tri (recent, members, name)
+   * @param {number} page - Numéro de la page
+   * @param {number} perPage - Nombre de groupes par page
    */
-  joinGroup: async (inviteCode) => {
-    const response = await apiClient.post('/groups/join', {
-      invite_code: inviteCode
-    })
+  discoverGroups: async (search = '', sortBy = 'recent', page = 1, perPage = 50) => {
+    const params = { page, per_page: perPage }
+    if (search) params.search = search
+    if (sortBy) params.sort_by = sortBy
+
+    const response = await apiClient.get('/groups/discover', { params })
+    return response.data
+  },
+
+  /**
+   * Rejoindre un groupe via code d'invitation ou ID (pour groupes publics)
+   * @param {string|number} inviteCodeOrGroupId - Code d'invitation ou ID du groupe
+   */
+  joinGroup: async (inviteCodeOrGroupId) => {
+    const payload = {}
+
+    // Si c'est un nombre ou une chaîne numérique, c'est un group_id
+    if (typeof inviteCodeOrGroupId === 'number' || !isNaN(inviteCodeOrGroupId)) {
+      payload.group_id = parseInt(inviteCodeOrGroupId)
+    } else {
+      // Sinon, c'est un code d'invitation
+      payload.invite_code = inviteCodeOrGroupId
+    }
+
+    const response = await apiClient.post('/groups/join', payload)
     return response.data
   },
 

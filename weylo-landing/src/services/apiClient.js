@@ -1,6 +1,7 @@
 import axios from 'axios'
 
 // Base URL de l'API
+// https://weylo-adminpanel.space/api/v1
 const API_URL = import.meta.env.VITE_API_URL || 'https://weylo-adminpanel.space/api/v1'
 
 console.log('🔧 [API_CLIENT] Configuration:', {
@@ -16,7 +17,7 @@ const apiClient = axios.create({
     'Content-Type': 'application/json',
     'Accept': 'application/json',
   },
-  timeout: 30000, // 30 secondes
+  timeout: 15000, // 15 secondes (réduit pour correspondre au backend)
 })
 
 // Intercepteur de requête pour ajouter le token

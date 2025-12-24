@@ -10,6 +10,7 @@
   align-items: center;
   justify-content: center;
   animation: fadeIn 0.2s ease-in-out;
+  overflow: hidden;
 }
 
 @keyframes fadeIn {
@@ -31,6 +32,7 @@
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  margin: 0 auto;
 }
 
 /* Progress bars */
@@ -98,6 +100,8 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  flex-wrap: wrap;
+  max-width: 200px;
 }
 
 .story-anonymous-badge {
@@ -289,15 +293,45 @@
 
 /* Mobile responsiveness */
 @media (max-width: 768px) {
+  .story-viewer-overlay {
+    padding: 0;
+  }
+
   .story-viewer-container {
     max-width: 100%;
+    width: 100%;
     height: 100vh;
+    height: 100dvh;
     max-height: 100vh;
+    max-height: 100dvh;
     border-radius: 0;
+    margin: 0;
+  }
+
+  .story-progress-bars {
+    top: 6px;
+    left: 6px;
+    right: 6px;
+    gap: 3px;
+  }
+
+  .story-progress-bar-wrapper {
+    height: 2px;
+  }
+
+  .story-viewer-header {
+    top: 16px;
+    left: 12px;
+    right: 12px;
+  }
+
+  .story-viewer-user {
+    gap: 0.5rem;
   }
 
   .story-viewer-text p {
-    font-size: 1.25rem;
+    font-size: 1.125rem;
+    padding: 1rem;
   }
 
   .story-viewer-avatar {
@@ -306,22 +340,30 @@
   }
 
   .story-viewer-username {
-    font-size: 0.875rem;
+    font-size: 0.8125rem;
+    max-width: 150px;
+    gap: 0.25rem;
   }
 
   .story-viewer-time {
-    font-size: 0.75rem;
+    font-size: 0.7rem;
+  }
+
+  .story-viewer-close {
+    width: 32px;
+    height: 32px;
+    font-size: 1.125rem;
   }
 
   .story-viewer-footer {
-    bottom: 16px;
+    bottom: 20px;
     left: 12px;
     right: 12px;
   }
 
   .story-viewer-views {
-    padding: 8px 14px;
-    font-size: 13px;
+    padding: 8px 12px;
+    font-size: 12px;
   }
 
   .views-icon {
@@ -329,11 +371,26 @@
   }
 
   .views-count {
-    font-size: 14px;
+    font-size: 13px;
   }
 
   .views-label {
-    font-size: 12px;
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 480px) {
+  .story-viewer-username {
+    font-size: 0.75rem;
+    max-width: 120px;
+  }
+
+  .story-viewer-time {
+    display: none;
+  }
+
+  .story-viewer-text p {
+    font-size: 1rem;
   }
 }
 
@@ -371,6 +428,7 @@
   padding: 2rem;
   max-width: 400px;
   width: 90%;
+  max-width: calc(100vw - 2rem);
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
   border: 1px solid rgba(255, 255, 255, 0.1);
   animation: slideUp 0.3s ease-out;
@@ -467,11 +525,13 @@
   max-width: 500px;
   width: 100%;
   max-height: 70vh;
+  max-height: 70dvh;
   box-shadow: 0 -20px 60px rgba(0, 0, 0, 0.5);
   border: 1px solid rgba(255, 255, 255, 0.1);
   animation: slideUpBottom 0.3s ease-out;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 @keyframes slideUpBottom {
@@ -592,10 +652,34 @@
   font-weight: 500;
 }
 
-/* Mobile responsiveness for viewers modal */
+/* Mobile responsiveness for modals */
 @media (max-width: 768px) {
+  .story-reveal-modal-content {
+    padding: 1.5rem;
+    border-radius: 16px;
+  }
+
+  .story-reveal-modal-content h3 {
+    font-size: 1.25rem;
+  }
+
+  .story-reveal-modal-content p {
+    font-size: 0.9375rem;
+  }
+
+  .story-reveal-modal-actions {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .story-reveal-modal-actions button {
+    width: 100%;
+    padding: 0.875rem 1.25rem;
+  }
+
   .story-viewers-modal-content {
     max-height: 80vh;
+    max-height: 80dvh;
   }
 
   .story-viewers-header {
@@ -627,5 +711,20 @@
 
   .story-viewer-item-time {
     font-size: 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .story-reveal-modal-content h3 {
+    font-size: 1.125rem;
+  }
+
+  .story-reveal-modal-content p {
+    font-size: 0.875rem;
+  }
+
+  .story-viewers-modal-content {
+    max-height: 85vh;
+    max-height: 85dvh;
   }
 }

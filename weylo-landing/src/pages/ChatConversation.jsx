@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { useDialog } from '../contexts/DialogContext'
-import { ArrowLeft, Send, Image, Loader2, MessageCircle, Gift } from 'lucide-react'
+import { ArrowLeft, Send, Loader2, MessageCircle, Gift } from 'lucide-react'
 import chatService from '../services/chatService'
 import websocketService from '../services/websocketService'
 import GiftBottomSheet from '../components/gifts/GiftBottomSheet'
@@ -46,7 +46,7 @@ export default function ChatConversation() {
     return () => {
       // Cleanup WebSocket subscription
       console.log('🚪 [CHAT] Nettoyage - Désabonnement du channel conversation:', conversationId)
-      websocketService.leaveChannel(`private-conversation.${conversationId}`)
+      websocketService.leaveChannel(`conversation.${conversationId}`)
     }
   }, [conversationId, isAuthenticated, user])
 
@@ -149,23 +149,27 @@ export default function ChatConversation() {
 
       setMessages(transformedMessages)
 
-      // Scroll instantané au dernier message après le chargement
-      setTimeout(() => {
-        scrollToBottom('auto')
-      }, 100)
-
       // Marquer comme lu
       await chatService.markAsRead(conversationId)
 
-      // S'abonner aux nouveaux messages via WebSocket
-      const subscribeToWebSocket = (isConnected) => {
-        if (!isConnected) {
-          console.log('⏳ [CHAT] WebSocket pas encore connecté, attente...')
-          return
-        }
+      // S'abonner aux nouveaux messages via WebSocket (une seule fois)
+      if (!websocketService.isWebSocketConnected()) {
+        console.log('⏳ [CHAT] WebSocket pas encore connecté, attente...')
+        // Attendre la connexion puis s'abonner
+        const unsubscribe = websocketService.onConnectionChange((isConnected) => {
+          if (isConnected) {
+            console.log('🔔 [CHAT] WebSocket connecté, abonnement au channel de la conversation:', conversationId)
+            subscribeToChannel()
+            unsubscribe() // Se désabonner du listener après la première connexion
+          }
+        })
+      } else {
+        // Déjà connecté, s'abonner directement
+        console.log('🔔 [CHAT] WebSocket déjà connecté, abonnement au channel de la conversation:', conversationId)
+        subscribeToChannel()
+      }
 
-        console.log('🔔 [CHAT] WebSocket connecté, abonnement au channel de la conversation:', conversationId)
-
+      function subscribeToChannel() {
         const channel = websocketService.subscribeToConversationChannel(conversationId, {
           onChatMessageSent: (event) => {
             console.log('📨 [CHAT] Événement reçu:', event)
@@ -219,13 +223,14 @@ export default function ChatConversation() {
           console.log('⚠️ [CHAT] WebSocket non disponible, le chat fonctionnera sans temps réel')
         }
       }
-
-      // Écouter les changements de connexion et s'abonner quand c'est connecté
-      websocketService.onConnectionChange(subscribeToWebSocket)
     } catch (error) {
       console.error('❌ Erreur chargement messages:', error)
     } finally {
       setLoading(false)
+      // Scroll vers le bas après que le loading soit terminé et que le DOM soit mis à jour
+      setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'instant' })
+      }, 150)
     }
   }
 
@@ -264,7 +269,13 @@ export default function ChatConversation() {
       setTimeout(() => scrollToBottom(), 100)
     } catch (err) {
       console.error('❌ Erreur envoi message:', err)
-      error('Impossible d\'envoyer le message. Veuillez réessayer.')
+
+      // Gérer spécifiquement l'erreur 429 (Too Many Requests)
+      if (err.response?.status === 429) {
+        error('Vous envoyez des messages trop rapidement. Veuillez patienter quelques secondes.')
+      } else {
+        error('Impossible d\'envoyer le message. Veuillez réessayer.')
+      }
     } finally {
       setSending(false)
     }
@@ -446,16 +457,6 @@ export default function ChatConversation() {
           title="Envoyer un cadeau"
         >
           <Gift strokeWidth={2} />
-        </button>
-        <button
-          className="btn-image-upload"
-          disabled
-          title="L'envoi d'images sera bientôt disponible"
-        >
-          <Image strokeWidth={2} />
-          <span className="image-tooltip">
-            Fonctionnalité bientôt disponible
-          </span>
         </button>
         <input
           type="text"

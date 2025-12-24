@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import { Plus, Users, Lock, Globe, MessageCircle, Loader2, AlertCircle, UserPlus } from 'lucide-react'
+import { Plus, Users, Lock, Globe, MessageCircle, Loader2, AlertCircle, UserPlus, Search, TrendingUp } from 'lucide-react'
 import groupsService from '../services/groupsService'
 import '../styles/Groups.css'
 
@@ -11,7 +11,7 @@ export default function Groups() {
   const [groups, setGroups] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  const [activeView, setActiveView] = useState('list') // 'list', 'create', 'join'
+  const [activeView, setActiveView] = useState('list') // 'list', 'create', 'join', 'discover'
 
   useEffect(() => {
     if (!isAuthenticated || !user) {
@@ -123,12 +123,20 @@ export default function Groups() {
                       <p>Créez votre propre groupe anonyme et invitez vos amis</p>
                     </div>
 
+                    <div className="option-card discover-card" onClick={() => setActiveView('discover')}>
+                      <div className="option-icon">
+                        <Search size={32} strokeWidth={2} />
+                      </div>
+                      <h3>Découvrir des groupes</h3>
+                      <p>Explorez et rejoignez des groupes publics</p>
+                    </div>
+
                     <div className="option-card join-card" onClick={() => setActiveView('join')}>
                       <div className="option-icon">
                         <UserPlus size={32} strokeWidth={2} />
                       </div>
-                      <h3>Rejoindre un groupe</h3>
-                      <p>Utilisez un code d'invitation pour rejoindre un groupe</p>
+                      <h3>Code d'invitation</h3>
+                      <p>Rejoignez un groupe privé avec un code</p>
                     </div>
                   </div>
                 </>
@@ -139,11 +147,15 @@ export default function Groups() {
                   <div className="quick-actions">
                     <button className="quick-action-btn create" onClick={() => setActiveView('create')}>
                       <Plus size={20} strokeWidth={2.5} />
-                      <span>Créer un groupe</span>
+                      <span>Créer</span>
+                    </button>
+                    <button className="quick-action-btn discover" onClick={() => setActiveView('discover')}>
+                      <Search size={20} strokeWidth={2.5} />
+                      <span>Découvrir</span>
                     </button>
                     <button className="quick-action-btn join" onClick={() => setActiveView('join')}>
                       <UserPlus size={20} strokeWidth={2.5} />
-                      <span>Rejoindre</span>
+                      <span>Code</span>
                     </button>
                   </div>
 
@@ -205,6 +217,17 @@ export default function Groups() {
                 setActiveView('list')
                 loadGroups()
                 navigate(`/groups/${newGroup.id}`)
+              }}
+            />
+          )}
+
+          {/* Vue Découvrir des groupes publics */}
+          {activeView === 'discover' && (
+            <DiscoverGroupsView
+              onJoined={(joinedGroup) => {
+                setActiveView('list')
+                loadGroups()
+                navigate(`/groups/${joinedGroup.id}`)
               }}
             />
           )}
@@ -339,6 +362,184 @@ function CreateGroupView({ onCreated }) {
   )
 }
 
+// Discover Groups View Component
+function DiscoverGroupsView({ onJoined }) {
+  const [publicGroups, setPublicGroups] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [joining, setJoining] = useState(null) // ID du groupe en cours de join
+  const [error, setError] = useState('')
+  const [searchTerm, setSearchTerm] = useState('')
+  const [sortBy, setSortBy] = useState('name') // Tri par nom (A-Z) par défaut
+
+  useEffect(() => {
+    loadPublicGroups()
+  }, [searchTerm, sortBy])
+
+  const loadPublicGroups = async () => {
+    try {
+      setLoading(true)
+      setError('')
+      const response = await groupsService.discoverGroups(searchTerm, sortBy)
+      console.log('📦 Groupes publics chargés:', response)
+      setPublicGroups(Array.isArray(response.groups) ? response.groups : [])
+    } catch (err) {
+      console.error('❌ Erreur chargement groupes publics:', err)
+      setError('Impossible de charger les groupes publics')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleJoinGroup = async (groupId) => {
+    try {
+      setJoining(groupId)
+      setError('')
+      const response = await groupsService.joinGroup(groupId)
+      console.log('✅ Groupe rejoint:', response)
+      onJoined(response.group)
+    } catch (err) {
+      console.error('❌ Erreur rejoindre groupe:', err)
+      setError(err.response?.data?.message || 'Impossible de rejoindre le groupe')
+      setJoining(null)
+    }
+  }
+
+  const formatTime = (dateString) => {
+    if (!dateString) return 'Nouveau'
+    const date = new Date(dateString)
+    const now = new Date()
+    const diff = now - date
+    const hours = Math.floor(diff / 3600000)
+    const days = Math.floor(diff / 86400000)
+
+    if (hours < 1) return 'Actif maintenant'
+    if (hours < 24) return `Actif il y a ${hours}h`
+    if (days < 7) return `Actif il y a ${days}j`
+    return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })
+  }
+
+  return (
+    <div className="view-container discover-view">
+      <div className="view-header">
+        <div className="view-icon discover">
+          <Search size={28} strokeWidth={2} />
+        </div>
+        <h2>Découvrir des groupes</h2>
+        <p>Explorez et rejoignez des groupes publics disponibles</p>
+      </div>
+
+      {/* Recherche et filtres */}
+      <div className="discover-filters">
+        <div className="search-box">
+          <Search size={18} />
+          <input
+            type="text"
+            placeholder="Rechercher un groupe..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+
+        <select
+          className="sort-select"
+          value={sortBy}
+          onChange={(e) => setSortBy(e.target.value)}
+        >
+          <option value="name">Nom (A-Z)</option>
+          <option value="members">Plus de membres</option>
+          <option value="recent">Plus récents</option>
+        </select>
+      </div>
+
+      {error && <div className="error-message">{error}</div>}
+
+      {/* Liste des groupes publics */}
+      {loading ? (
+        <div className="loading-state">
+          <Loader2 className="spinner" size={32} />
+          <p>Chargement des groupes...</p>
+        </div>
+      ) : publicGroups.length === 0 ? (
+        <div className="empty-state">
+          <Globe size={48} strokeWidth={1.5} />
+          <h3>Aucun groupe public</h3>
+          <p>Il n'y a pas encore de groupes publics disponibles</p>
+        </div>
+      ) : (
+        <div className="discover-list">
+          {publicGroups.map(group => (
+            <div key={group.id} className="discover-card">
+              <div className="discover-card-header">
+                <div className="group-avatar">
+                  <Users size={24} strokeWidth={2} />
+                </div>
+                <div className="group-info">
+                  <div className="group-name-row">
+                    <h3>{group.name}</h3>
+                    <Globe size={14} className="public-badge" />
+                  </div>
+                  {group.description && (
+                    <p className="group-description">{group.description}</p>
+                  )}
+                </div>
+              </div>
+
+              <div className="discover-card-stats">
+                <span className="stat-badge">
+                  <Users size={14} strokeWidth={2} />
+                  {group.members_count} membres
+                </span>
+                <span className="stat-badge">
+                  <MessageCircle size={14} strokeWidth={2} />
+                  {group.messages_count || 0} messages
+                </span>
+                {group.last_message_at && (
+                  <span className="stat-badge activity">
+                    <TrendingUp size={14} strokeWidth={2} />
+                    {formatTime(group.last_message_at)}
+                  </span>
+                )}
+              </div>
+
+              <div className="discover-card-footer">
+                {group.is_member ? (
+                  <button className="btn-already-member" disabled>
+                    <Users size={16} strokeWidth={2} />
+                    Déjà membre
+                  </button>
+                ) : !group.can_join ? (
+                  <button className="btn-full" disabled>
+                    <Lock size={16} strokeWidth={2} />
+                    Groupe plein
+                  </button>
+                ) : (
+                  <button
+                    className="btn-join-public"
+                    onClick={() => handleJoinGroup(group.id)}
+                    disabled={joining === group.id}
+                  >
+                    {joining === group.id ? (
+                      <>
+                        <Loader2 className="spinner" size={16} strokeWidth={2} />
+                        Rejoindre...
+                      </>
+                    ) : (
+                      <>
+                        <UserPlus size={16} strokeWidth={2} />
+                        Rejoindre
+                      </>
+                    )}
+                  </button>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 // Join Group View Component
 function JoinGroupView({ onJoined }) {
   const [inviteCode, setInviteCode] = useState('')
@@ -373,8 +574,8 @@ function JoinGroupView({ onJoined }) {
         <div className="view-icon join">
           <UserPlus size={28} strokeWidth={2} />
         </div>
-        <h2>Rejoindre un groupe</h2>
-        <p>Entrez le code d'invitation que vous avez reçu pour rejoindre un groupe anonyme</p>
+        <h2>Code d'invitation</h2>
+        <p>Entrez le code d'invitation que vous avez reçu pour rejoindre un groupe privé</p>
       </div>
 
       <form onSubmit={handleSubmit} className="view-form">
