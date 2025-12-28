@@ -20,6 +20,8 @@ const StoryViewer = ({ userId, username, allStories = [], currentUserIndex = 0, 
   const [showViewers, setShowViewers] = useState(false)
   const [viewers, setViewers] = useState([])
   const [viewersLoading, setViewersLoading] = useState(false)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [deleteLoading, setDeleteLoading] = useState(false)
   const [touchStart, setTouchStart] = useState({ x: 0, y: 0, time: 0 })
   const [touchEnd, setTouchEnd] = useState({ x: 0, y: 0, time: 0 })
   const [swipeOffset, setSwipeOffset] = useState(0)
@@ -190,6 +192,43 @@ const StoryViewer = ({ userId, username, allStories = [], currentUserIndex = 0, 
       showError(err.response?.data?.message || 'Erreur lors du paiement')
     } finally {
       setRevealLoading(false)
+    }
+  }
+
+  const handleDeleteStory = async () => {
+    const story = userStories[currentIndex]
+    if (!story) return
+
+    setDeleteLoading(true)
+    try {
+      await storiesService.deleteStory(story.id)
+
+      // Supprimer la story de la liste locale
+      const updatedStories = userStories.filter((_, index) => index !== currentIndex)
+      setUserStories(updatedStories)
+      setShowDeleteConfirm(false)
+
+      // Si c'était la dernière story de cet utilisateur
+      if (updatedStories.length === 0) {
+        // Passer à l'utilisateur suivant ou fermer
+        const nextUserIndex = currentUserIndex + 1
+        if (onNextUser && nextUserIndex < allStories.length) {
+          onNextUser(nextUserIndex)
+        } else {
+          onClose()
+        }
+      } else {
+        // Ajuster l'index si nécessaire
+        if (currentIndex >= updatedStories.length) {
+          setCurrentIndex(updatedStories.length - 1)
+        }
+        setProgress(0)
+      }
+    } catch (err) {
+      console.error('Erreur lors de la suppression:', err)
+      showError(err.response?.data?.message || 'Erreur lors de la suppression de la story')
+    } finally {
+      setDeleteLoading(false)
     }
   }
 
@@ -441,7 +480,7 @@ const StoryViewer = ({ userId, username, allStories = [], currentUserIndex = 0, 
           <div className="story-nav-area story-nav-right" />
         </div>
 
-        {/* Footer with views */}
+        {/* Footer with views and delete */}
         {currentStory.user.id === user?.id && (
           <div className="story-viewer-footer">
             <div
@@ -466,6 +505,16 @@ const StoryViewer = ({ userId, username, allStories = [], currentUserIndex = 0, 
                   : 'vues'}
               </span>
             </div>
+            <button
+              className="story-delete-btn"
+              onClick={(e) => {
+                e.stopPropagation()
+                setShowDeleteConfirm(true)
+                handlePause()
+              }}
+            >
+              <span className="delete-icon">🗑️</span>
+            </button>
           </div>
         )}
       </div>
@@ -554,6 +603,35 @@ const StoryViewer = ({ userId, username, allStories = [], currentUserIndex = 0, 
                 </div>
               </>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Modal de confirmation de suppression */}
+      {showDeleteConfirm && (
+        <div className="story-delete-modal" onClick={() => { setShowDeleteConfirm(false); handleResume(); }}>
+          <div className="story-delete-modal-content" onClick={(e) => e.stopPropagation()}>
+            <h3>Supprimer la story ?</h3>
+            <p>Cette action est irréversible. Voulez-vous vraiment supprimer cette story ?</p>
+            <div className="story-delete-modal-actions">
+              <button
+                className="btn-cancel"
+                onClick={() => {
+                  setShowDeleteConfirm(false)
+                  handleResume()
+                }}
+                disabled={deleteLoading}
+              >
+                Annuler
+              </button>
+              <button
+                className="btn-delete"
+                onClick={handleDeleteStory}
+                disabled={deleteLoading}
+              >
+                {deleteLoading ? 'Suppression...' : 'Supprimer'}
+              </button>
+            </div>
           </div>
         </div>
       )}

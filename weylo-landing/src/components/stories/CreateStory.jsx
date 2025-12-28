@@ -387,7 +387,6 @@ const CreateStory = ({ onClose, onSuccess }) => {
                   ref={fileInputRef}
                   type="file"
                   accept="image/*"
-                  capture="environment"
                   multiple={false}
                   onChange={handleFileSelect}
                   style={{ display: 'none' }}

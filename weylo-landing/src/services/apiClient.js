@@ -1,7 +1,8 @@
 import axios from 'axios'
 
 // Base URL de l'API
-// https://weylo-adminpanel.space/api/v1
+// https://192.168.1.149/api/v1
+// const API_URL = import.meta.env.VITE_API_URL || 'http://192.168.1.149:8001/api/v1'
 const API_URL = import.meta.env.VITE_API_URL || 'https://weylo-adminpanel.space/api/v1'
 
 console.log('🔧 [API_CLIENT] Configuration:', {
@@ -17,7 +18,7 @@ const apiClient = axios.create({
     'Content-Type': 'application/json',
     'Accept': 'application/json',
   },
-  timeout: 15000, // 15 secondes (réduit pour correspondre au backend)
+  timeout: 60000, // 30 secondes pour permettre au backend de vérifier Lygos
 })
 
 // Intercepteur de requête pour ajouter le token

@@ -1,23 +1,45 @@
 import { useState, useEffect } from 'react'
-import { Eye, Lock, Loader2, CreditCard, Smartphone, CheckCircle, XCircle } from 'lucide-react'
+import { Eye, Lock, Loader2, CreditCard, CheckCircle, XCircle } from 'lucide-react'
 import messagesService from '../services/messagesService'
+import chatService from '../services/chatService'
 import { useNavigate } from 'react-router-dom'
 import { useDialog } from '../contexts/DialogContext'
 import './RevealIdentityButton.css'
 
-export default function RevealIdentityButton({ message, onReveal }) {
+// Liste des pays disponibles avec leurs codes et drapeaux
+const COUNTRIES = [
+  { code: '+229', name: 'Bénin', flag: '🇧🇯', iso: 'bj' },
+  { code: '+226', name: 'Burkina Faso', flag: '🇧🇫', iso: 'bf' },
+  { code: '+237', name: 'Cameroun', flag: '🇨🇲', iso: 'cm' },
+  { code: '+242', name: 'Congo', flag: '🇨🇬', iso: 'cg' },
+  { code: '+225', name: "Côte d'Ivoire", flag: '🇨🇮', iso: 'ci' },
+  { code: '+243', name: 'RD Congo', flag: '🇨🇩', iso: 'cd' },
+  { code: '+241', name: 'Gabon', flag: '🇬🇦', iso: 'ga' },
+  { code: '+254', name: 'Kenya', flag: '🇰🇪', iso: 'ke' },
+  { code: '+250', name: 'Rwanda', flag: '🇷🇼', iso: 'rw' },
+  { code: '+221', name: 'Sénégal', flag: '🇸🇳', iso: 'sn' },
+  { code: '+255', name: 'Tanzanie', flag: '🇹🇿', iso: 'tz' },
+  { code: '+260', name: 'Zambie', flag: '🇿🇲', iso: 'zm' }
+]
+
+export default function RevealIdentityButton({ message, conversationId, onReveal }) {
   const navigate = useNavigate()
   const { success, info } = useDialog()
   const [revealPrice, setRevealPrice] = useState(250)
   const [currency, setCurrency] = useState('XAF')
   const [loading, setLoading] = useState(true)
   const [showPaymentModal, setShowPaymentModal] = useState(false)
+  const [selectedCountry, setSelectedCountry] = useState(COUNTRIES[2]) // Cameroun par défaut
   const [phoneNumber, setPhoneNumber] = useState('')
   const operator = 'MTN_MOMO_CMR' // Opérateur fixe
   const [initiating, setInitiating] = useState(false)
   const [paymentData, setPaymentData] = useState(null)
   const [checkingPayment, setCheckingPayment] = useState(false)
   const [paymentError, setPaymentError] = useState(null)
+  const [lygosIsSlow, setLygosIsSlow] = useState(false)
+
+  // Déterminer si on est dans un contexte de conversation ou de message
+  const isConversationContext = !!conversationId
 
   useEffect(() => {
     fetchRevealPrice()
@@ -40,14 +62,16 @@ export default function RevealIdentityButton({ message, onReveal }) {
   const handleRevealClick = () => {
     setShowPaymentModal(true)
     setPaymentError(null)
+    setLygosIsSlow(false)
   }
 
   const handleInitiatePayment = async (e) => {
     e.preventDefault()
 
     // Validation du numéro de téléphone
-    if (!phoneNumber.match(/^237[0-9]{9}$/)) {
-      setPaymentError('Le numéro doit être au format 237XXXXXXXXX')
+    const cleanedNumber = phoneNumber.replace(/\s+/g, '')
+    if (!cleanedNumber || cleanedNumber.length < 6) {
+      setPaymentError('Veuillez entrer un numéro de téléphone valide')
       return
     }
 
@@ -55,26 +79,17 @@ export default function RevealIdentityButton({ message, onReveal }) {
       setInitiating(true)
       setPaymentError(null)
 
-      const response = await messagesService.initiateRevealPayment(
-        message.id,
-        phoneNumber,
-        operator
-      )
+      // Construire le numéro complet: code pays + numéro (ex: 237651234567)
+      // Le backend attend le format sans le signe +
+      const fullPhoneNumber = selectedCountry.code.replace('+', '') + cleanedNumber
+
+      // Utiliser le bon service selon le contexte
+      const response = isConversationContext
+        ? await chatService.initiateRevealPayment(conversationId, fullPhoneNumber, operator)
+        : await messagesService.initiateRevealPayment(message.id, fullPhoneNumber, operator)
 
       if (response.success && response.data) {
         setPaymentData(response.data)
-
-        // Ouvrir le lien de paiement dans une nouvelle fenêtre
-        if (response.data.payment_link) {
-          const popup = window.open(response.data.payment_link, '_blank', 'noopener,noreferrer')
-
-          // Vérifier si la popup a été bloquée
-          if (!popup || popup.closed || typeof popup.closed === 'undefined') {
-            console.warn('⚠️ Popup bloquée par le navigateur')
-            // La popup est bloquée, l'utilisateur devra cliquer manuellement sur le lien
-            // On affiche quand même le message avec le lien cliquable
-          }
-        }
 
         // Commencer à vérifier le statut du paiement
         startPaymentStatusCheck()
@@ -83,10 +98,37 @@ export default function RevealIdentityButton({ message, onReveal }) {
       }
     } catch (error) {
       console.error('Error initiating payment:', error)
-      setPaymentError(
-        error.response?.data?.message ||
-        "Erreur lors de l'initialisation du paiement"
-      )
+
+      // Gérer différents types d'erreurs
+      let errorMessage = "Erreur lors de l'initialisation du paiement"
+
+      if (error.response) {
+        // Erreur HTTP du serveur
+        const { status, data } = error.response
+
+        if (status === 500) {
+          errorMessage = "Erreur serveur. Le service de paiement est temporairement indisponible. Veuillez réessayer dans quelques instants."
+        } else if (status === 403) {
+          errorMessage = data?.message || "Vous n'êtes pas autorisé à révéler cette identité. Seul le destinataire du message peut révéler l'identité de l'expéditeur."
+        } else if (status === 400) {
+          errorMessage = data?.message || "Données invalides. Vérifiez votre numéro de téléphone."
+        } else if (status === 404) {
+          errorMessage = "Service de paiement non disponible."
+        } else if (status === 422) {
+          // Erreurs de validation
+          errorMessage = data?.message || "Erreur de validation des données."
+        } else {
+          errorMessage = data?.message || `Erreur ${status}: ${error.response.statusText}`
+        }
+      } else if (error.request) {
+        // Requête envoyée mais pas de réponse
+        errorMessage = "Impossible de contacter le serveur. Vérifiez votre connexion internet."
+      } else {
+        // Erreur lors de la configuration de la requête
+        errorMessage = error.message || "Une erreur inattendue s'est produite."
+      }
+
+      setPaymentError(errorMessage)
     } finally {
       setInitiating(false)
     }
@@ -94,22 +136,32 @@ export default function RevealIdentityButton({ message, onReveal }) {
 
   const startPaymentStatusCheck = () => {
     setCheckingPayment(true)
+    setLygosIsSlow(false) // Reset au début
     let failureCount = 0
-    const maxFailures = 3 // Arrêter après 3 échecs consécutifs
+    const maxFailures = 5 // Augmenté à 5 échecs consécutifs avant d'arrêter
+    let checkCount = 0
 
-    // Vérifier le statut toutes les 5 secondes (augmenté pour réduire la charge)
+    // Vérifier le statut toutes les 8 secondes (augmenté pour éviter la surcharge)
     const interval = setInterval(async () => {
+      checkCount++
+
       try {
-        const response = await messagesService.checkRevealPaymentStatus(message.id)
+        console.log(`🔍 [REVEAL] Vérification #${checkCount} du statut du paiement...`)
+
+        // Utiliser le bon service selon le contexte
+        const response = isConversationContext
+          ? await chatService.checkRevealPaymentStatus(conversationId)
+          : await messagesService.checkRevealPaymentStatus(message.id)
 
         // Reset failure count on successful API call
         failureCount = 0
 
         // Log détaillé pour debug
-        console.log('🔍 [REVEAL] Statut du paiement:', {
+        console.log('✅ [REVEAL] Statut du paiement:', {
           success: response.success,
           status: response.data?.status,
           lygos_status: response.data?.lygos_status,
+          lygos_timeout: response.data?.lygos_timeout,
           full_response: response.data
         })
 
@@ -131,11 +183,24 @@ export default function RevealIdentityButton({ message, onReveal }) {
             clearInterval(interval)
             setCheckingPayment(false)
             setPaymentError('Le paiement a échoué. Veuillez réessayer.')
+          } else if (response.data.status === 'processing') {
+            // Si Lygos timeout est détecté, afficher un message informatif
+            if (response.data.lygos_timeout) {
+              console.log('⏱️ [REVEAL] Lygos est lent, vérification continue...')
+              setLygosIsSlow(true)
+            }
+            // Continuer de vérifier
           }
-          // Si status = 'processing', on continue de vérifier
         }
       } catch (error) {
-        console.error('Error checking payment status:', error)
+        console.error(`❌ [REVEAL] Erreur lors de la vérification #${checkCount}:`, error)
+
+        // Gérer les erreurs de timeout spécifiquement
+        if (error.code === 'ECONNABORTED' && error.message.includes('timeout')) {
+          console.warn(`⏱️ [REVEAL] Timeout lors de la vérification #${checkCount}, réessai...`)
+          // Ne pas incrémenter failureCount pour les timeouts, c'est normal si Lygos est lent
+          return
+        }
 
         // Gérer les erreurs HTTP spécifiques
         if (error.response) {
@@ -159,12 +224,13 @@ export default function RevealIdentityButton({ message, onReveal }) {
           }
         }
 
-        // Pour les autres erreurs (timeout, réseau, etc.)
+        // Pour les autres erreurs (réseau, etc.)
         failureCount++
+        console.warn(`⚠️ [REVEAL] Échec ${failureCount}/${maxFailures}`)
 
         // Arrêter après plusieurs échecs consécutifs
         if (failureCount >= maxFailures) {
-          console.error('Too many failures, stopping status check')
+          console.error('❌ [REVEAL] Trop d\'échecs consécutifs, arrêt de la vérification')
           clearInterval(interval)
           setCheckingPayment(false)
           setPaymentError(
@@ -172,9 +238,9 @@ export default function RevealIdentityButton({ message, onReveal }) {
           )
         }
       }
-    }, 5000) // Augmenté à 5 secondes
+    }, 8000) // Augmenté à 8 secondes pour réduire la charge
 
-    // Arrêter après 5 minutes (60 vérifications)
+    // Arrêter après 8 minutes (60 vérifications à 8s = 480s)
     setTimeout(() => {
       clearInterval(interval)
       if (checkingPayment) {
@@ -183,7 +249,7 @@ export default function RevealIdentityButton({ message, onReveal }) {
           'La vérification a pris trop de temps. Utilisez le bouton "Vérifier le statut" pour réessayer.'
         )
       }
-    }, 300000)
+    }, 480000)
   }
 
   const handleManualCheck = async () => {
@@ -191,7 +257,10 @@ export default function RevealIdentityButton({ message, onReveal }) {
       setCheckingPayment(true)
       setPaymentError(null) // Réinitialiser l'erreur
 
-      const response = await messagesService.checkRevealPaymentStatus(message.id)
+      // Utiliser le bon service selon le contexte
+      const response = isConversationContext
+        ? await chatService.checkRevealPaymentStatus(conversationId)
+        : await messagesService.checkRevealPaymentStatus(message.id)
 
       if (response.success && response.data) {
         if (response.data.status === 'revealed') {
@@ -211,29 +280,29 @@ export default function RevealIdentityButton({ message, onReveal }) {
     } catch (error) {
       console.error('Error checking payment status:', error)
 
-      // Gérer les erreurs HTTP spécifiques
+      let errorMessage = 'Erreur lors de la vérification du paiement'
+
       if (error.response) {
-        const status = error.response.status
-        const data = error.response.data
+        const { status, data } = error.response
 
-        // 400 = Paiement échoué
-        if (status === 400) {
-          setPaymentError(data?.message || 'Le paiement a échoué. Veuillez réessayer.')
-          return
+        if (status === 500) {
+          errorMessage = "Erreur serveur lors de la vérification. Veuillez réessayer."
+        } else if (status === 403) {
+          errorMessage = data?.message || "Vous n'êtes pas autorisé à révéler cette identité. Seul le destinataire du message peut révéler l'identité de l'expéditeur."
+        } else if (status === 400) {
+          errorMessage = data?.message || 'Le paiement a échoué. Veuillez réessayer.'
+        } else if (status === 404) {
+          errorMessage = 'Aucun paiement en cours trouvé pour ce message.'
+        } else {
+          errorMessage = data?.message || `Erreur ${status}: ${error.response.statusText}`
         }
-
-        // 404 = Aucun paiement trouvé
-        if (status === 404) {
-          setPaymentError('Aucun paiement en cours trouvé pour ce message.')
-          return
-        }
+      } else if (error.request) {
+        errorMessage = "Impossible de contacter le serveur. Vérifiez votre connexion internet."
+      } else {
+        errorMessage = error.message || "Une erreur inattendue s'est produite."
       }
 
-      // Erreur générique
-      setPaymentError(
-        error.response?.data?.message ||
-        'Erreur lors de la vérification du paiement'
-      )
+      setPaymentError(errorMessage)
     } finally {
       setCheckingPayment(false)
     }
@@ -283,18 +352,28 @@ export default function RevealIdentityButton({ message, onReveal }) {
                     <div className="form-group">
                       <label htmlFor="phoneNumber">
                         Numéro de téléphone
-                        <span className="label-hint">(Format: 237XXXXXXXXX)</span>
                       </label>
-                      <div className="phone-input-wrapper">
-                        <Smartphone size={20} className="input-icon" />
+                      <div className="phone-input-container">
+                        <select
+                          className="country-selector"
+                          value={selectedCountry.code}
+                          onChange={(e) => {
+                            const country = COUNTRIES.find(c => c.code === e.target.value)
+                            setSelectedCountry(country)
+                          }}
+                        >
+                          {COUNTRIES.map((country) => (
+                            <option key={country.iso} value={country.code}>
+                              {country.flag} {country.code}
+                            </option>
+                          ))}
+                        </select>
                         <input
-                          id="phoneNumber"
                           type="tel"
+                          className="phone-number-input"
                           value={phoneNumber}
-                          onChange={(e) => setPhoneNumber(e.target.value)}
-                          placeholder="237651234567"
-                          className="form-input"
-                          pattern="237[0-9]{9}"
+                          onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, ''))}
+                          placeholder="651234567"
                           required
                         />
                       </div>
@@ -350,46 +429,53 @@ export default function RevealIdentityButton({ message, onReveal }) {
               ) : (
                 <>
                   <div className="payment-status-box">
+                    {paymentData.payment_link && (
+                      <div style={{ marginBottom: '20px', textAlign: 'center' }}>
+                        <a
+                          href={paymentData.payment_link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="btn-confirm"
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '10px',
+                            textDecoration: 'none',
+                            padding: '14px 28px',
+                            borderRadius: '12px',
+                            fontSize: '16px',
+                            fontWeight: '700',
+                            animation: 'pulse 2s infinite'
+                          }}
+                        >
+                          <CreditCard size={20} />
+                          Cliquez ici pour payer
+                        </a>
+                      </div>
+                    )}
+
                     {checkingPayment ? (
                       <>
                         <Loader2 className="spinner payment-spinner" size={48} />
-                        <h4>Paiement en cours...</h4>
-                        <p>Veuillez compléter le paiement sur votre téléphone</p>
+                        <h4>Vérification du paiement en cours...</h4>
+                        <p>
+                          {lygosIsSlow
+                            ? 'La connexion avec le service de paiement est lente, veuillez patienter...'
+                            : 'Une fois le paiement effectué, cette fenêtre se fermera automatiquement'}
+                        </p>
                         <div className="payment-details">
                           <p><strong>Référence:</strong> {paymentData.reference}</p>
                           <p><strong>Montant:</strong> {paymentData.amount} {paymentData.currency}</p>
                         </div>
-
-                        {paymentData.payment_link && (
-                          <div style={{ marginTop: '20px' }}>
-                            <p style={{ fontSize: '14px', color: '#666', marginBottom: '10px' }}>
-                              Si la page de paiement ne s&apos;est pas ouverte:
-                            </p>
-                            <a
-                              href={paymentData.payment_link}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="btn-confirm"
-                              style={{
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '8px',
-                                textDecoration: 'none',
-                                padding: '10px 20px',
-                                borderRadius: '8px'
-                              }}
-                            >
-                              <CreditCard size={16} />
-                              Cliquez ici pour payer
-                            </a>
-                          </div>
-                        )}
                       </>
                     ) : (
                       <>
                         <CheckCircle className="payment-icon success" size={48} />
                         <h4>Paiement initié</h4>
                         <p>Référence: {paymentData.reference}</p>
+                        <p style={{ fontSize: '14px', color: '#666', marginTop: '10px' }}>
+                          Cliquez sur le bouton ci-dessus pour effectuer le paiement
+                        </p>
                       </>
                     )}
                   </div>

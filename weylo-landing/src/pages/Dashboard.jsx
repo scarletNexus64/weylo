@@ -54,6 +54,28 @@ export default function Dashboard() {
     }
   }, [user])
 
+  // Gérer l'effet de scroll pour le header mobile
+  useEffect(() => {
+    const handleScroll = () => {
+      const header = document.querySelector('.dashboard-header')
+      if (header) {
+        if (window.scrollY > 10) {
+          header.classList.add('scrolled')
+        } else {
+          header.classList.remove('scrolled')
+        }
+      }
+    }
+
+    // Ajouter l'écouteur
+    window.addEventListener('scroll', handleScroll, { passive: true })
+
+    // Nettoyer
+    return () => {
+      window.removeEventListener('scroll', handleScroll)
+    }
+  }, [])
+
   // Générer le lien dynamiquement selon l'environnement (IP, DNS, 192.168.1.149, production)
   const getBaseUrl = () => {
     // Utiliser toujours l'origine actuelle pour s'adapter automatiquement au contexte

@@ -109,11 +109,34 @@ const chatService = {
   },
 
   /**
-   * Révéler l'identité de l'autre participant dans une conversation
+   * Révéler l'identité de l'autre participant dans une conversation (avec wallet)
    * @param {number} conversationId - ID de la conversation
    */
   revealIdentity: async (conversationId) => {
     const response = await apiClient.post(`/chat/conversations/${conversationId}/reveal`)
+    return response.data
+  },
+
+  /**
+   * Initier le paiement Lygos pour révéler l'identité dans une conversation
+   * @param {number} conversationId - ID de la conversation
+   * @param {string} phoneNumber - Numéro de téléphone pour le paiement
+   * @param {string} operator - Opérateur de paiement
+   */
+  initiateRevealPayment: async (conversationId, phoneNumber, operator) => {
+    const response = await apiClient.post(`/reveal-identity/conversations/${conversationId}/initiate`, {
+      phone_number: phoneNumber,
+      operator: operator
+    })
+    return response.data
+  },
+
+  /**
+   * Vérifier le statut du paiement de révélation d'identité dans une conversation
+   * @param {number} conversationId - ID de la conversation
+   */
+  checkRevealPaymentStatus: async (conversationId) => {
+    const response = await apiClient.get(`/reveal-identity/conversations/${conversationId}/status`)
     return response.data
   }
 }

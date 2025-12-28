@@ -124,6 +124,8 @@ export default function ChatConversation() {
         is_online: otherParticipant.is_online || false,
         is_premium: otherParticipant.is_premium || false,
         identity_revealed: conv.identity_revealed || false, // Synchronisé avec Messages
+        anonymous_message_id: conv.anonymous_message_id || null, // ID du message anonyme d'origine
+        can_initiate_reveal: conv.can_initiate_reveal || false, // Peut payer pour révéler l'identité
         streak_days: conv.streak?.count || 0,
         flame_level: mapFlameLevel(conv.streak?.flame_level),
       })
@@ -317,12 +319,11 @@ export default function ChatConversation() {
 
   const handleRevealIdentity = async () => {
     try {
-      const result = await chatService.revealIdentity(conversationId)
-
-      // Recharger les données de la conversation pour afficher le vrai nom
+      // Le paiement est géré par RevealIdentityButton
+      // On recharge juste la conversation après succès
       await loadConversationData()
 
-      console.log('✅ Identité révélée dans la conversation:', result)
+      console.log('✅ Identité révélée dans la conversation')
     } catch (error) {
       console.error('❌ Erreur révélation identité:', error)
       // L'erreur sera gérée par le composant RevealIdentityButton
@@ -366,11 +367,14 @@ export default function ChatConversation() {
               <p className={conversation.is_online ? 'status-online' : 'status-offline'}>
                 {conversation.is_online ? '● En ligne' : '○ Hors ligne'}
               </p>
-              {/* Bouton Révéler l'identité si pas encore révélé */}
-              {!conversation.identity_revealed && (
+              {/* Bouton Révéler l'identité si l'utilisateur peut initier le paiement */}
+              {conversation.can_initiate_reveal && (
                 <div style={{ marginTop: '8px' }}>
                   <RevealIdentityButton
-                    message={{ is_identity_revealed: conversation.identity_revealed }}
+                    conversationId={conversation.id}
+                    message={{
+                      is_identity_revealed: conversation.identity_revealed
+                    }}
                     onReveal={handleRevealIdentity}
                   />
                 </div>
