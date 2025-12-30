@@ -6,20 +6,20 @@ import { useNavigate } from 'react-router-dom'
 import { useDialog } from '../contexts/DialogContext'
 import './RevealIdentityButton.css'
 
-// Liste des pays disponibles avec leurs codes et drapeaux
+// Liste des pays disponibles avec leurs codes, drapeaux et formats de numéro
 const COUNTRIES = [
-  { code: '+229', name: 'Bénin', flag: '🇧🇯', iso: 'bj' },
-  { code: '+226', name: 'Burkina Faso', flag: '🇧🇫', iso: 'bf' },
-  { code: '+237', name: 'Cameroun', flag: '🇨🇲', iso: 'cm' },
-  { code: '+242', name: 'Congo', flag: '🇨🇬', iso: 'cg' },
-  { code: '+225', name: "Côte d'Ivoire", flag: '🇨🇮', iso: 'ci' },
-  { code: '+243', name: 'RD Congo', flag: '🇨🇩', iso: 'cd' },
-  { code: '+241', name: 'Gabon', flag: '🇬🇦', iso: 'ga' },
-  { code: '+254', name: 'Kenya', flag: '🇰🇪', iso: 'ke' },
-  { code: '+250', name: 'Rwanda', flag: '🇷🇼', iso: 'rw' },
-  { code: '+221', name: 'Sénégal', flag: '🇸🇳', iso: 'sn' },
-  { code: '+255', name: 'Tanzanie', flag: '🇹🇿', iso: 'tz' },
-  { code: '+260', name: 'Zambie', flag: '🇿🇲', iso: 'zm' }
+  { code: '+229', name: 'Bénin', flag: '🇧🇯', iso: 'bj', length: [8, 9], example: '97123456' },
+  { code: '+226', name: 'Burkina Faso', flag: '🇧🇫', iso: 'bf', length: [8], example: '70123456' },
+  { code: '+237', name: 'Cameroun', flag: '🇨🇲', iso: 'cm', length: [9], example: '651234567' },
+  { code: '+242', name: 'Congo', flag: '🇨🇬', iso: 'cg', length: [9], example: '061234567' },
+  { code: '+225', name: "Côte d'Ivoire", flag: '🇨🇮', iso: 'ci', length: [10], example: '0701234567' },
+  { code: '+243', name: 'RD Congo', flag: '🇨🇩', iso: 'cd', length: [9], example: '991234567' },
+  { code: '+241', name: 'Gabon', flag: '🇬🇦', iso: 'ga', length: [7, 8], example: '06123456' },
+  { code: '+254', name: 'Kenya', flag: '🇰🇪', iso: 'ke', length: [9, 10], example: '712345678' },
+  { code: '+250', name: 'Rwanda', flag: '🇷🇼', iso: 'rw', length: [9], example: '781234567' },
+  { code: '+221', name: 'Sénégal', flag: '🇸🇳', iso: 'sn', length: [9], example: '771234567' },
+  { code: '+255', name: 'Tanzanie', flag: '🇹🇿', iso: 'tz', length: [9], example: '712345678' },
+  { code: '+260', name: 'Zambie', flag: '🇿🇲', iso: 'zm', length: [9], example: '971234567' }
 ]
 
 export default function RevealIdentityButton({ message, conversationId, onReveal }) {
@@ -44,6 +44,12 @@ export default function RevealIdentityButton({ message, conversationId, onReveal
   useEffect(() => {
     fetchRevealPrice()
   }, [])
+
+  // Réinitialiser le numéro de téléphone et l'erreur lors du changement de pays
+  useEffect(() => {
+    setPhoneNumber('')
+    setPaymentError(null)
+  }, [selectedCountry.code])
 
   const fetchRevealPrice = async () => {
     try {
@@ -70,8 +76,18 @@ export default function RevealIdentityButton({ message, conversationId, onReveal
 
     // Validation du numéro de téléphone
     const cleanedNumber = phoneNumber.replace(/\s+/g, '')
-    if (!cleanedNumber || cleanedNumber.length < 6) {
-      setPaymentError('Veuillez entrer un numéro de téléphone valide')
+    if (!cleanedNumber) {
+      setPaymentError('Veuillez entrer un numéro de téléphone')
+      return
+    }
+
+    // Validation de la longueur selon le pays sélectionné
+    const isValidLength = selectedCountry.length.includes(cleanedNumber.length)
+    if (!isValidLength) {
+      const lengthText = selectedCountry.length.length > 1
+        ? `${selectedCountry.length[0]} ou ${selectedCountry.length[1]} chiffres`
+        : `${selectedCountry.length[0]} chiffres`
+      setPaymentError(`Pour ${selectedCountry.name}, le numéro doit contenir ${lengthText}. Exemple: ${selectedCountry.example}`)
       return
     }
 
@@ -373,12 +389,12 @@ export default function RevealIdentityButton({ message, conversationId, onReveal
                           className="phone-number-input"
                           value={phoneNumber}
                           onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, ''))}
-                          placeholder="651234567"
+                          placeholder={selectedCountry.example}
                           required
                         />
                       </div>
                       <small className="input-help">
-                        Le paiement sera débité de ce numéro
+                        Format attendu pour {selectedCountry.name}: {selectedCountry.example} ({selectedCountry.length.length > 1 ? `${selectedCountry.length[0]} ou ${selectedCountry.length[1]}` : selectedCountry.length[0]} chiffres)
                       </small>
                     </div>
 
