@@ -602,6 +602,11 @@
     -webkit-transform: translateZ(0);
   }
 
+  /* Cacher le header quand story viewer est ouvert */
+  body.story-viewer-open .dashboard-header {
+    display: none;
+  }
+
   /* Ombre au scroll */
   .dashboard-header.scrolled {
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);

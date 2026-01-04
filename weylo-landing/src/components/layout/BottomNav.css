@@ -27,6 +27,11 @@
     box-sizing: border-box;
   }
 
+  /* Cacher le bottom nav quand story viewer est ouvert */
+  body.story-viewer-open .bottom-nav {
+    display: none !important;
+  }
+
   .dark .bottom-nav {
     background: rgba(26, 26, 26, 0.98);
     border-top-color: #2d2d2d;

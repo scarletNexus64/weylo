@@ -287,6 +287,16 @@
   border-color: #2d2d2d;
 }
 
+/* Cacher le top navbar quand story viewer est ouvert */
+body.story-viewer-open .top-navbar {
+  display: none !important;
+}
+
+/* Cacher aussi la sidebar sur desktop quand story viewer est ouvert */
+body.story-viewer-open .sidebar {
+  display: none !important;
+}
+
 /* Navbar Brand (Logo) - Hidden on desktop, visible on mobile */
 .navbar-brand {
   display: none;

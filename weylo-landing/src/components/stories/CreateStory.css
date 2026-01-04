@@ -16,7 +16,7 @@
 }
 
 .create-story-modal {
-  background: white;
+  background: var(--bg-secondary, white);
   border-radius: 16px;
   width: 100%;
   max-width: 600px;
@@ -41,7 +41,7 @@
 
 .create-story-header {
   padding: 1.5rem;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--border-color, #e5e7eb);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -50,7 +50,7 @@
 .create-story-header h2 {
   font-size: 1.5rem;
   font-weight: bold;
-  color: #1f2937;
+  color: var(--text-primary, #1f2937);
   margin: 0;
 }
 
@@ -58,9 +58,9 @@
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: #f3f4f6;
+  background: var(--card-bg, #f3f4f6);
   border: none;
-  color: #6b7280;
+  color: var(--text-secondary, #6b7280);
   font-size: 1.25rem;
   cursor: pointer;
   display: flex;
@@ -70,7 +70,7 @@
 }
 
 .create-story-close:hover {
-  background: #e5e7eb;
+  background: var(--border-color, #e5e7eb);
 }
 
 .create-story-content {
@@ -86,9 +86,10 @@
 .type-btn {
   flex: 1;
   padding: 0.75rem;
-  border: 2px solid #e5e7eb;
+  border: 2px solid var(--border-color, #e5e7eb);
   border-radius: 8px;
-  background: white;
+  background: var(--bg-secondary, white);
+  color: var(--text-primary, #1f2937);
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
@@ -97,7 +98,7 @@
 
 .type-btn:hover {
   border-color: #667eea;
-  background: #f9fafb;
+  background: var(--card-bg, #f9fafb);
 }
 
 .type-btn.active {
@@ -156,7 +157,7 @@
 
 .color-picker p {
   font-weight: 600;
-  color: #374151;
+  color: var(--text-primary, #374151);
   margin-bottom: 0.75rem;
 }
 
@@ -181,7 +182,7 @@
 }
 
 .color-btn.active {
-  border-color: #1f2937;
+  border-color: var(--text-primary, #1f2937);
   transform: scale(1.1);
 }
 
@@ -192,7 +193,7 @@
 
 .media-upload-area {
   height: 100%;
-  border: 2px dashed #d1d5db;
+  border: 2px dashed var(--border-color, #d1d5db);
   border-radius: 12px;
   display: flex;
   flex-direction: column;
@@ -204,7 +205,7 @@
 
 .media-upload-area:hover {
   border-color: #667eea;
-  background: #f9fafb;
+  background: var(--card-bg, #f9fafb);
 }
 
 .upload-icon {
@@ -215,13 +216,13 @@
 .media-upload-area p {
   font-size: 1.125rem;
   font-weight: 600;
-  color: #374151;
+  color: var(--text-primary, #374151);
   margin-bottom: 0.5rem;
 }
 
 .upload-hint {
   font-size: 0.875rem;
-  color: #6b7280;
+  color: var(--text-secondary, #6b7280);
 }
 
 .media-preview {
@@ -269,7 +270,7 @@
 .story-duration label {
   display: block;
   font-weight: 600;
-  color: #374151;
+  color: var(--text-primary, #374151);
   margin-bottom: 0.75rem;
 }
 
@@ -277,7 +278,7 @@
   width: 100%;
   height: 6px;
   border-radius: 3px;
-  background: #e5e7eb;
+  background: var(--border-color, #e5e7eb);
   outline: none;
   -webkit-appearance: none;
 }
@@ -310,7 +311,7 @@
 .upload-progress-bar {
   width: 100%;
   height: 8px;
-  background: #e5e7eb;
+  background: var(--border-color, #e5e7eb);
   border-radius: 4px;
   overflow: hidden;
   margin-bottom: 0.5rem;
@@ -438,7 +439,7 @@
 /* Footer */
 .create-story-footer {
   padding: 1.5rem;
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid var(--border-color, #e5e7eb);
   display: flex;
   gap: 1rem;
   justify-content: flex-end;
@@ -456,12 +457,12 @@
 }
 
 .btn-cancel {
-  background: #f3f4f6;
-  color: #374151;
+  background: var(--card-bg, #f3f4f6);
+  color: var(--text-primary, #374151);
 }
 
 .btn-cancel:hover:not(:disabled) {
-  background: #e5e7eb;
+  background: var(--border-color, #e5e7eb);
 }
 
 .btn-publish {

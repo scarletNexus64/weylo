@@ -10,7 +10,7 @@ export default function Stories() {
   const [stories, setStories] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  const [selectedUser, setSelectedUser] = useState(null)
+  const [selectedStory, setSelectedStory] = useState(null)
   const [viewerOpen, setViewerOpen] = useState(false)
   const [showCreateStory, setShowCreateStory] = useState(false)
 
@@ -32,20 +32,18 @@ export default function Stories() {
     }
   }
 
-  const handleStoryClick = (userStory, startIndex = 0) => {
-    setSelectedUser({ ...userStory, startIndex })
+  const handleStoryClick = (userStory) => {
+    setSelectedStory(userStory)
     setViewerOpen(true)
   }
 
   const handleCloseViewer = () => {
     setViewerOpen(false)
-    setSelectedUser(null)
-    // Recharger les stories pour mettre à jour les vues
+    setSelectedStory(null)
     loadStories()
   }
 
   const handleCreateSuccess = () => {
-    // Recharger les stories après création
     loadStories()
   }
 
@@ -53,37 +51,42 @@ export default function Stories() {
     return (
       <div className="stories-container">
         <div className="stories-header">
-          <h2>Stories 24h ⏰</h2>
+          <h2>Stories 24h</h2>
         </div>
         <div className="stories-loading">Chargement des stories...</div>
       </div>
     )
   }
-
+  
   if (error) {
     return (
       <div className="stories-container">
         <div className="stories-header">
-          <h2>Stories 24h ⏰</h2>
+          <h2>Stories 24h</h2>
         </div>
-        <div className="stories-error">{error}</div>
+        <div className="stories-empty">{error}</div>
       </div>
     )
   }
 
   const newStoriesCount = stories.filter(s => s.has_new).length
 
-  // Séparer la story de l'utilisateur courant des autres
-  const myStory = stories.find(s => s.real_user_id === user?.id)
-  const otherStories = stories.filter(s => s.real_user_id !== user?.id)
+  // Utiliser le preview de chaque utilisateur pour l'affichage en grille
+  const storyCards = stories.map(userStory => ({
+    ...userStory.preview,
+    userInfo: userStory.user,
+    real_user_id: userStory.real_user_id,
+    is_anonymous: userStory.is_anonymous,
+    isViewed: userStory.all_viewed,
+    has_new: userStory.has_new,
+    stories_count: userStory.stories_count,
+    userStory: userStory
+  }))
 
-  // Trier les autres stories : non vues d'abord, puis vues à la fin
-  const sortedOtherStories = [...otherStories].sort((a, b) => {
-    // Si a est non vue et b est vue, a vient avant
-    if (!a.all_viewed && b.all_viewed) return -1
-    // Si a est vue et b est non vue, b vient avant
-    if (a.all_viewed && !b.all_viewed) return 1
-    // Sinon, garder l'ordre original
+  // Trier : stories non vues en premier
+  const sortedStoryCards = [...storyCards].sort((a, b) => {
+    if (!a.isViewed && b.isViewed) return -1
+    if (a.isViewed && !b.isViewed) return 1
     return 0
   })
 
@@ -91,136 +94,105 @@ export default function Stories() {
     <>
       <div className="stories-container">
         <div className="stories-header">
-          <h2>Stories 24h ⏰</h2>
+          <h2>Stories 24h</h2>
           {newStoriesCount > 0 && (
             <span className="stories-count">{newStoriesCount} nouvelles</span>
           )}
         </div>
 
-        <div className="stories-list">
-          {/* Add Story Button */}
-          <div className="story-item my-story" onClick={() => setShowCreateStory(true)}>
-            <div className="story-avatar-wrapper">
-              <div className="story-avatar add-story">
-                <span style={{ fontSize: '24px', fontWeight: 'bold' }}>+</span>
-              </div>
-            </div>
-            <span className="story-name">Ajouter</span>
-          </div>
-
-          {/* Ma story en premier (si elle existe) */}
-          {myStory && (
-            <div
-              key={myStory.user?.id}
-              className={`story-item ${myStory.all_viewed ? 'viewed' : ''}`}
-              onClick={() => handleStoryClick(myStory)}
+        {stories.length === 0 ? (
+          <div className="stories-empty">
+            <p>Aucune story pour le moment</p>
+            <button
+              className="create-first-story-btn"
+              onClick={() => setShowCreateStory(true)}
             >
-              <div className="story-avatar-wrapper">
-                <div className={`story-ring ${myStory.all_viewed ? 'viewed' : ''}`}>
-                  {myStory.preview?.type === 'image' && myStory.preview?.media_url ? (
-                    <img
-                      src={myStory.preview.media_url}
-                      alt={myStory.user.username}
-                      className="story-avatar-img"
-                      onError={(e) => {
-                        e.target.onerror = null
-                        e.target.src = myStory.user.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(myStory.user.full_name)}&background=random`
-                      }}
-                    />
-                  ) : myStory.preview?.type === 'text' ? (
-                    <div
-                      className="story-avatar-text"
-                      style={{ backgroundColor: myStory.preview.background_color || '#667eea' }}
-                    >
-                      <span>{myStory.preview.content?.substring(0, 20)}</span>
-                    </div>
-                  ) : (
-                    <img
-                      src={myStory.user.avatar_url}
-                      alt={myStory.user.username}
-                      className="story-avatar-img"
-                      onError={(e) => {
-                        e.target.onerror = null
-                        e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(myStory.user.full_name)}&background=random`
-                      }}
-                    />
-                  )}
-                </div>
-                {myStory.stories_count > 0 && (
-                  <span className="story-count-badge">{myStory.stories_count}</span>
-                )}
+              Créer la première story
+            </button>
+          </div>
+        ) : (
+          <div className="stories-grid">
+            {/* Bouton pour créer une story */}
+            <div
+              className="story-card add-story-card"
+              onClick={() => setShowCreateStory(true)}
+            >
+              <div className="story-thumbnail add-story-thumbnail">
+                <div className="add-story-icon">+</div>
+                <span className="add-story-text">Ajouter</span>
               </div>
-              <span className="story-name">
-                {myStory.user.username}
-                {myStory.is_anonymous && <span className="story-anonymous-indicator"> 🔒</span>}
-              </span>
             </div>
-          )}
 
-          {/* Stories des autres utilisateurs */}
-          {stories.length === 0 ? (
-            <div className="stories-empty">
-              <p>Aucune story pour le moment</p>
-            </div>
-          ) : (
-            sortedOtherStories.map((userStory, index) => (
+            {/* Afficher toutes les stories en grille */}
+            {sortedStoryCards.map((card, index) => (
               <div
-                key={userStory.user?.id || `story-${index}`}
-                className={`story-item ${userStory.all_viewed ? 'viewed' : ''}`}
-                onClick={() => handleStoryClick(userStory)}
+                key={`story-${card.real_user_id}-${index}`}
+                className={`story-card ${card.isViewed ? 'viewed' : ''}`}
+                onClick={() => handleStoryClick(card.userStory)}
               >
-                <div className="story-avatar-wrapper">
-                  <div className={`story-ring ${userStory.all_viewed ? 'viewed' : ''}`}>
-                    {userStory.preview?.type === 'image' && userStory.preview?.media_url ? (
-                      <img
-                        src={userStory.preview.media_url}
-                        alt={userStory.user.username}
-                        className="story-avatar-img"
-                        onError={(e) => {
-                          e.target.onerror = null
-                          e.target.src = userStory.user.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(userStory.user.full_name)}&background=random`
-                        }}
-                      />
-                    ) : userStory.preview?.type === 'text' ? (
-                      <div
-                        className="story-avatar-text"
-                        style={{ backgroundColor: userStory.preview.background_color || '#667eea' }}
-                      >
-                        <span>{userStory.preview.content?.substring(0, 20)}</span>
-                      </div>
-                    ) : (
-                      <img
-                        src={userStory.user.avatar_url}
-                        alt={userStory.user.username}
-                        className="story-avatar-img"
-                        onError={(e) => {
-                          e.target.onerror = null
-                          e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(userStory.user.full_name)}&background=random`
-                        }}
-                      />
-                    )}
-                  </div>
-                  {userStory.stories_count > 0 && (
-                    <span className="story-count-badge">{userStory.stories_count}</span>
+                <div className="story-thumbnail">
+                  {card.type === 'image' && card.media_url ? (
+                    <img
+                      src={card.media_url}
+                      alt={card.userInfo?.username}
+                      className="story-thumbnail-img"
+                      onError={(e) => {
+                        e.target.onerror = null
+                        e.target.src = card.userInfo?.avatar_url ||
+                          `https://ui-avatars.com/api/?name=${encodeURIComponent(card.userInfo?.full_name || 'User')}&background=random`
+                      }}
+                    />
+                  ) : card.type === 'text' ? (
+                    <div
+                      className="story-thumbnail-text"
+                      style={{
+                        background: card.background_color ||
+                          'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+                      }}
+                    >
+                      <span>{card.content}</span>
+                    </div>
+                  ) : null}
+
+                  {/* Badge non vu */}
+                  {card.has_new && (
+                    <div className="story-unread-badge"></div>
                   )}
+
+                  {/* Compteur de stories si plusieurs */}
+                  {card.stories_count > 1 && (
+                    <div className="story-count-badge">{card.stories_count}</div>
+                  )}
+
+                  {/* Info utilisateur en bas */}
+                  <div className="story-user-info">
+                    <img
+                      src={card.userInfo?.avatar_url}
+                      alt={card.userInfo?.username}
+                      className="story-user-avatar"
+                      onError={(e) => {
+                        e.target.onerror = null
+                        e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(card.userInfo?.full_name || 'User')}&background=random`
+                      }}
+                    />
+                    <span className="story-username">
+                      {card.is_anonymous ? 'Anonyme' : card.userInfo?.username}
+                    </span>
+                  </div>
                 </div>
-                <span className="story-name">
-                  {userStory.user.username}
-                  {userStory.is_anonymous && <span className="story-anonymous-indicator"> 🔒</span>}
-                </span>
               </div>
-            ))
-          )}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Story Viewer */}
-      {viewerOpen && selectedUser && (
+      {viewerOpen && selectedStory && (
         <StoryViewer
-          userId={selectedUser.real_user_id}
-          username={selectedUser.user.username}
+          userId={selectedStory.real_user_id}
+          username={selectedStory.user?.username}
           allStories={stories}
-          currentUserIndex={stories.findIndex(s => s.real_user_id === selectedUser.real_user_id)}
+          currentUserIndex={stories.findIndex(s => s.real_user_id === selectedStory.real_user_id)}
           onClose={handleCloseViewer}
           onNextUser={(nextIndex) => {
             if (nextIndex < stories.length) {

@@ -31,9 +31,51 @@ const StoryViewer = ({ userId, username, allStories = [], currentUserIndex = 0, 
 
   useEffect(() => {
     loadUserStories()
-    setCurrentIndex(0) // Réinitialiser à la première story quand on change d'utilisateur
+    setCurrentIndex(0)
     setProgress(0)
   }, [userId])
+
+  // Prevent body scroll when viewer is open
+  useEffect(() => {
+    // Sauvegarder la position de scroll actuelle
+    const scrollY = window.scrollY
+
+    // Ajouter classe pour cacher les menus Dashboard
+    document.body.classList.add('story-viewer-open')
+
+    // Bloquer le scroll du body
+    document.body.style.overflow = 'hidden'
+    document.body.style.position = 'fixed'
+    document.body.style.top = `-${scrollY}px`
+    document.body.style.width = '100%'
+    document.body.style.height = '100%'
+
+    // Aussi bloquer le html pour Safari iOS
+    document.documentElement.style.overflow = 'hidden'
+    document.documentElement.style.position = 'fixed'
+    document.documentElement.style.width = '100%'
+    document.documentElement.style.height = '100%'
+
+    return () => {
+      // Retirer la classe
+      document.body.classList.remove('story-viewer-open')
+
+      // Restaurer les styles
+      document.body.style.overflow = ''
+      document.body.style.position = ''
+      document.body.style.top = ''
+      document.body.style.width = ''
+      document.body.style.height = ''
+
+      document.documentElement.style.overflow = ''
+      document.documentElement.style.position = ''
+      document.documentElement.style.width = ''
+      document.documentElement.style.height = ''
+
+      // Restaurer la position de scroll
+      window.scrollTo(0, scrollY)
+    }
+  }, [])
 
   useEffect(() => {
     if (userStories.length > 0 && !loading) {
@@ -49,7 +91,6 @@ const StoryViewer = ({ userId, username, allStories = [], currentUserIndex = 0, 
   const loadUserStories = async () => {
     try {
       setLoading(true)
-      // Utiliser l'ID si disponible, sinon fallback sur le username
       const data = userId
         ? await storiesService.getUserStoriesById(userId)
         : await storiesService.getUserStories(username)
@@ -82,16 +123,14 @@ const StoryViewer = ({ userId, username, allStories = [], currentUserIndex = 0, 
 
     const story = userStories[currentIndex]
     const duration = story?.duration || 5
-    const interval = 50 // Mettre à jour toutes les 50ms
+    const interval = 50
     const increment = (100 / (duration * 1000)) * interval
 
     progressIntervalRef.current = setInterval(() => {
       setProgress((prev) => {
         const newProgress = prev + increment
         if (newProgress >= 100) {
-          // Nettoyer l'interval AVANT de passer à la story suivante
           clearStoryTimer()
-          // Utiliser setTimeout pour éviter les problèmes de timing
           setTimeout(() => goToNextStory(), 100)
           return 100
         }
@@ -110,20 +149,13 @@ const StoryViewer = ({ userId, username, allStories = [], currentUserIndex = 0, 
   const goToNextStory = () => {
     clearStoryTimer()
     if (currentIndex < userStories.length - 1) {
-      // Passer à la story suivante du même utilisateur
-      console.log(`📖 Story ${currentIndex + 1}/${userStories.length} de @${username || userId}`)
       setCurrentIndex((prev) => prev + 1)
       setProgress(0)
     } else {
-      // Toutes les stories de cet utilisateur sont terminées
-      // Passer à l'utilisateur suivant
       const nextUserIndex = currentUserIndex + 1
-      console.log(`✅ Toutes les stories de @${username || userId} vues. User suivant: ${nextUserIndex}/${allStories.length}`)
       if (onNextUser && nextUserIndex < allStories.length) {
         onNextUser(nextUserIndex)
       } else {
-        // Plus d'utilisateurs, fermer le viewer
-        console.log('🏁 Toutes les stories terminées, fermeture du viewer')
         onClose()
       }
     }
@@ -132,16 +164,13 @@ const StoryViewer = ({ userId, username, allStories = [], currentUserIndex = 0, 
   const goToPreviousStory = () => {
     clearStoryTimer()
     if (currentIndex > 0) {
-      // Revenir à la story précédente du même utilisateur
       setCurrentIndex((prev) => prev - 1)
       setProgress(0)
     } else {
-      // C'est la première story, passer à l'utilisateur précédent
       const prevUserIndex = currentUserIndex - 1
       if (onNextUser && prevUserIndex >= 0) {
         onNextUser(prevUserIndex)
       }
-      // Sinon on ne fait rien (on reste sur la première story)
     }
   }
 
@@ -179,11 +208,9 @@ const StoryViewer = ({ userId, username, allStories = [], currentUserIndex = 0, 
     try {
       const result = await premiumService.subscribeToStory(story.id)
 
-      // Rediriger vers la page de paiement si nécessaire
       if (result.payment && result.payment.payment_url) {
         window.location.href = result.payment.payment_url
       } else {
-        // Si le paiement est déjà effectué, recharger les stories
         await loadUserStories()
         setShowRevealModal(false)
       }
@@ -203,14 +230,11 @@ const StoryViewer = ({ userId, username, allStories = [], currentUserIndex = 0, 
     try {
       await storiesService.deleteStory(story.id)
 
-      // Supprimer la story de la liste locale
       const updatedStories = userStories.filter((_, index) => index !== currentIndex)
       setUserStories(updatedStories)
       setShowDeleteConfirm(false)
 
-      // Si c'était la dernière story de cet utilisateur
       if (updatedStories.length === 0) {
-        // Passer à l'utilisateur suivant ou fermer
         const nextUserIndex = currentUserIndex + 1
         if (onNextUser && nextUserIndex < allStories.length) {
           onNextUser(nextUserIndex)
@@ -218,7 +242,6 @@ const StoryViewer = ({ userId, username, allStories = [], currentUserIndex = 0, 
           onClose()
         }
       } else {
-        // Ajuster l'index si nécessaire
         if (currentIndex >= updatedStories.length) {
           setCurrentIndex(updatedStories.length - 1)
         }
@@ -270,24 +293,19 @@ const StoryViewer = ({ userId, username, allStories = [], currentUserIndex = 0, 
       time: Date.now()
     })
 
-    // Calculer les deltas
     const deltaY = currentY - touchStart.y
     const deltaX = Math.abs(currentX - touchStart.x)
     const absDeltaY = Math.abs(deltaY)
 
-    // Détecter si c'est un swipe vertical dès les premiers mouvements
     if (!isSwipingVertical && (absDeltaY > 10 || deltaX > 10)) {
       if (absDeltaY > deltaX * 0.7) {
         setIsSwipingVertical(true)
       }
     }
 
-    // Si c'est un swipe vertical, appliquer l'offset avec effet rubber band
     if (isSwipingVertical || absDeltaY > deltaX) {
-      // Empêcher le scroll par défaut
       e.preventDefault()
 
-      // Effet rubber band : réduire le mouvement au-delà d'un certain seuil
       let offset = deltaY
       const maxOffset = 300
       if (absDeltaY > maxOffset) {
@@ -307,25 +325,19 @@ const StoryViewer = ({ userId, username, allStories = [], currentUserIndex = 0, 
     const absDeltaY = Math.abs(deltaY)
     const timeDelta = touchEnd.time - touchStart.time
 
-    // Calculer la vélocité (px/ms)
     const velocity = timeDelta > 0 ? absDeltaY / timeDelta : 0
 
-    // Seuils ajustés
-    const minSwipeDistance = 80 // Distance minimale
-    const minVelocity = 0.5 // Vélocité minimale pour un swipe rapide
-    const quickSwipeDistance = 40 // Distance minimale pour un swipe rapide
+    const minSwipeDistance = 80
+    const minVelocity = 0.5
+    const quickSwipeDistance = 40
 
-    // Réinitialiser le flag
     setIsSwipingVertical(false)
 
-    // Détection améliorée du swipe vertical
     const isVerticalSwipe = absDeltaY > deltaX
     const isStrongSwipe = absDeltaY > minSwipeDistance
     const isQuickSwipe = velocity > minVelocity && absDeltaY > quickSwipeDistance
 
-    // Fermer si swipe vertical significatif OU swipe rapide
     if (isVerticalSwipe && (isStrongSwipe || isQuickSwipe)) {
-      // Animation de fermeture
       setSwipeOffset(deltaY > 0 ? 1000 : -1000)
       setTimeout(() => {
         onClose()
@@ -333,12 +345,10 @@ const StoryViewer = ({ userId, username, allStories = [], currentUserIndex = 0, 
       return
     }
 
-    // Réinitialiser l'offset avec animation
     setSwipeOffset(0)
 
-    // Swipe horizontal pour navigation (seulement si pas vertical)
     if (!isVerticalSwipe && deltaX > minSwipeDistance) {
-      const rect = document.querySelector('.story-viewer-content')?.getBoundingClientRect()
+      const rect = document.querySelector('.story-card-content')?.getBoundingClientRect()
       if (rect) {
         const startX = touchStart.x - rect.left
         const third = rect.width / 3
@@ -350,7 +360,6 @@ const StoryViewer = ({ userId, username, allStories = [], currentUserIndex = 0, 
         }
       }
     } else if (deltaX < 10 && absDeltaY < 10) {
-      // Tap simple seulement si très peu de mouvement
       handleResume()
     }
   }
@@ -375,27 +384,32 @@ const StoryViewer = ({ userId, username, allStories = [], currentUserIndex = 0, 
 
   const currentStory = userStories[currentIndex]
 
-  // Protection contre l'écran blanc
   if (!currentStory) {
     return null
   }
 
   return (
-    <div className="story-viewer-overlay">
+    <div className="story-viewer-overlay" onClick={onClose}>
+      {/* Close button outside card */}
+      <button className="story-viewer-close-btn" onClick={onClose}>
+        ✕
+      </button>
+
       <div
-        className="story-viewer-container"
+        className="story-viewer-card"
+        onClick={(e) => e.stopPropagation()}
         style={{
-          transform: `translateY(${swipeOffset}px) scale(${swipeOffset !== 0 ? Math.max(0.9, 1 - Math.abs(swipeOffset) / 1000) : 1})`,
-          opacity: swipeOffset !== 0 ? Math.max(0.3, 1 - Math.abs(swipeOffset) / 400) : 1,
+          transform: `translateY(${swipeOffset}px) scale(${swipeOffset !== 0 ? Math.max(0.85, 1 - Math.abs(swipeOffset) / 1000) : 1})`,
+          opacity: swipeOffset !== 0 ? Math.max(0.5, 1 - Math.abs(swipeOffset) / 400) : 1,
           transition: Math.abs(swipeOffset) > 500 ? 'transform 0.2s ease-out, opacity 0.2s ease-out' : swipeOffset === 0 ? 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease-out' : 'none'
         }}
       >
-        {/* Progress bars */}
-        <div className="story-progress-bars">
+        {/* Progress bars - INSIDE card at top */}
+        <div className="story-card-progress-bars">
           {userStories.map((_, index) => (
-            <div key={index} className="story-progress-bar-wrapper">
+            <div key={index} className="story-card-progress-bar-wrapper">
               <div
-                className="story-progress-bar"
+                className="story-card-progress-bar"
                 style={{
                   width: index === currentIndex
                     ? `${progress}%`
@@ -408,41 +422,36 @@ const StoryViewer = ({ userId, username, allStories = [], currentUserIndex = 0, 
           ))}
         </div>
 
-        {/* Header */}
-        <div className="story-viewer-header">
-          <div className="story-viewer-user">
-            <img
-              src={currentStory.user.avatar_url}
-              alt={currentStory.user.username}
-              className="story-viewer-avatar"
-            />
-            <div className="story-viewer-user-info">
-              <span className="story-viewer-username">
-                {user?.is_premium || !currentStory.is_anonymous ? (
-                  <>
-                    @{currentStory.user.username}
-                    {currentStory.user.is_premium && <PremiumBadge size="small" />}
-                  </>
-                ) : (
-                  <>
-                    Anonyme
-                    <span className="story-anonymous-badge">🔒</span>
-                  </>
-                )}
-              </span>
-            </div>
-            <span className="story-viewer-time">
+        {/* Header - INSIDE card under progress */}
+        <div className="story-card-header">
+          <img
+            src={currentStory.user.avatar_url}
+            alt={currentStory.user.username}
+            className="story-card-avatar"
+          />
+          <div className="story-card-user-info">
+            <span className="story-card-username">
+              {user?.is_premium || !currentStory.is_anonymous ? (
+                <>
+                  @{currentStory.user.username}
+                  {currentStory.user.is_premium && <PremiumBadge size="small" />}
+                </>
+              ) : (
+                <>
+                  Anonyme
+                  <span className="story-anonymous-badge">🔒</span>
+                </>
+              )}
+            </span>
+            <span className="story-card-time">
               Il y a {getTimeAgo(currentStory.created_at)}
             </span>
           </div>
-          <button className="story-viewer-close" onClick={onClose}>
-            ✕
-          </button>
         </div>
 
-        {/* Story content */}
+        {/* Story content - Main area */}
         <div
-          className="story-viewer-content"
+          className="story-card-content"
           onClick={handleAreaClick}
           onMouseDown={handlePause}
           onMouseUp={handleResume}
@@ -454,21 +463,21 @@ const StoryViewer = ({ userId, username, allStories = [], currentUserIndex = 0, 
             <img
               src={currentStory.media_url}
               alt="Story"
-              className="story-viewer-media"
+              className="story-card-media"
               onError={(e) => {
                 console.error('Erreur chargement image story:', currentStory.media_url)
                 e.target.style.backgroundColor = '#667eea'
                 e.target.alt = 'Erreur de chargement'
               }}
               onLoad={() => {
-                console.log('Image charg\u00e9e avec succ\u00e8s:', currentStory.media_url)
+                console.log('Image chargée avec succès:', currentStory.media_url)
               }}
             />
           )}
 
           {currentStory.type === 'text' && (
             <div
-              className="story-viewer-text"
+              className="story-card-text"
               style={{ backgroundColor: currentStory.background_color || '#667eea' }}
             >
               <p>{currentStory.content}</p>
@@ -480,40 +489,32 @@ const StoryViewer = ({ userId, username, allStories = [], currentUserIndex = 0, 
           <div className="story-nav-area story-nav-right" />
         </div>
 
-        {/* Footer with views and delete */}
+        {/* Footer - INSIDE card at bottom - ALWAYS VISIBLE */}
         {currentStory.user.id === user?.id && (
-          <div className="story-viewer-footer">
+          <div className="story-card-footer">
             <div
-              className="story-viewer-views"
+              className="story-card-views"
               onClick={(e) => {
                 e.stopPropagation()
                 if (currentStory.viewers_count > 0 && !showViewers) {
                   loadViewers()
                 }
               }}
-              style={{ cursor: currentStory.viewers_count > 0 ? 'pointer' : 'default' }}
             >
               <span className="views-icon">👁️</span>
-              <span className="views-count">
-                {currentStory.viewers_count || 0}
-              </span>
-              <span className="views-label">
-                {currentStory.viewers_count === 0
-                  ? 'Aucune vue'
-                  : currentStory.viewers_count === 1
-                  ? 'vue'
-                  : 'vues'}
+              <span className="views-text">
+                {currentStory.viewers_count || 0} {currentStory.viewers_count === 1 ? 'vue' : 'vues'}
               </span>
             </div>
             <button
-              className="story-delete-btn"
+              className="story-card-delete-btn"
               onClick={(e) => {
                 e.stopPropagation()
                 setShowDeleteConfirm(true)
                 handlePause()
               }}
             >
-              <span className="delete-icon">🗑️</span>
+              🗑️
             </button>
           </div>
         )}
