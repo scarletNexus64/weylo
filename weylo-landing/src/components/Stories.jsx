@@ -13,9 +13,30 @@ export default function Stories() {
   const [selectedStory, setSelectedStory] = useState(null)
   const [viewerOpen, setViewerOpen] = useState(false)
   const [showCreateStory, setShowCreateStory] = useState(false)
+  const [darkMode, setDarkMode] = useState(
+    document.documentElement.classList.contains('dark') ||
+    localStorage.getItem('darkMode') === 'true'
+  )
 
   useEffect(() => {
     loadStories()
+
+    // Écouter les changements de thème
+    const handleThemeChange = () => {
+      setDarkMode(
+        document.documentElement.classList.contains('dark') ||
+        localStorage.getItem('darkMode') === 'true'
+      )
+    }
+
+    // Observer pour détecter les changements de classe sur documentElement
+    const observer = new MutationObserver(handleThemeChange)
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class']
+    })
+
+    return () => observer.disconnect()
   }, [])
 
   const loadStories = async () => {
@@ -51,18 +72,18 @@ export default function Stories() {
     return (
       <div className="stories-container">
         <div className="stories-header">
-          <h2>Stories 24h</h2>
+          <h2 style={{ color: darkMode ? '#f9fafb' : '#1f2937' }}>Stories 24h</h2>
         </div>
         <div className="stories-loading">Chargement des stories...</div>
       </div>
     )
   }
-  
+
   if (error) {
     return (
       <div className="stories-container">
         <div className="stories-header">
-          <h2>Stories 24h</h2>
+          <h2 style={{ color: darkMode ? '#f9fafb' : '#1f2937' }}>Stories 24h</h2>
         </div>
         <div className="stories-empty">{error}</div>
       </div>
@@ -94,21 +115,24 @@ export default function Stories() {
     <>
       <div className="stories-container">
         <div className="stories-header">
-          <h2>Stories 24h</h2>
+          <h2 style={{ color: darkMode ? '#f9fafb' : '#1f2937' }}>Stories 24h</h2>
           {newStoriesCount > 0 && (
             <span className="stories-count">{newStoriesCount} nouvelles</span>
           )}
         </div>
 
         {stories.length === 0 ? (
-          <div className="stories-empty">
-            <p>Aucune story pour le moment</p>
-            <button
-              className="create-first-story-btn"
+          <div className="stories-grid">
+            {/* Card pour créer la première story */}
+            <div
+              className="story-card add-story-card"
               onClick={() => setShowCreateStory(true)}
             >
-              Créer la première story
-            </button>
+              <div className="story-thumbnail add-story-thumbnail">
+                <div className="add-story-icon">+</div>
+                {/* <span className="add-story-text">Créer ma première story</span> */}
+              </div>
+            </div>
           </div>
         ) : (
           <div className="stories-grid">
