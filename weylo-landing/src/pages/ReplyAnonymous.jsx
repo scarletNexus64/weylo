@@ -22,6 +22,11 @@ export default function ReplyAnonymous() {
   const [error, setError] = useState(null)
 
   useEffect(() => {
+    // Éviter les appels multiples si le message est déjà chargé
+    if (originalMessage?.id === parseInt(messageId)) {
+      return
+    }
+
     console.log('🔄 [REPLY] useEffect - Chargement initial')
     console.log('🔄 [REPLY] messageId:', messageId)
     loadMessage()
@@ -31,6 +36,7 @@ export default function ReplyAnonymous() {
   const loadMessage = async () => {
     try {
       setLoading(true)
+      setError(null)
       console.log('🔍 [REPLY] Chargement du message ID:', messageId)
 
       const data = await messagesService.getMessage(messageId)
@@ -38,6 +44,9 @@ export default function ReplyAnonymous() {
       console.log('📨 [REPLY] Message:', data.message)
       console.log('📨 [REPLY] Sender:', data.message?.sender)
       console.log('📨 [REPLY] Sender username:', data.message?.sender?.username)
+
+      // Petite pause pour éviter le flash de contenu
+      await new Promise(resolve => setTimeout(resolve, 100))
 
       setOriginalMessage(data.message)
     } catch (err) {
@@ -190,7 +199,7 @@ export default function ReplyAnonymous() {
         </div>
         <div className="original-message-card">
           <div className="message-sender-info">
-            {originalMessage.sender && (
+            {originalMessage.sender ? (
               <>
                 <div className="sender-avatar">
                   {originalMessage.sender.first_name?.[0] || 'U'}
@@ -200,6 +209,16 @@ export default function ReplyAnonymous() {
                     {originalMessage.sender.first_name} {originalMessage.sender.last_name}
                   </div>
                   <div className="sender-username">@{originalMessage.sender.username}</div>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="sender-avatar">
+                  {originalMessage.sender_initial || '?'}
+                </div>
+                <div>
+                  <div className="sender-name">Anonyme</div>
+                  <div className="sender-username">Identité masquée</div>
                 </div>
               </>
             )}
