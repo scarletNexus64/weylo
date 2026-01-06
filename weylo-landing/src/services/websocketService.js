@@ -2,10 +2,10 @@ import Echo from 'laravel-echo'
 import Pusher from 'pusher-js'
 
 // Configuration Laravel Reverb
-const REVERB_HOST = import.meta.env.VITE_REVERB_HOST || '192.168.1.149'
-const REVERB_PORT = import.meta.env.VITE_REVERB_PORT || 8080
-const REVERB_KEY = import.meta.env.VITE_REVERB_APP_KEY || '1425cdd3ef7425fa6746d2895a233e52'
-const REVERB_SCHEME = import.meta.env.VITE_REVERB_SCHEME || 'http'
+const REVERB_HOST = import.meta.env.VITE_REVERB_HOST
+const REVERB_PORT = import.meta.env.VITE_REVERB_PORT
+const REVERB_KEY = import.meta.env.VITE_REVERB_APP_KEY
+const REVERB_SCHEME = import.meta.env.VITE_REVERB_SCHEME
 
 console.log('🌐 [WEBSOCKET] Configuration Reverb:', {
   host: REVERB_HOST,
@@ -46,7 +46,7 @@ class WebSocketService {
         wssPort: REVERB_PORT,
         forceTLS: REVERB_SCHEME === 'https',
         enabledTransports: ['ws', 'wss'],
-        authEndpoint: `${import.meta.env.VITE_API_URL || 'https://192.168.1.149/api/v1'}/broadcasting/auth`,
+        authEndpoint: `${import.meta.env.VITE_API_URL}/broadcasting/auth`,
         auth: {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -59,7 +59,7 @@ class WebSocketService {
             authorize: (socketId, callback) => {
               // Si c'est un channel privé, on fait l'auth
               if (channel.name.startsWith('private-') || channel.name.startsWith('presence-')) {
-                fetch(`${import.meta.env.VITE_API_URL || 'https://192.168.1.149/api/v1'}/broadcasting/auth`, {
+                fetch(`${import.meta.env.VITE_API_URL}/broadcasting/auth`, {
                   method: 'POST',
                   headers: {
                     Authorization: `Bearer ${token}`,
