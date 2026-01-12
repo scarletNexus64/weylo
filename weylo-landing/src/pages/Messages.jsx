@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Mail, Trash2, Send, AlertCircle, Loader2, ChevronLeft, ChevronRight } from 'lucide-react'
 import messagesService from '../services/messagesService'
 import RevealIdentityButton from '../components/RevealIdentityButton'
+import ReplyBottomSheet from '../components/ReplyBottomSheet'
 import PremiumBadge from '../components/shared/PremiumBadge'
 import { useAuth } from '../contexts/AuthContext'
 import { useDialog } from '../contexts/DialogContext'
@@ -19,6 +20,8 @@ export default function Messages() {
   const [currentPage, setCurrentPage] = useState(1)
   const [lastPage, setLastPage] = useState(1)
   const [deletingId, setDeletingId] = useState(null)
+  const [replyBottomSheetOpen, setReplyBottomSheetOpen] = useState(false)
+  const [selectedMessage, setSelectedMessage] = useState(null)
 
   // Vérifier si l'utilisateur peut voir toutes les identités (premium)
   const canViewAllIdentities = user?.is_premium || false
@@ -74,8 +77,9 @@ export default function Messages() {
   }
 
   const handleReplyClick = (message) => {
-    // Rediriger vers la page de réponse anonyme
-    navigate(`/reply-anonymous/${message.id}`)
+    // Ouvrir le bottom sheet de réponse
+    setSelectedMessage(message)
+    setReplyBottomSheetOpen(true)
   }
 
   const handleRevealIdentity = async (messageId) => {
@@ -287,6 +291,20 @@ export default function Messages() {
         </>
       )}
 
+      {/* Reply Bottom Sheet */}
+      <ReplyBottomSheet
+        isOpen={replyBottomSheetOpen}
+        onClose={() => {
+          setReplyBottomSheetOpen(false)
+          setSelectedMessage(null)
+        }}
+        message={selectedMessage}
+        onReplySent={() => {
+          // Optionnel: rafraîchir les messages après l'envoi
+          fetchMessages()
+          fetchStats()
+        }}
+      />
     </div>
   )
 }
