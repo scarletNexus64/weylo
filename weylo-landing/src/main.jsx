@@ -1,6 +1,7 @@
 import { StrictMode, useState, useEffect } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { HelmetProvider } from 'react-helmet-async'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { DialogProvider } from './contexts/DialogContext'
 import './index.css'
@@ -25,6 +26,7 @@ import PaymentReturnPage from './pages/PaymentReturnPage'
 import Profile from './pages/Profile'
 import AdminDashboard from './pages/AdminDashboard'
 import LegalPage from './pages/LegalPage'
+import DeleteAccountPage from './pages/DeleteAccountPage'
 import InstallPWA from './components/InstallPWA'
 import Maintenance from './pages/Maintenance'
 import dashboardService from './services/dashboardService'
@@ -133,12 +135,13 @@ function MaintenanceWrapper({ children }) {
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <AuthProvider>
-      <DialogProvider>
-        <MaintenanceWrapper>
-          <BrowserRouter>
-            <InstallPWA />
-            <Routes>
+    <HelmetProvider>
+      <AuthProvider>
+        <DialogProvider>
+          <MaintenanceWrapper>
+            <BrowserRouter>
+              <InstallPWA />
+              <Routes>
           {/* Public Routes */}
           <Route
             path="/"
@@ -172,6 +175,9 @@ createRoot(document.getElementById('root')).render(
 
           {/* Legal Pages (Public) */}
           <Route path="/legal/:slug" element={<LegalPage />} />
+
+          {/* Delete Account Page (Public) */}
+          <Route path="/delete-account" element={<DeleteAccountPage />} />
 
           {/* Group Join Routes (can be accessed without full authentication) */}
           <Route path="/groups/join/:inviteCode" element={<JoinGroup />} />
@@ -213,11 +219,12 @@ createRoot(document.getElementById('root')).render(
 
           {/* 404 */}
           <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-          </BrowserRouter>
-        </MaintenanceWrapper>
-      </DialogProvider>
-    </AuthProvider>
+            </Routes>
+            </BrowserRouter>
+          </MaintenanceWrapper>
+        </DialogProvider>
+      </AuthProvider>
+    </HelmetProvider>
   </StrictMode>,
 )
 

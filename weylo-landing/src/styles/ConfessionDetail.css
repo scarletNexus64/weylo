@@ -1,0 +1,530 @@
+/* Confession Detail Landing Page - Responsive Design */
+
+.confession-detail-landing {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+}
+
+.landing-container {
+  max-width: 600px;
+  width: 100%;
+  background: white;
+  border-radius: 24px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  padding: 40px;
+  animation: fadeInUp 0.6s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Logo Section */
+.landing-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 32px;
+}
+
+.landing-logo img {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.landing-logo h1 {
+  font-size: 32px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 0;
+}
+
+/* Confession Preview */
+.confession-preview {
+  background: #f8f9fa;
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 32px;
+  text-align: center;
+}
+
+.confession-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.confession-preview h2 {
+  font-size: 24px;
+  font-weight: 600;
+  color: #2d3748;
+  margin: 0 0 16px 0;
+}
+
+.confession-preview-content {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+.confession-preview-content p {
+  font-size: 16px;
+  line-height: 1.6;
+  color: #4a5568;
+  margin: 0;
+  font-style: italic;
+}
+
+.confession-preview-image {
+  margin-top: 16px;
+  border-radius: 12px;
+  overflow: hidden;
+  max-height: 300px;
+}
+
+.confession-preview-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* CTA Section */
+.cta-section {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.cta-section h3 {
+  font-size: 22px;
+  font-weight: 700;
+  color: #2d3748;
+  margin: 0 0 12px 0;
+  line-height: 1.4;
+}
+
+.cta-section > p {
+  font-size: 16px;
+  color: #718096;
+  margin: 0 0 32px 0;
+  line-height: 1.6;
+}
+
+/* App Buttons */
+.app-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.app-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 14px 24px;
+  border-radius: 12px;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.app-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.app-button.google-play {
+  background: #000000;
+  color: white;
+}
+
+.app-button.app-store {
+  background: #000000;
+  color: white;
+}
+
+.app-button-icon {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.app-button-icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.app-button-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+}
+
+.app-button-label {
+  font-size: 11px;
+  font-weight: 400;
+  opacity: 0.8;
+}
+
+.app-button-store {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+/* Features */
+.landing-features {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+  margin-bottom: 40px;
+}
+
+.feature-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 12px;
+  transition: transform 0.3s ease;
+}
+
+.feature-item:hover {
+  transform: translateY(-4px);
+}
+
+.feature-icon {
+  font-size: 36px;
+  margin-bottom: 12px;
+}
+
+.feature-item h4 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #2d3748;
+  margin: 0 0 8px 0;
+}
+
+.feature-item p {
+  font-size: 14px;
+  color: #718096;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Stats */
+.landing-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 40px;
+  padding: 24px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 16px;
+  color: white;
+}
+
+.stat-item {
+  text-align: center;
+}
+
+.stat-number {
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.stat-label {
+  font-size: 12px;
+  opacity: 0.9;
+}
+
+/* Footer */
+.landing-footer {
+  text-align: center;
+  padding-top: 32px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.landing-footer p {
+  font-size: 14px;
+  color: #718096;
+  margin: 0 0 12px 0;
+}
+
+.landing-footer-links {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.landing-footer-links a {
+  font-size: 14px;
+  color: #667eea;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.landing-footer-links a:hover {
+  color: #764ba2;
+  text-decoration: underline;
+}
+
+/* Loading State */
+.loading-container,
+.error-container {
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.loading-spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 20px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-container p {
+  color: white;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.error-container {
+  background: white;
+  border-radius: 24px;
+  padding: 60px 40px;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.error-icon {
+  font-size: 64px;
+  margin-bottom: 20px;
+}
+
+.error-container h1 {
+  font-size: 24px;
+  font-weight: 700;
+  color: #2d3748;
+  margin: 0 0 12px 0;
+}
+
+.error-container p {
+  font-size: 16px;
+  color: #718096;
+  margin: 0 0 24px 0;
+  line-height: 1.6;
+}
+
+.btn-primary {
+  display: inline-block;
+  padding: 12px 28px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  text-decoration: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 16px;
+  transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+}
+
+/* Tablet (768px and up) */
+@media (min-width: 768px) {
+  .landing-container {
+    padding: 50px;
+  }
+
+  .landing-logo h1 {
+    font-size: 40px;
+  }
+
+  .confession-preview h2 {
+    font-size: 28px;
+  }
+
+  .confession-preview-content p {
+    font-size: 18px;
+  }
+
+  .cta-section h3 {
+    font-size: 26px;
+  }
+
+  .cta-section > p {
+    font-size: 18px;
+  }
+
+  .app-buttons {
+    flex-direction: row;
+    justify-content: center;
+  }
+
+  .app-button {
+    min-width: 200px;
+  }
+
+  .landing-features {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .stat-number {
+    font-size: 32px;
+  }
+
+  .stat-label {
+    font-size: 13px;
+  }
+}
+
+/* Desktop (1024px and up) */
+@media (min-width: 1024px) {
+  .landing-container {
+    max-width: 700px;
+    padding: 60px;
+  }
+
+  .confession-preview-content p {
+    font-size: 19px;
+  }
+
+  .cta-section h3 {
+    font-size: 28px;
+  }
+
+  .app-button {
+    min-width: 220px;
+  }
+}
+
+/* Small mobile (max 480px) */
+@media (max-width: 480px) {
+  .confession-detail-landing {
+    padding: 10px;
+  }
+
+  .landing-container {
+    padding: 24px;
+    border-radius: 20px;
+  }
+
+  .landing-logo img {
+    width: 40px;
+    height: 40px;
+  }
+
+  .landing-logo h1 {
+    font-size: 26px;
+  }
+
+  .confession-icon {
+    font-size: 40px;
+  }
+
+  .confession-preview h2 {
+    font-size: 20px;
+  }
+
+  .confession-preview-content {
+    padding: 16px;
+  }
+
+  .confession-preview-content p {
+    font-size: 14px;
+  }
+
+  .cta-section h3 {
+    font-size: 19px;
+  }
+
+  .cta-section > p {
+    font-size: 14px;
+  }
+
+  .app-button {
+    padding: 12px 18px;
+  }
+
+  .app-button-icon {
+    width: 28px;
+    height: 28px;
+  }
+
+  .app-button-label {
+    font-size: 10px;
+  }
+
+  .app-button-store {
+    font-size: 16px;
+  }
+
+  .feature-icon {
+    font-size: 30px;
+  }
+
+  .feature-item h4 {
+    font-size: 16px;
+  }
+
+  .feature-item p {
+    font-size: 13px;
+  }
+
+  .landing-stats {
+    padding: 20px;
+    gap: 12px;
+  }
+
+  .stat-number {
+    font-size: 22px;
+  }
+
+  .stat-label {
+    font-size: 11px;
+  }
+
+  .landing-footer-links {
+    gap: 12px;
+  }
+}

@@ -21,6 +21,7 @@ export default function SendMessagePage() {
   const [success, setSuccess] = useState(false)
   const [darkMode, setDarkMode] = useState(false)
   const [scrolled, setScrolled] = useState(false)
+  const [showForm, setShowForm] = useState(false) // Navigation entre landing et formulaire
 
   // Dark mode et scroll effect
   useEffect(() => {
@@ -188,6 +189,160 @@ export default function SendMessagePage() {
     )
   }
 
+  // Landing Page (écran d'accueil avec 2 boutons)
+  const renderLandingPage = () => {
+    const playStoreUrl = import.meta.env.VITE_PLAY_STORE_URL
+    const appStoreUrl = import.meta.env.VITE_APP_STORE_URL
+
+    return (
+      <div className={`min-h-screen relative overflow-hidden transition-all duration-500 ${
+        darkMode
+          ? 'dark bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900'
+          : 'bg-gradient-to-br from-purple-50 via-pink-50 to-fuchsia-50'
+      }`}>
+        {/* Animated background effects */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className={`absolute top-0 -left-4 w-72 h-72 ${darkMode ? 'bg-purple-600' : 'bg-purple-300'} rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob`}></div>
+          <div className={`absolute top-0 -right-4 w-72 h-72 ${darkMode ? 'bg-pink-600' : 'bg-pink-300'} rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000`}></div>
+          <div className={`absolute -bottom-8 left-20 w-72 h-72 ${darkMode ? 'bg-fuchsia-600' : 'bg-fuchsia-300'} rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000`}></div>
+          <div className={`absolute bottom-20 right-20 w-72 h-72 ${darkMode ? 'bg-rose-600' : 'bg-rose-300'} rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-3000`}></div>
+        </div>
+
+        {/* Header */}
+        <header className={`sticky top-0 z-50 transition-all duration-300 ${
+          scrolled
+            ? `${darkMode ? 'bg-gray-900/95' : 'bg-white/95'} backdrop-blur-md shadow-lg border-b ${darkMode ? 'border-gray-700' : 'border-purple-100'}`
+            : `${darkMode ? 'bg-gray-900/50' : 'bg-white/50'} backdrop-blur-sm`
+        }`}>
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-between h-16 md:h-20">
+              {/* Logo */}
+              <div className="flex items-center space-x-3 cursor-pointer group animate-slideInLeft" onClick={() => navigate('/')}>
+                <div className="relative">
+                  <img
+                    src="/logo.PNG"
+                    alt="Weylo Logo"
+                    className="w-10 h-10 md:w-12 md:h-12 object-contain transform group-hover:scale-110 group-hover:rotate-6 transition-all duration-300"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full blur-md opacity-0 group-hover:opacity-30 transition-opacity duration-300"></div>
+                </div>
+                <div>
+                  <h1 className="text-xl md:text-2xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-purple-600 bg-clip-text text-transparent animate-gradient-x">
+                    Weylo
+                  </h1>
+                  <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Messages anonymes</p>
+                </div>
+              </div>
+
+              {/* Right - Dark Mode Toggle */}
+              <button
+                onClick={toggleDarkMode}
+                className={`p-2 rounded-lg transition-all duration-300 transform hover:scale-110 ${
+                  darkMode
+                    ? 'bg-gray-800 text-yellow-400 hover:bg-gray-700'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+                aria-label="Toggle dark mode"
+              >
+                {darkMode ? (
+                  <svg className="w-5 h-5 animate-spin-slow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                  </svg>
+                ) : (
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                  </svg>
+                )}
+              </button>
+            </div>
+          </div>
+        </header>
+
+        {/* Main Content */}
+        <main className="relative z-10 max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-16 flex flex-col items-center justify-center min-h-[calc(100vh-80px)]">
+          {/* Logo Icon */}
+          <div className="inline-block p-6 md:p-8 bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 rounded-full mb-8 animate-float shadow-2xl">
+            <svg className={`w-16 h-16 md:w-20 md:h-20 ${darkMode ? 'text-purple-400' : 'text-purple-600'} animate-pulse-slow`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+            </svg>
+          </div>
+
+          {/* Title */}
+          <h2 className={`text-3xl md:text-5xl font-black mb-3 text-center ${darkMode ? 'text-white' : 'text-gray-900'} animate-fadeInUp leading-tight`}>
+            Envoyez un message anonyme
+          </h2>
+
+          {/* Description */}
+          <p className={`text-base md:text-lg ${darkMode ? 'text-gray-300' : 'text-gray-600'} text-center mb-8 max-w-md animate-fadeInUp animation-delay-200`}>
+            Cette personne utilise <span className="font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">Weylo</span>. Pour lui envoyer un message anonyme, téléchargez l'application et écrivez à :
+          </p>
+
+          {/* Username Display */}
+          <div className={`${darkMode ? 'bg-gray-800/50 border-gray-700' : 'bg-white/80'} backdrop-blur-xl rounded-2xl shadow-2xl border ${darkMode ? '' : 'border-purple-100'} px-8 py-6 mb-10 animate-scaleIn animation-delay-400`}>
+            <p className={`text-4xl md:text-5xl font-black text-center bg-gradient-to-r from-purple-600 via-pink-600 to-purple-600 bg-clip-text text-transparent animate-gradient-x`}>
+              {recipientUsername || username}
+            </p>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex flex-col sm:flex-row gap-4 w-full max-w-lg animate-fadeInUp animation-delay-600">
+            {/* Télécharger Weylo Button */}
+            <button
+              onClick={() => {
+                // Détecter le système d'exploitation
+                const userAgent = navigator.userAgent || navigator.vendor || window.opera
+                if (/android/i.test(userAgent)) {
+                  window.open(playStoreUrl, '_blank')
+                } else if (/iPad|iPhone|iPod/.test(userAgent) && !window.MSStream) {
+                  window.open(appStoreUrl, '_blank')
+                } else {
+                  // Par défaut, afficher Play Store
+                  window.open(playStoreUrl, '_blank')
+                }
+              }}
+              className="flex-1 relative overflow-hidden bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold py-5 px-8 rounded-2xl shadow-2xl transform transition-all duration-500 hover:scale-105 hover:shadow-purple-500/50 group"
+            >
+              <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></span>
+              <span className="relative z-10 flex items-center justify-center gap-3 text-base md:text-lg">
+                <svg className="w-6 h-6 group-hover:rotate-12 group-hover:scale-110 transition-all duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                </svg>
+                <span className="group-hover:tracking-wider transition-all duration-300">Télécharger Weylo</span>
+              </span>
+            </button>
+
+            {/* Envoyer un message Button */}
+            <button
+              onClick={() => setShowForm(true)}
+              className={`flex-1 relative overflow-hidden ${darkMode ? 'bg-gray-800 border-gray-600 text-white hover:bg-gray-700' : 'bg-white border-purple-300 text-gray-900 hover:bg-purple-50'} border-2 font-bold py-5 px-8 rounded-2xl shadow-xl transform transition-all duration-500 hover:scale-105 group`}
+            >
+              <span className="relative z-10 flex items-center justify-center gap-3 text-base md:text-lg">
+                <svg className="w-6 h-6 group-hover:rotate-12 group-hover:scale-110 transition-all duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+                <span className="group-hover:tracking-wider transition-all duration-300">Envoyer un message</span>
+              </span>
+            </button>
+          </div>
+        </main>
+
+        {/* Footer */}
+        <footer className={`relative z-10 mt-auto pb-8 border-t ${darkMode ? 'border-gray-800' : 'border-purple-100'}`}>
+          <div className="max-w-2xl mx-auto px-4 text-center">
+            <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'} animate-fadeInUp animation-delay-1000`}>
+              © {new Date().getFullYear()} Weylo. Tous droits réservés.
+            </p>
+          </div>
+        </footer>
+      </div>
+    )
+  }
+
+  // Si on n'a pas encore cliqué sur "Envoyer un message", afficher la landing page
+  if (!showForm) {
+    return renderLandingPage()
+  }
+
   return (
     <div className={`min-h-screen relative overflow-hidden transition-all duration-500 ${
       darkMode
@@ -251,19 +406,19 @@ export default function SendMessagePage() {
                 )}
               </button>
 
-              {/* Home Button */}
+              {/* Back Button */}
               <button
-                onClick={() => navigate('/')}
+                onClick={() => setShowForm(false)}
                 className={`flex items-center gap-2 px-3 md:px-4 py-2 rounded-lg font-medium transition-all duration-300 transform hover:scale-105 ${
                   darkMode
-                    ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700'
-                    : 'bg-gradient-to-r from-purple-500 to-pink-600 text-white hover:from-purple-600 hover:to-pink-700'
+                    ? 'bg-gray-800 text-white hover:bg-gray-700'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 } shadow-lg hover:shadow-xl`}
               >
                 <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                 </svg>
-                <span className="hidden md:inline text-sm">Accueil</span>
+                <span className="hidden md:inline text-sm">Retour</span>
               </button>
             </div>
           </div>
